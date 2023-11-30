@@ -18,6 +18,7 @@
 # 13. max_depth
 # 14. cat_nan_mod = 'include' and 'as_category'
 # 15. модульные, юнит тесты тесты
+# 16. добавить sample_weight
 
 import logging
 import math
@@ -815,7 +816,8 @@ class MultiSplitDecisionTreeClassifier:
         return y
 
     def score(self, X: pd.DataFrame, y: pd.Series) -> float:
-        """Возвращает score. TODO"""
+        """Возвращает метрику accuracy."""
+        # TODO: добавить sample_weight
         if not self.__is_fitted:
             raise BaseException
 
