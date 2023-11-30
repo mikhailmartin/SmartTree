@@ -27,7 +27,7 @@ from graphviz import Digraph
 import pandas as pd
 from sklearn.metrics import accuracy_score
 
-from ._checkers import _check_init_params, _check_fit_params
+from ._checkers import _check_init_params, _check_fit_params, _check_score_params
 from ._tree_node import TreeNode
 from ._utils import cat_partitions, counter, get_thresholds, rank_partitions
 
@@ -819,15 +819,7 @@ class MultiSplitDecisionTreeClassifier:
         if not self.__is_fitted:
             raise BaseException
 
-        # TODO checker
-        if not isinstance(X, pd.DataFrame):
-            raise ValueError('X должен представлять собой pd.DataFrame.')
-
-        if not isinstance(y, pd.Series):
-            raise ValueError('y должен представлять собой pd.Series.')
-
-        if X.shape[0] != y.shape[0]:
-            raise ValueError('X и y должны быть одной длины.')
+        _check_score_params(self, X, y)
 
         score = accuracy_score(y, self.predict(X))
 
