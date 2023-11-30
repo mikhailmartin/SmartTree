@@ -24,6 +24,7 @@ import math
 from typing import Literal
 
 from graphviz import Digraph
+import numpy as np
 import pandas as pd
 from sklearn.metrics import accuracy_score
 
@@ -307,6 +308,7 @@ class MultiSplitDecisionTreeClassifier:
                 if self.__is_splittable(child_node):
                     self.splittable_leaf_nodes.append(child_node)
 
+            best_node.is_leaf = False
             best_node.split_type = split_type
             best_node.split_feature_name = split_feature_name
 
@@ -756,63 +758,90 @@ class MultiSplitDecisionTreeClassifier:
         if isinstance(X, pd.DataFrame):
             y_pred = [self.predict(point) for _, point in X.iterrows()]
         elif isinstance(X, pd.Series):
-            y_pred = self.__predict(self.__root, X)
+            y_pred_proba, samples = self.__predict_proba(self.__root, X)
+            y_pred = self.__class_names[y_pred_proba.argmax()]
         else:
             raise ValueError('X должен представлять собой pd.DataFrame или pd.Series.')
 
-        assert y_pred is not None, 'предсказывает None'
-
         return y_pred
 
-    def __predict(self, node: TreeNode, point: pd.Series) -> str:
+    def predict_proba(self, X: pd.DataFrame | pd.Series) -> np.array:
+        """TODO."""
+        if not self.__is_fitted:
+            raise BaseException
+
+        if isinstance(X, pd.DataFrame):
+            y_pred_proba = [self.predict_proba(point) for _, point in X.iterrows()]
+        elif isinstance(X, pd.Series):
+            y_pred_proba, samples = self.__predict_proba(self.__root, X)
+        else:
+            assert False
+
+        return y_pred_proba
+
+    def __predict_proba(
+        self,
+        node: TreeNode,
+        point: pd.Series,
+    ) -> tuple[np.ndarray, int]:
         """Предсказывает метку класса для точки данных."""
-        if pd.isna(point[node.split_feature_name]):
-            # TODO
-            pass
+        # Если мы не дошли до листа
+        if not node.is_leaf:
+            # но оказались в узле, в котором правило разделения задано по некоторому
+            # признаку, а точка данных в этом признаке содержит пропуск
+            if pd.isna(point[node.split_feature_name]):
+                # то идём в дочерние узлы за предсказаниями, а потом их взвешенно
+                # усредняем.
+                distribution_parent = np.array([0., 0., 0.])
+                samples_parent = 0
+                for child in node.childs:
+                    (
+                        y_pred_proba_child,
+                        samples_child,
+                    ) = self.__predict_proba(child, point)
+                    distribution_child = y_pred_proba_child * samples_child
+                    distribution_parent += distribution_child
+                    samples_parent += samples_child
+                y_pred_proba = distribution_parent / distribution_parent.sum()
+                samples = samples_parent
 
-        y = None
+            elif node.split_feature_name in self.__numerical_feature_names:
+                # ищем ту ветвь, по которой нужно идти
+                threshold = float(node.childs[0].feature_value[0][3:])
+                if point[node.split_feature_name] <= threshold:
+                    y_pred_proba, samples = self.__predict_proba(node.childs[0], point)
+                elif point[node.split_feature_name] > threshold:
+                    y_pred_proba, samples = self.__predict_proba(node.childs[1], point)
+                else:
+                    assert False
 
-        # если мы дошли до листа
-        if node.split_feature_name is None:
-            y = node.label
-            assert y is not None, 'label = None'
+            elif (
+                node.split_feature_name in self.__categorical_feature_names
+                or node.split_feature_name in self.__rank_feature_names
+            ):
+                # ищем ту ветвь, по которой нужно идти
+                for child in node.childs:
+                    # если нашли
+                    if child.feature_value == point[node.split_feature_name]:
+                        y_pred_proba, samples = self.__predict_proba(child, point)
+                        # то можно заканчивать пропуск
+                        break
+                else:
+                    # если такой ветви нет TODO
+                    distribution = np.array(node.distribution)
+                    y_pred_proba = distribution / distribution.sum()
+                    samples = node.samples
 
-        elif node.split_feature_name in self.__numerical_feature_names:
-            # ищем ту ветвь, по которой нужно идти
-            threshold = float(node.childs[0].feature_value[0][3:])
-            if point[node.split_feature_name] <= threshold:
-                y = self.__predict(node.childs[0], point)
-            elif point[node.split_feature_name] > threshold:
-                y = self.__predict(node.childs[1], point)
             else:
-                print('split_feature_name', node.split_feature_name)
-                print('threshold', threshold)
-                print('point[split_feature_name]', point[node.split_feature_name])
                 assert False
 
-        elif (
-            node.split_feature_name in self.__categorical_feature_names
-            or node.split_feature_name in self.__rank_feature_names
-        ):
-            # ищем ту ветвь, по которой нужно идти
-            for child in node.childs:
-                if child.feature_value == point[node.split_feature_name]:
-                    y = self.__predict(child, point)
-                    break
-            else:
-                # если такой ветви нет
-                if y is None:
-                    y = node.label
-
+        # Если мы дошли до листа
         else:
-            assert False, (
-                'node.split_feature и не None, и не в `categorical_feature_names`'
-                ' и не в `numerical_feature_names`'
-            )
+            distribution = np.array(node.distribution)
+            y_pred_proba = distribution / distribution.sum()
+            samples = node.samples
 
-        assert y is not None, 'y is None'
-
-        return y
+        return y_pred_proba, samples
 
     def score(
         self,

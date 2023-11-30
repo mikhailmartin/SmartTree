@@ -13,6 +13,7 @@ class TreeNode:
         _available_feature_names,
     ) -> None:
         self.number = number
+        self.is_leaf = True
         self.split_type = None
         self.split_feature_name = None
         self.feature_value = None
