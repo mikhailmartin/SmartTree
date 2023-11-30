@@ -816,6 +816,9 @@ class MultiSplitDecisionTreeClassifier:
 
     def score(self, X: pd.DataFrame, y: pd.Series) -> float:
         """Возвращает score. TODO"""
+        if not self.__is_fitted:
+            raise BaseException
+
         # TODO checker
         if not isinstance(X, pd.DataFrame):
             raise ValueError('X должен представлять собой pd.DataFrame.')
