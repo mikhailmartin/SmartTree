@@ -2,22 +2,21 @@
 Кастомная реализация дерева решений, которая может работать с категориальными и
 численными признаками.
 """
-# TODO
-# 1. Алгоритм предварительной сортировки
-# 2. Дополнение numerical_feature_names
-# 3. logging
-# 4. доделать 'as_category'
-# 5. сделать min_samples_leaf
-# 6. описать листья дерева через правила и предиктить по ним
-# 7. поменять rank_feature_names как numerical
-# 8. feature_value в numerical_node
-# 9. узлы через именованные кортежи? (оптимизация по оперативке)
-# 10. raises
-# 11. None в аннотация типов
-# 12. раскрасить визуализацию дерева
-# 13. max_depth
-# 14. cat_nan_mod = 'include' and 'as_category'
-# 15. модульные, юнит тесты тесты
+# TODO:
+# Алгоритм предварительной сортировки
+# Дополнение numerical_feature_names
+# logging
+# доделать 'as_category'
+# описать листья дерева через правила и предиктить по ним
+# поменять rank_feature_names как numerical
+# feature_value в numerical_node
+# узлы через именованные кортежи? (оптимизация по оперативке)
+# raises
+# None в аннотация типов
+# раскрасить визуализацию дерева
+# max_depth
+# cat_nan_mod = 'include' and 'as_category'
+# модульные, юнит тесты тесты
 
 import logging
 import math
@@ -30,7 +29,7 @@ from sklearn.metrics import accuracy_score
 
 from ._checkers import _check_init_params, _check_fit_params, _check_score_params
 from ._tree_node import TreeNode
-from ._utils import cat_partitions, counter, get_thresholds, rank_partitions
+from ._utils import cat_partitions, get_thresholds, rank_partitions
 
 
 logging.basicConfig(
@@ -135,6 +134,8 @@ class MultiSplitDecisionTreeClassifier:
         self.__categorical_nan_mode = categorical_nan_mode
 
         self.__is_fitted = False
+
+        self.__node_counter = 0
 
     def __repr__(self):
         repr_ = []
@@ -334,7 +335,6 @@ class MultiSplitDecisionTreeClassifier:
             node._best_split = best_split_results
             return True
 
-    @counter
     def __create_node(
         self,
         mask: pd.Series,
@@ -351,7 +351,7 @@ class MultiSplitDecisionTreeClassifier:
         label = self.y[mask].value_counts().index[0]
 
         tree_node = TreeNode(
-            self.__create_node.count,
+            self.__node_counter,
             samples,
             distribution,
             impurity,
@@ -360,6 +360,8 @@ class MultiSplitDecisionTreeClassifier:
             hierarchy,
             available_feature_names,
         )
+
+        self.__node_counter += 1
 
         return tree_node
 
