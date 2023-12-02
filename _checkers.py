@@ -1,3 +1,7 @@
+# TODO:
+# подумать над шаблоном current_value_message
+
+
 import pandas as pd
 
 
@@ -18,22 +22,28 @@ def _check_init_params(
 ) -> None:
     """Проверяет параметры инициализации экземпляра класса дерева."""
     if criterion not in ['entropy', 'gini']:
-        raise ValueError('Для `criterion` доступны значения "entropy" и "gini".')
+        raise ValueError(
+            'Для `criterion` доступны значения "entropy" и "gini".'
+            f' Текущее значение `criterion` = {criterion}.'
+        )
 
     if max_depth:
         if not isinstance(max_depth, int):
-            raise ValueError('`max_depth` должен представлять собой int.')
+            raise ValueError(
+                '`max_depth` должен представлять собой int.'
+                f' Текущее значение `max_depth` = {max_depth}.'
+            )
 
     if not isinstance(min_samples_split, int) or min_samples_split <= 1:
         raise ValueError(
-            '`min_samples_split` должен представлять собой int и'
-            ' быть строго больше 1.'
+            '`min_samples_split` должен представлять собой int и быть строго больше 1.'
+            f' Текущее значение `min_samples_split` = {min_samples_split}.'
         )
 
     if not isinstance(min_samples_leaf, int) or min_samples_leaf <= 0:
         raise ValueError(
-            '`min_samples_leaf` должен представлять собой int и '
-            'быть строго больше 0.'
+            '`min_samples_leaf` должен представлять собой int и быть строго больше 0.'
+            f' Текущее значение `min_samples_leaf` = {min_samples_leaf}.'
         )
 
     if (
@@ -49,11 +59,14 @@ def _check_init_params(
         raise ValueError(
             '`min_impurity_decrease` должен представлять собой float'
             ' и быть неотрицательным.'
+            f' Текущее значение `min_impurity_decrease` = {min_impurity_decrease}.'
         )
 
     if min_samples_split < 2 * min_samples_leaf:
         raise ValueError(
             '`min_samples_split` должен быть строго в 2 раза больше `min_samples_leaf`.'
+            f' Текущее значение `min_samples_split` = {min_samples_split},'
+            f' `min_samples_leaf` = {min_samples_leaf}.'
         )
 
     if (
@@ -136,11 +149,13 @@ def _check_init_params(
     if numerical_nan_mode not in ['include', 'min', 'max']:
         raise ValueError(
             'Для `numerical_nan_mode` доступны значения "include", "min" и "max".'
+            f' Текущее значение `numerical_nan_mode` = {numerical_nan_mode}.'
         )
 
     if categorical_nan_mode not in ['include']:
         raise ValueError(
             'Для `categorical_nan_mode` доступно значение "include".'
+            f' Текущее значение `categorical_nan_mode` = {categorical_nan_mode}.'
         )
 
 
