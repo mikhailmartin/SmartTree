@@ -8,6 +8,7 @@ class TreeNode:
         impurity: float,
         label: str,
         # технические атрибуты
+        _depth,
         _mask,
         _hierarchy,
         _available_feature_names,
@@ -23,6 +24,7 @@ class TreeNode:
         self.impurity = impurity
         self.label = label
         # технические атрибуты
+        self._depth = _depth
         self._mask = _mask
         self._hierarchy = _hierarchy
         self._available_feature_names = _available_feature_names

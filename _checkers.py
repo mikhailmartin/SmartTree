@@ -3,6 +3,7 @@ import pandas as pd
 
 def _check_init_params(
     criterion,
+    max_depth,
     min_samples_split,
     min_samples_leaf,
     min_impurity_decrease,
@@ -17,6 +18,10 @@ def _check_init_params(
     """Проверяет параметры инициализации экземпляра класса дерева."""
     if criterion not in ['entropy', 'gini']:
         raise ValueError('Для `criterion` доступны значения "entropy" и "gini".')
+
+    if max_depth:
+        if not isinstance(max_depth, int):
+            raise ValueError('`max_depth` должен представлять собой int.')
 
     if not isinstance(min_samples_split, int) or min_samples_split <= 1:
         raise ValueError(

@@ -14,9 +14,13 @@
 # raises
 # None в аннотация типов
 # раскрасить визуализацию дерева
-# max_depth
 # cat_nan_mod = 'include' and 'as_category'
 # модульные, юнит тесты тесты
+# criterion='log_loss'
+# min_samples_split: float
+# min_samples_leaf: float
+# min_weight_fraction_leaf
+# max_leaf_nodes
 
 import logging
 import math
@@ -55,6 +59,7 @@ class MultiSplitDecisionTreeClassifier:
         self,
         *,
         criterion: Literal['gini', 'entropy'] = 'gini',
+        max_depth: int | None = None,
         min_samples_split: int = 2,
         min_samples_leaf: int = 1,
         min_impurity_decrease: float = .0,
@@ -68,6 +73,7 @@ class MultiSplitDecisionTreeClassifier:
     ) -> None:
         _check_init_params(
             criterion,
+            max_depth,
             min_samples_split,
             min_samples_leaf,
             min_impurity_decrease,
@@ -89,6 +95,7 @@ class MultiSplitDecisionTreeClassifier:
                 self.__impurity = self.__entropy
 
         # критерии остановки ветвления
+        self.__max_depth = max_depth
         self.__min_samples_split = min_samples_split
         self.__min_samples_leaf = min_samples_leaf
         self.__min_impurity_decrease = min_impurity_decrease
@@ -144,6 +151,8 @@ class MultiSplitDecisionTreeClassifier:
         # добавляем его в репрезентацию
         if self.__criterion != 'gini':
             repr_.append(f'criterion={self.__criterion}')
+        if self.__max_depth:
+            repr_.append(f'max_depth={self.__max_depth}')
         if self.__min_samples_split != 2:
             repr_.append(f'min_samples_split={self.__min_samples_split}')
         if self.__min_samples_leaf != 1:
@@ -261,7 +270,12 @@ class MultiSplitDecisionTreeClassifier:
                 assert False
 
         root_mask = y.apply(lambda x: True)
-        self.__root = self.__create_node(root_mask, hierarchy, available_feature_names)
+        self.__root = self.__create_node(
+            mask=root_mask,
+            hierarchy=hierarchy,
+            available_feature_names=available_feature_names,
+            depth=0,
+        )
 
         if self.__is_splittable(self.__root):
             self.splittable_leaf_nodes.append(self.__root)
@@ -299,9 +313,10 @@ class MultiSplitDecisionTreeClassifier:
                         assert False
 
                 child_node = self.__create_node(
-                    child_mask,
-                    best_node._hierarchy,
-                    best_node._available_feature_names,
+                    mask=child_mask,
+                    hierarchy=best_node._hierarchy,
+                    available_feature_names=best_node._available_feature_names,
+                    depth=best_node._depth+1,
                 )
                 child_node.feature_value = feature_value
 
@@ -321,6 +336,9 @@ class MultiSplitDecisionTreeClassifier:
 
     def __is_splittable(self, node: TreeNode) -> bool:
         """Проверяет, может ли узел дерева быть разделён."""
+        if self.__max_depth and node._depth >= self.__max_depth:
+            return False
+
         if node.samples < self.__min_samples_split:
             return False
 
@@ -340,6 +358,7 @@ class MultiSplitDecisionTreeClassifier:
         mask: pd.Series,
         hierarchy: dict[str, str | list[str]],
         available_feature_names: list[str],
+        depth: int,
     ) -> TreeNode:
         """Создаёт узел дерева."""
         hierarchy = hierarchy.copy()
@@ -356,6 +375,7 @@ class MultiSplitDecisionTreeClassifier:
             distribution,
             impurity,
             label,
+            depth,
             mask,
             hierarchy,
             available_feature_names,
@@ -868,6 +888,7 @@ class MultiSplitDecisionTreeClassifier:
         """Возвращает параметры этого классификатора."""
         return {
             'criterion': self.__criterion,
+            'max_depth': self.__max_depth,
             'min_samples_split': self.__min_samples_split,
             'min_samples_leaf': self.__min_samples_leaf,
             'min_impurity_decrease': self.__min_impurity_decrease,
