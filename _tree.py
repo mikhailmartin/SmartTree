@@ -21,6 +21,7 @@
 # min_samples_leaf: float
 # min_weight_fraction_leaf
 # max_leaf_nodes
+# совместимость с GridSearchCV (нужна picklable)
 
 import logging
 import math
@@ -62,8 +63,9 @@ class MultiSplitDecisionTreeClassifier:
         max_depth: int | None = None,
         min_samples_split: int = 2,
         min_samples_leaf: int = 1,
+        max_leaf_nodes: int | float = float('+inf'),
         min_impurity_decrease: float = .0,
-        max_childs: int | None = None,
+        max_childs: int | float = float('+inf'),
         numerical_feature_names: list[str] | str | None = None,
         categorical_feature_names: list[str] | str | None = None,
         rank_feature_names: dict[str, list] | None = None,
@@ -76,6 +78,7 @@ class MultiSplitDecisionTreeClassifier:
             max_depth,
             min_samples_split,
             min_samples_leaf,
+            max_leaf_nodes,
             min_impurity_decrease,
             max_childs,
             numerical_feature_names,
@@ -98,6 +101,7 @@ class MultiSplitDecisionTreeClassifier:
         self.__max_depth = max_depth
         self.__min_samples_split = min_samples_split
         self.__min_samples_leaf = min_samples_leaf
+        self.__max_leaf_nodes = max_leaf_nodes
         self.__min_impurity_decrease = min_impurity_decrease
         # критерий ограничения ветвления
         self.__max_childs = max_childs
@@ -143,6 +147,7 @@ class MultiSplitDecisionTreeClassifier:
         self.__is_fitted = False
 
         self.__node_counter = 0
+        self.__leaf_counter = 0
 
     def __repr__(self):
         repr_ = []
@@ -157,9 +162,11 @@ class MultiSplitDecisionTreeClassifier:
             repr_.append(f'min_samples_split={self.__min_samples_split}')
         if self.__min_samples_leaf != 1:
             repr_.append(f'min_samples_split={self.__min_samples_split}')
+        if self.__max_leaf_nodes != float('+inf'):
+            repr_.append(f'max_leaf_nodes={self.__max_leaf_nodes}')
         if self.__min_impurity_decrease != .0:
             repr_.append(f'min_impurity_decrease={self.__min_impurity_decrease}')
-        if self.__max_childs:
+        if self.__max_childs != float('+inf'):
             repr_.append(f'max_childs={self.__max_childs}')
         if self.__numerical_feature_names:
             repr_.append(f'numerical_feature_names={self.__numerical_feature_names}')
@@ -280,7 +287,10 @@ class MultiSplitDecisionTreeClassifier:
         if self.__is_splittable(self.__root):
             self.splittable_leaf_nodes.append(self.__root)
 
-        while len(self.splittable_leaf_nodes) > 0:
+        while (
+            len(self.splittable_leaf_nodes) > 0
+            and self.__leaf_counter < self.__max_leaf_nodes
+        ):
 
             # сортируем по листья по убыванию прироста информативности при лучшем
             # разбиении листа
@@ -319,6 +329,7 @@ class MultiSplitDecisionTreeClassifier:
                     depth=best_node._depth+1,
                 )
                 child_node.feature_value = feature_value
+                self.__leaf_counter += 1
 
                 best_node.childs.append(child_node)
                 if self.__is_splittable(child_node):
@@ -327,6 +338,7 @@ class MultiSplitDecisionTreeClassifier:
             best_node.is_leaf = False
             best_node.split_type = split_type
             best_node.split_feature_name = split_feature_name
+            self.__leaf_counter -= 1
 
         del self.X
         del self.y
@@ -557,19 +569,19 @@ class MultiSplitDecisionTreeClassifier:
         available_feature_values = sorted(available_feature_values)
 
         # получаем список всех возможных разбиений
-        partitions = [
-            partition
-            for partition in cat_partitions(available_feature_values)
-        ]
-        if self.__max_childs:
-            partitions = [
-                partition
-                for partition in cat_partitions(available_feature_values)
-                if len(partition) <= self.__max_childs
-            ]
-        else:
-            # убираем первый вариант: он без разбиений
-            partitions = partitions[1:]
+        partitions = []
+        for partition in cat_partitions(available_feature_values):
+            # если разбиение - на самом деле не разбиение
+            if len(partition) < 2:
+                continue
+            # ограничение ветвления
+            if len(partition) > self.__max_childs:
+                continue
+            # если после разбиения количество листьев превысит ограничение
+            if self.__leaf_counter + len(partition) > self.__max_leaf_nodes:
+                continue
+
+            partitions.append(partition)
 
         best_inf_gain = float('-inf')
         best_feature_values = None
@@ -891,6 +903,7 @@ class MultiSplitDecisionTreeClassifier:
             'max_depth': self.__max_depth,
             'min_samples_split': self.__min_samples_split,
             'min_samples_leaf': self.__min_samples_leaf,
+            'max_leaf_nodes': self.__max_leaf_nodes,
             'min_impurity_decrease': self.__min_impurity_decrease,
             'max_childs': self.__max_childs,
             'numerical_feature_names': self.__numerical_feature_names,

@@ -6,6 +6,7 @@ def _check_init_params(
     max_depth,
     min_samples_split,
     min_samples_leaf,
+    max_leaf_nodes,
     min_impurity_decrease,
     max_childs,
     numerical_feature_names,
@@ -35,6 +36,15 @@ def _check_init_params(
             'быть строго больше 0.'
         )
 
+    if (
+        not (isinstance(max_leaf_nodes, int) or max_leaf_nodes == float('+inf'))
+        or max_leaf_nodes < 2
+    ):
+        raise ValueError(
+            '`max_leaf_nodes` должен представлять собой int и быть строго больше 2.'
+            f' Текущее значение `max_leaf_nodes` = {max_leaf_nodes}.'
+        )
+
     if not isinstance(min_impurity_decrease, float) or min_impurity_decrease < 0:
         raise ValueError(
             '`min_impurity_decrease` должен представлять собой float'
@@ -46,10 +56,13 @@ def _check_init_params(
             '`min_samples_split` должен быть строго в 2 раза больше `min_samples_leaf`.'
         )
 
-    # TODO проверить условия
-    if max_childs and not isinstance(max_childs, int) or isinstance(max_childs, int) and max_childs <= 1:
+    if (
+        not (isinstance(max_childs, int) or max_childs == float('+inf'))
+        or max_childs < 2
+    ):
         raise ValueError(
-            '`max_childs` должен представлять собой int и быть строго больше 1.'
+            '`max_childs` должен представлять собой int и быть строго больше 2.'
+            f' Текущее значение `max_childs` = {max_childs}.'
         )
 
     if numerical_feature_names:
