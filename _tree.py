@@ -249,6 +249,9 @@ class MultiSplitDecisionTreeClassifier:
 
         if not self.__numerical_feature_names:
             self.__numerical_feature_names = X.select_dtypes('number').columns.tolist()
+        if not self.__categorical_feature_names:
+            self.__categorical_feature_names = (
+                X.select_dtypes(include=['object', 'category']).columns.tolist())
 
         match self.__numerical_feature_names:
             case 'min':
