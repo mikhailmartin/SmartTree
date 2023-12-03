@@ -34,9 +34,14 @@ def _check_init_params(
                 f' Текущее значение `max_depth` = {max_depth}.'
             )
 
-    if not isinstance(min_samples_split, int) or min_samples_split <= 1:
+    if (
+        not (isinstance(min_samples_split, (int, float)))
+        or (isinstance(min_samples_split, int) and min_samples_split < 2)
+        or (isinstance(min_samples_split, float) and 0 >= min_samples_split >= 1)
+    ):
         raise ValueError(
-            '`min_samples_split` должен представлять собой int и быть строго больше 1.'
+            '`min_samples_split` должен представлять собой либо int и лежать в'
+            ' диапазоне [2, +inf), либо float и лежать в диапазоне (0, 1).'
             f' Текущее значение `min_samples_split` = {min_samples_split}.'
         )
 

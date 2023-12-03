@@ -17,10 +17,8 @@
 # cat_nan_mod = 'include' and 'as_category'
 # модульные, юнит тесты тесты
 # criterion='log_loss'
-# min_samples_split: float
 # min_samples_leaf: float
 # min_weight_fraction_leaf
-# max_leaf_nodes
 # совместимость с GridSearchCV (нужна picklable)
 
 import logging
@@ -61,7 +59,7 @@ class MultiSplitDecisionTreeClassifier:
         *,
         criterion: Literal['gini', 'entropy'] = 'gini',
         max_depth: int | None = None,
-        min_samples_split: int = 2,
+        min_samples_split: int | float = 2,
         min_samples_leaf: int = 1,
         max_leaf_nodes: int | float = float('+inf'),
         min_impurity_decrease: float = .0,
@@ -240,6 +238,9 @@ class MultiSplitDecisionTreeClassifier:
 
         self.__feature_names = X.columns.tolist()
         self.__class_names = sorted(y.unique())
+
+        if isinstance(self.__min_samples_split, float):
+            self.__min_samples_split = math.ceil(self.__min_samples_split * X.shape[0])
 
         # инициализируем feature_importances всеми признаками и дефолтным значением 0
         for feature_name in self.__feature_names:
