@@ -16,7 +16,6 @@
 # раскрасить визуализацию дерева
 # cat_nan_mod = 'include' and 'as_category'
 # модульные, юнит тесты тесты
-# criterion='log_loss'
 # min_weight_fraction_leaf
 # совместимость с GridSearchCV (нужна picklable)
 
@@ -56,7 +55,7 @@ class MultiSplitDecisionTreeClassifier:
     def __init__(
         self,
         *,
-        criterion: Literal['gini', 'entropy'] = 'gini',
+        criterion: Literal['gini', 'entropy', 'log_loss'] = 'gini',
         max_depth: int | None = None,
         min_samples_split: int | float = 2,
         min_samples_leaf: int | float = 1,
@@ -91,7 +90,7 @@ class MultiSplitDecisionTreeClassifier:
         match criterion:
             case 'gini':
                 self.__impurity = self.__gini_index
-            case 'entropy':
+            case 'entropy' | 'log_loss':
                 self.__impurity = self.__entropy
 
         # критерии остановки ветвления

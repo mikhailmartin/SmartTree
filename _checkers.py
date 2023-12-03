@@ -21,9 +21,9 @@ def _check_init_params(
     categorical_nan_mode,
 ) -> None:
     """Проверяет параметры инициализации экземпляра класса дерева."""
-    if criterion not in ['entropy', 'gini']:
+    if criterion not in ['entropy', 'gini', 'log_loss']:
         raise ValueError(
-            'Для `criterion` доступны значения "entropy" и "gini".'
+            'Для `criterion` доступны значения "entropy", "gini" и "log_loss".'
             f' Текущее значение `criterion` = {criterion}.'
         )
 
