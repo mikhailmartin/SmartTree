@@ -45,9 +45,14 @@ def _check_init_params(
             f' Текущее значение `min_samples_split` = {min_samples_split}.'
         )
 
-    if not isinstance(min_samples_leaf, int) or min_samples_leaf <= 0:
+    if (
+        not isinstance(min_samples_leaf, (int, float))
+        or (isinstance(min_samples_leaf, int) and min_samples_leaf < 1)
+        or (isinstance(min_samples_leaf, float) and 0 >= min_samples_leaf >= 1)
+    ):
         raise ValueError(
-            '`min_samples_leaf` должен представлять собой int и быть строго больше 0.'
+            '`min_samples_leaf` должен представлять собой либо int и лежать в'
+            ' диапазоне [1, +inf), либо float и лежать в диапазоне (0, 1).'
             f' Текущее значение `min_samples_leaf` = {min_samples_leaf}.'
         )
 
