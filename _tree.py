@@ -116,8 +116,6 @@ class MultiSplitDecisionTreeClassifier:
             self.__numerical_feature_names = [numerical_feature_names]
         elif isinstance(numerical_feature_names, list):
             self.__numerical_feature_names = numerical_feature_names
-        else:
-            assert False
 
         if categorical_feature_names is None:
             self.__categorical_feature_names = []
@@ -125,15 +123,11 @@ class MultiSplitDecisionTreeClassifier:
             self.__categorical_feature_names = [categorical_feature_names]
         elif isinstance(categorical_feature_names, list):
             self.__categorical_feature_names = categorical_feature_names
-        else:
-            assert False
 
         if rank_feature_names is None:
             self.__rank_feature_names = {}
         elif isinstance(rank_feature_names, dict):
             self.__rank_feature_names = rank_feature_names
-        else:
-            assert False
 
         self.__hierarchy = hierarchy if hierarchy else {}
 
