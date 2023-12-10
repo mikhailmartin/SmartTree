@@ -19,7 +19,6 @@
 # min_weight_fraction_leaf
 # совместимость с GridSearchCV (нужна picklable)
 
-import logging
 import math
 from typing import Literal
 
@@ -28,17 +27,11 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import accuracy_score
 
-from ._checkers import _check_init_params, _check_fit_params, _check_score_params
-from ._tree_node import TreeNode
-from ._utils import cat_partitions, get_thresholds, rank_partitions
-
-
-logging.basicConfig(
-    level=logging.DEBUG,
-    filename='log.log',
-    filemode='w',
-    format='%(asctime)s %(levelname)s %(message)s',
-)
+from multi_split_decision_tree._checkers import (
+    _check_init_params, _check_fit_params, _check_score_params)
+from multi_split_decision_tree._tree_node import TreeNode
+from multi_split_decision_tree._utils import (
+    cat_partitions, get_thresholds, rank_partitions)
 
 
 class MultiSplitDecisionTreeClassifier:
