@@ -1,9 +1,9 @@
-# import sys
-# sys.path.append(sys.path[0] + '/../')
+import sys
+sys.path.append(sys.path[0] + '/../')
 from contextlib import nullcontext as does_not_raise
 import re
 
-from ._checkers import _check_init_params
+from multi_split_decision_tree._checkers import _check_init_params
 
 import pytest
 from pytest import param, raises
@@ -67,7 +67,7 @@ def test_init_param__criterion(criterion, expected):
                     ' Текущее значение `max_depth` = string.'
                 ),
             ),
-        )
+        ),
     ],
 )
 def test_init_param__max_depth(max_depth, expected):
