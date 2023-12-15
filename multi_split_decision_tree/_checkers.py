@@ -5,9 +5,6 @@
 # проверка y в __check_score_params
 
 
-import pandas as pd
-
-
 def _check_init_params(
     criterion='gini',
     max_depth=None,
@@ -188,95 +185,3 @@ def _check_init_params(
             'Для `categorical_nan_mode` доступно значение "include".'
             f' Текущее значение `categorical_nan_mode` = {categorical_nan_mode}.'
         )
-
-
-def _check_fit_params(X, y, tree):
-    if not isinstance(X, pd.DataFrame):
-        raise ValueError('X должен представлять собой pd.DataFrame.')
-
-    if not isinstance(y, pd.Series):
-        raise ValueError('y должен представлять собой pd.Series.')
-
-    if X.shape[0] != y.shape[0]:
-        raise ValueError('X и y должны быть одной длины.')
-
-    setted_feature_names = []
-    if tree.categorical_feature_names:
-        for cat_feature_name in tree.categorical_feature_names:
-            if cat_feature_name not in X.columns:
-                raise ValueError(
-                    f'`categorical_feature_names` содержит признак {cat_feature_name},'
-                    ' которого нет в обучающих данных.'
-                )
-        setted_feature_names += tree.categorical_feature_names
-    if tree.rank_feature_names:
-        for rank_feature_name in tree.rank_feature_names.keys():
-            if rank_feature_name not in X.columns:
-                raise ValueError(
-                    f'`rank_feature_names` содержит признак {rank_feature_name},'
-                    ' которого нет в обучающих данных.'
-                )
-        setted_feature_names += list(tree.rank_feature_names.keys())
-    if tree.numerical_feature_names:
-        for num_feature_name in tree.numerical_feature_names:
-            if num_feature_name not in X.columns:
-                raise ValueError(
-                    f'`numerical_feature_names` содержит признак {num_feature_name},'
-                    ' которого нет в обучающих данных.'
-                )
-        setted_feature_names += tree.numerical_feature_names
-    # for feature_name in X.columns:
-    #     if feature_name not in setted_feature_names:
-    #         raise ValueError(
-    #             f'Обучающие данные содержат признак `{feature_name}`, который не'
-    #             ' определён ни в `categorical_feature_names`, ни в'
-    #             ' `rank_feature_names`, ни в `numerical_feature_names`.'
-    #         )
-
-def _check_score_params(tree, X, y):
-    if not isinstance(X, pd.DataFrame):
-        raise ValueError('X должен представлять собой pd.DataFrame.')
-
-    if not isinstance(y, pd.Series):
-        raise ValueError('y должен представлять собой pd.Series.')
-
-    if X.shape[0] != y.shape[0]:
-        raise ValueError('X и y должны быть одной длины.')
-
-    fitted_feature_names = tree.feature_names
-    X_feature_names = X.columns
-    if len(fitted_feature_names) != len(X_feature_names):
-        message = (
-            'Названия признаков должны совпадать с теми,'
-            ' что были переданы во время обучения.\n'
-        )
-        fitted_feature_names_set = set(fitted_feature_names)
-        X_feature_names_set = set(X_feature_names)
-
-        unexpected_names = sorted(X_feature_names_set - fitted_feature_names_set)
-        missing_names = sorted(fitted_feature_names_set - X_feature_names_set)
-
-        def add_names(names):
-            output = ''
-            max_n_names = 5
-            for i, name in enumerate(names):
-                if i >= max_n_names:
-                    output += '- ...\n'
-                    break
-                output += f'- {name}\n'
-            return output
-
-        if unexpected_names:
-            message += 'Названия признаков, что не были переданы во время обучения:\n'
-            message += add_names(unexpected_names)
-
-        if missing_names:
-            message += (
-                'Названия признаков, что были переданы во время обучения,'
-                ' но сейчас отсутствуют:\n'
-            )
-            message += add_names(missing_names)
-
-        raise ValueError(message)
-
-    # TODO: проверка y

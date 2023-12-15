@@ -15,7 +15,6 @@
 # None в аннотация типов
 # раскрасить визуализацию дерева
 # cat_nan_mod = 'include' and 'as_category'
-# модульные, юнит тесты тесты
 # min_weight_fraction_leaf
 # совместимость с GridSearchCV (нужна picklable)
 
@@ -468,12 +467,6 @@ class MultiSplitDecisionTreeClassifier:
                     feature_values,
                     child_masks,
                 ) = self.__best_rank_split(parent_mask, split_feature_name)
-            else:
-                print(self.__numerical_feature_names)
-                print(self.__categorical_feature_names)
-                print(self.__rank_feature_names)
-                print(split_feature_name)
-                assert False
 
             if best_inf_gain < inf_gain:
                 best_inf_gain = inf_gain
