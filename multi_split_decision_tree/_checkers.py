@@ -2,6 +2,7 @@
 # подумать над шаблоном current_value_message
 # Текущее значение = string_type
 # Стараться проверить сразу всё
+# проверка y в __check_score_params
 
 
 import pandas as pd
@@ -188,6 +189,49 @@ def _check_init_params(
             f' Текущее значение `categorical_nan_mode` = {categorical_nan_mode}.'
         )
 
+
+def _check_fit_params(X, y, tree):
+    if not isinstance(X, pd.DataFrame):
+        raise ValueError('X должен представлять собой pd.DataFrame.')
+
+    if not isinstance(y, pd.Series):
+        raise ValueError('y должен представлять собой pd.Series.')
+
+    if X.shape[0] != y.shape[0]:
+        raise ValueError('X и y должны быть одной длины.')
+
+    setted_feature_names = []
+    if tree.categorical_feature_names:
+        for cat_feature_name in tree.categorical_feature_names:
+            if cat_feature_name not in X.columns:
+                raise ValueError(
+                    f'`categorical_feature_names` содержит признак {cat_feature_name},'
+                    ' которого нет в обучающих данных.'
+                )
+        setted_feature_names += tree.categorical_feature_names
+    if tree.rank_feature_names:
+        for rank_feature_name in tree.rank_feature_names.keys():
+            if rank_feature_name not in X.columns:
+                raise ValueError(
+                    f'`rank_feature_names` содержит признак {rank_feature_name},'
+                    ' которого нет в обучающих данных.'
+                )
+        setted_feature_names += list(tree.rank_feature_names.keys())
+    if tree.numerical_feature_names:
+        for num_feature_name in tree.numerical_feature_names:
+            if num_feature_name not in X.columns:
+                raise ValueError(
+                    f'`numerical_feature_names` содержит признак {num_feature_name},'
+                    ' которого нет в обучающих данных.'
+                )
+        setted_feature_names += tree.numerical_feature_names
+    # for feature_name in X.columns:
+    #     if feature_name not in setted_feature_names:
+    #         raise ValueError(
+    #             f'Обучающие данные содержат признак `{feature_name}`, который не'
+    #             ' определён ни в `categorical_feature_names`, ни в'
+    #             ' `rank_feature_names`, ни в `numerical_feature_names`.'
+    #         )
 
 def _check_score_params(tree, X, y):
     if not isinstance(X, pd.DataFrame):
