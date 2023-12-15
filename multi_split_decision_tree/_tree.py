@@ -27,8 +27,7 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import accuracy_score
 
-from multi_split_decision_tree._checkers import (
-    _check_init_params, _check_fit_params, _check_score_params)
+from multi_split_decision_tree._checkers import _check_init_params, _check_fit_params
 from multi_split_decision_tree._tree_node import TreeNode
 from multi_split_decision_tree._utils import (
     cat_partitions, get_thresholds, rank_partitions)
@@ -868,6 +867,52 @@ class MultiSplitDecisionTreeClassifier:
 
         return y_pred_proba, samples
 
+    def __check_score_params(self, X, y, sample_weight):
+        if not isinstance(X, pd.DataFrame):
+            raise ValueError('X должен представлять собой pd.DataFrame.')
+
+        if not isinstance(y, pd.Series):
+            raise ValueError('y должен представлять собой pd.Series.')
+
+        if X.shape[0] != y.shape[0]:
+            raise ValueError('X и y должны быть одной длины.')
+
+        fitted_feature_names = self.feature_names
+        X_feature_names = X.columns
+        if len(fitted_feature_names) != len(X_feature_names):
+            message = (
+                'Названия признаков должны совпадать с теми,'
+                ' что были переданы во время обучения.\n'
+            )
+            fitted_feature_names_set = set(fitted_feature_names)
+            X_feature_names_set = set(X_feature_names)
+
+            unexpected_names = sorted(X_feature_names_set - fitted_feature_names_set)
+            missing_names = sorted(fitted_feature_names_set - X_feature_names_set)
+
+            def add_names(names):
+                output = ''
+                max_n_names = 5
+                for i, name in enumerate(names):
+                    if i >= max_n_names:
+                        output += '- ...\n'
+                        break
+                    output += f'- {name}\n'
+                return output
+
+            if unexpected_names:
+                message += 'Названия признаков, что не были переданы во время обучения:\n'
+                message += add_names(unexpected_names)
+
+            if missing_names:
+                message += (
+                    'Названия признаков, что были переданы во время обучения,'
+                    ' но сейчас отсутствуют:\n'
+                )
+                message += add_names(missing_names)
+
+            raise ValueError(message)
+
     def score(
         self,
         X: pd.DataFrame,
@@ -878,7 +923,7 @@ class MultiSplitDecisionTreeClassifier:
         if not self.__is_fitted:
             raise BaseException
 
-        _check_score_params(self, X, y)
+        self.__check_score_params(X, y, sample_weight)
 
         score = accuracy_score(y, self.predict(X), sample_weight=sample_weight)
 
