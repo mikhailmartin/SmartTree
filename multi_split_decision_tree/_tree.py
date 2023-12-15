@@ -27,8 +27,7 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import accuracy_score
 
-from multi_split_decision_tree._checkers import (
-    _check_init_params, _check_fit_params, _check_score_params)
+from multi_split_decision_tree._checkers import _check_init_params, _check_score_params
 from multi_split_decision_tree._tree_node import TreeNode
 from multi_split_decision_tree._utils import (
     cat_partitions, get_thresholds, rank_partitions)
@@ -205,6 +204,37 @@ class MultiSplitDecisionTreeClassifier:
     def feature_importances(self) -> dict[str, float]:
         return self.__feature_importances
 
+    def __check_fit_params(self, X, y):
+        if not isinstance(X, pd.DataFrame):
+            raise ValueError('X должен представлять собой pd.DataFrame.')
+
+        if not isinstance(y, pd.Series):
+            raise ValueError('y должен представлять собой pd.Series.')
+
+        if X.shape[0] != y.shape[0]:
+            raise ValueError('X и y должны быть одной длины.')
+
+        for num_feature_name in self.numerical_feature_names:
+            if num_feature_name not in X.columns:
+                raise ValueError(
+                    f'`numerical_feature_names` содержит признак {num_feature_name},'
+                    ' которого нет в обучающих данных.'
+                )
+
+        for cat_feature_name in self.categorical_feature_names:
+            if cat_feature_name not in X.columns:
+                raise ValueError(
+                    f'`categorical_feature_names` содержит признак {cat_feature_name},'
+                    ' которого нет в обучающих данных.'
+                )
+
+        for rank_feature_name in self.rank_feature_names.keys():
+            if rank_feature_name not in X.columns:
+                raise ValueError(
+                    f'`rank_feature_names` содержит признак {rank_feature_name},'
+                    ' которого нет в обучающих данных.'
+                )
+
     def fit(self, X: pd.DataFrame, y: pd.Series) -> None:
         """
         Обучает дерево решений.
@@ -213,7 +243,7 @@ class MultiSplitDecisionTreeClassifier:
             X: pd.DataFrame с точками данных.
             y: pd.Series с соответствующими метками.
         """
-        _check_fit_params(X, y, self)
+        self.__check_fit_params(X, y)
 
         # до конца обучения инкапсулируем X и y
         self.X = X.copy()
