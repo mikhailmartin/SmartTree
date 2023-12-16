@@ -814,7 +814,19 @@ class MultiSplitDecisionTreeClassifier:
         return y_pred
 
     def predict_proba(self, X: pd.DataFrame | pd.Series) -> np.array:
-        """TODO."""
+        """
+        Predict class probabilities of the input samples X.
+
+        The predicted class probability is the fraction of samples of the same class in
+        a leaf.
+
+        Parameters:
+            X: The input samples.
+
+        Returns:
+            The class probabilities of the input samples. The order of the
+            classes corresponds to that in the attribute :term:`class_names`.
+        """
         if not self.__is_fitted:
             raise BaseException
 
