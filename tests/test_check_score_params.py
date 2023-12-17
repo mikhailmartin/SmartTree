@@ -51,7 +51,7 @@ y = data['Метка']
 )
 def test_check_score_params(X, y, expected):
     with expected:
-        data = pd.read_csv('encoded.csv', index_col=0)
+        data = pd.read_csv(os.path.join('tests', 'test_dataset.csv'), index_col=0)
         X_fit = data[['2. Возраст', '3. Семейное положение', '5. В какой семье Вы выросли?']]
         y_fit = data['Метка']
 

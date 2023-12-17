@@ -61,15 +61,17 @@ class MultiSplitDecisionTreeClassifier:
         hierarchy: dict[str, str | list[str]] | None = None,
         numerical_nan_mode: Literal['include', 'min', 'max'] = 'min',
         categorical_nan_mode: Literal['include'] = 'include',
-        verbose: int = 1,
+        verbose: Literal['critical', 'error', 'warning', 'info', 'debug'] | int = 2,
     ) -> None:
-        if verbose < 0:
+        if verbose == 'critical' or verbose < 0:
             logging_level = logging.CRITICAL
-        elif verbose == 0:
+        elif verbose == 'error' or verbose == 0:
+            logging_level = logging.ERROR
+        elif verbose == 'warning' or verbose == 1:
             logging_level = logging.WARNING
-        elif verbose == 1:
+        elif verbose == 'info' or verbose == 2:
             logging_level = logging.INFO
-        else:
+        elif verbose == 'debug' or verbose > 2:
             logging_level = logging.DEBUG
 
         logging.basicConfig(level=logging_level)
@@ -88,6 +90,7 @@ class MultiSplitDecisionTreeClassifier:
             hierarchy,
             numerical_nan_mode,
             categorical_nan_mode,
+            verbose,
         )
 
         self.__criterion = criterion
@@ -939,18 +942,16 @@ class MultiSplitDecisionTreeClassifier:
         if X.shape[0] != y.shape[0]:
             raise ValueError('X и y должны быть одной длины.')
 
-        fitted_feature_names = self.__feature_names
-        X_feature_names = X.columns
-        if len(fitted_feature_names) != len(X_feature_names):  # TODO: здесь может быть ошибка
+        fitted_features_set = set(self.__feature_names)
+        X_features_set = set(X.columns)
+        if fitted_features_set != X_features_set:
             message = (
                 'Названия признаков должны совпадать с теми,'
                 ' что были переданы во время обучения.\n'
             )
-            fitted_feature_names_set = set(fitted_feature_names)
-            X_feature_names_set = set(X_feature_names)
 
-            unexpected_names = sorted(X_feature_names_set - fitted_feature_names_set)
-            missing_names = sorted(fitted_feature_names_set - X_feature_names_set)
+            unexpected_names = sorted(X_features_set - fitted_features_set)
+            missing_names = sorted(fitted_features_set - X_features_set)
 
             def add_names(names):
                 output = ''
