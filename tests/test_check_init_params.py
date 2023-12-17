@@ -9,6 +9,12 @@ import pytest
 from pytest import param, raises
 
 
+VERBOSE_ERROR_MESSAGE = (
+    '`verbose` must be integer or Literal["critical", "error", "warning", "info",'
+    ' "debug"].'
+)
+
+
 @pytest.mark.parametrize(
     ('criterion', 'expected'),
     [
@@ -494,3 +500,24 @@ def test_init_params__numerical_nan_mode(numerical_nan_mode, expected):
 def test_init_params__categorical_nan_mode(categorical_nan_mode, expected):
     with expected:
         _check_init_params(categorical_nan_mode=categorical_nan_mode)
+
+
+@pytest.mark.parametrize(
+    ('verbose', 'expected'),
+    [
+        param(2, does_not_raise()),
+        param('critical', does_not_raise()),
+        param('error', does_not_raise()),
+        param('warning', does_not_raise()),
+        param('info', does_not_raise()),
+        param('debug', does_not_raise()),
+        param(1.5, raises(ValueError, match=re.escape(VERBOSE_ERROR_MESSAGE))),
+        param(
+            'crjtjcal',
+            raises(ValueError, match=re.escape(VERBOSE_ERROR_MESSAGE)),
+        ),
+    ],
+)
+def test_init_params__verbose(verbose, expected):
+    with expected:
+        _check_init_params(verbose=verbose)

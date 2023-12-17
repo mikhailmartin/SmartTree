@@ -19,6 +19,7 @@ def _check_init_params(
     hierarchy=None,
     numerical_nan_mode='min',
     categorical_nan_mode='include',
+    verbose=2,
 ) -> None:
     """Проверяет параметры инициализации экземпляра класса дерева."""
     if criterion not in ['entropy', 'gini', 'log_loss']:
@@ -184,4 +185,16 @@ def _check_init_params(
         raise ValueError(
             'Для `categorical_nan_mode` доступно значение "include".'
             f' Текущее значение `categorical_nan_mode` = {categorical_nan_mode}.'
+        )
+
+    if (
+        not isinstance(verbose, (str, int))
+        or (
+            isinstance(verbose, str)
+            and verbose not in ['critical', 'error', 'warning', 'info', 'debug']
+        )
+    ):
+        raise ValueError(
+            '`verbose` must be integer or Literal["critical", "error", "warning",'
+            ' "info", "debug"].'
         )
