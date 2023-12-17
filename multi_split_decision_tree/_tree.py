@@ -135,6 +135,10 @@ class MultiSplitDecisionTreeClassifier:
             self.__categorical_feature_names = [categorical_feature_names]
         elif isinstance(categorical_feature_names, list):
             self.__categorical_feature_names = categorical_feature_names
+        logging.debug(
+            '[MultiSplitDecisionTree] [Debug] `categorical_feature_names` is set to'
+            f' {self.__categorical_feature_names}.'
+        )
 
         if rank_feature_names is None:
             self.__rank_feature_names = {}
@@ -293,11 +297,17 @@ class MultiSplitDecisionTreeClassifier:
                 ' `numerical_feature_names`.'
             )
 
-        if not self.__categorical_feature_names:
-            self.__categorical_feature_names = (
-                X.select_dtypes(include=['object', 'category']).columns.tolist())
+        setted_cat_features_set = set(self.__categorical_feature_names)
+        X_cat_features_set = set(self.X.select_dtypes(include=['category', 'object']))
+        if setted_cat_features_set != X_cat_features_set:
+            lacking_cat_features = list(X_cat_features_set - setted_cat_features_set)
+            self.__categorical_feature_names.extend(lacking_cat_features)
+            logging.info(
+                f'[MultiSplitDecisionTree] [Info] {lacking_cat_features} are added to'
+                ' `categorical_feature_names`.'
+            )
 
-        match self.__numerical_feature_names:
+        match self.__numerical_nan_mode:
             case 'min':
                 for num_feature_name in self.__numerical_feature_names:
                     X[num_feature_name].fillna(X[num_feature_name].min(), inplace=True)
