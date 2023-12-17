@@ -5,7 +5,6 @@
 # TODO:
 # Алгоритм предварительной сортировки
 # Дополнение numerical_feature_names
-# logging
 # доделать 'as_category'
 # описать листья дерева через правила и предиктить по ним
 # поменять rank_feature_names как numerical
@@ -18,6 +17,9 @@
 # min_weight_fraction_leaf
 # совместимость с GridSearchCV (нужна picklable)
 
+# logging
+
+import logging
 import math
 from typing import Literal
 
@@ -59,7 +61,19 @@ class MultiSplitDecisionTreeClassifier:
         hierarchy: dict[str, str | list[str]] | None = None,
         numerical_nan_mode: Literal['include', 'min', 'max'] = 'min',
         categorical_nan_mode: Literal['include'] = 'include',
+        verbose: int = 1,
     ) -> None:
+        if verbose < 0:
+            logging_level = logging.CRITICAL
+        elif verbose == 0:
+            logging_level = logging.WARNING
+        elif verbose == 1:
+            logging_level = logging.INFO
+        else:
+            logging_level = logging.DEBUG
+
+        logging.basicConfig(level=logging_level)
+
         _check_init_params(
             criterion,
             max_depth,
@@ -107,6 +121,10 @@ class MultiSplitDecisionTreeClassifier:
             self.__numerical_feature_names = [numerical_feature_names]
         elif isinstance(numerical_feature_names, list):
             self.__numerical_feature_names = numerical_feature_names
+        logging.debug(
+            '[MultiSplitDecisionTree] [Debug] `numerical_feature_names` is set to'
+            f' {self.__numerical_feature_names}.'
+        )
 
         if categorical_feature_names is None:
             self.__categorical_feature_names = []
@@ -262,8 +280,16 @@ class MultiSplitDecisionTreeClassifier:
         for feature_name in self.__feature_names:
             self.__feature_importances[feature_name] = 0
 
-        if not self.__numerical_feature_names:
-            self.__numerical_feature_names = X.select_dtypes('number').columns.tolist()
+        setted_num_features_set = set(self.__numerical_feature_names)
+        X_num_features_set = set(self.X.select_dtypes('number').columns.tolist())
+        if setted_num_features_set != X_num_features_set:
+            lacking_num_features = list(X_num_features_set - setted_num_features_set)
+            self.__numerical_feature_names.extend(lacking_num_features)
+            logging.info(
+                f'[MultiSplitDecisionTree] [Info] {lacking_num_features} are added to'
+                ' `numerical_feature_names`.'
+            )
+
         if not self.__categorical_feature_names:
             self.__categorical_feature_names = (
                 X.select_dtypes(include=['object', 'category']).columns.tolist())
@@ -801,7 +827,7 @@ class MultiSplitDecisionTreeClassifier:
     def predict(self, X: pd.DataFrame | pd.Series) -> list[str] | str:
         """Предсказывает метки классов для точек данных в X."""
         if not self.__is_fitted:
-            raise BaseException
+            raise BaseException  # TODO
 
         if isinstance(X, pd.DataFrame):
             y_pred = [self.predict(point) for _, point in X.iterrows()]
@@ -828,7 +854,7 @@ class MultiSplitDecisionTreeClassifier:
             classes corresponds to that in the attribute :term:`class_names`.
         """
         if not self.__is_fitted:
-            raise BaseException
+            raise BaseException  # TODO
 
         if isinstance(X, pd.DataFrame):
             y_pred_proba = [self.predict_proba(point) for _, point in X.iterrows()]
@@ -913,9 +939,9 @@ class MultiSplitDecisionTreeClassifier:
         if X.shape[0] != y.shape[0]:
             raise ValueError('X и y должны быть одной длины.')
 
-        fitted_feature_names = self.feature_names
+        fitted_feature_names = self.__feature_names
         X_feature_names = X.columns
-        if len(fitted_feature_names) != len(X_feature_names):
+        if len(fitted_feature_names) != len(X_feature_names):  # TODO: здесь может быть ошибка
             message = (
                 'Названия признаков должны совпадать с теми,'
                 ' что были переданы во время обучения.\n'
@@ -957,7 +983,7 @@ class MultiSplitDecisionTreeClassifier:
     ) -> float:
         """Возвращает метрику accuracy."""
         if not self.__is_fitted:
-            raise BaseException
+            raise BaseException  # TODO
 
         self.__check_score_params(X, y, sample_weight)
 
