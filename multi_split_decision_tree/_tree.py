@@ -18,6 +18,7 @@
 
 # logging
 
+import bisect
 import logging
 import math
 from typing import Literal
@@ -381,16 +382,7 @@ class MultiSplitDecisionTreeClassifier:
             len(self.splittable_leaf_nodes) > 0
             and self.__leaf_counter < self.__max_leaf_nodes
         ):
-
-            # сортируем по листья по убыванию прироста информативности при лучшем
-            # разбиении листа
-            self.splittable_leaf_nodes = sorted(
-                self.splittable_leaf_nodes,
-                key=lambda x: x._best_split[0],
-                reverse=True,
-            )
-
-            best_node = self.splittable_leaf_nodes.pop(0)
+            best_node = self.splittable_leaf_nodes.pop()
             (
                 inf_gain,
                 split_type,
@@ -423,7 +415,11 @@ class MultiSplitDecisionTreeClassifier:
 
                 best_node.childs.append(child_node)
                 if self.__is_splittable(child_node):
-                    self.splittable_leaf_nodes.append(child_node)
+                    bisect.insort(
+                        self.splittable_leaf_nodes,
+                        child_node,
+                        key=lambda x: x._best_split[0],
+                    )
 
             best_node.is_leaf = False
             best_node.split_type = split_type
