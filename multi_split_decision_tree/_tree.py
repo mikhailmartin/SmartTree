@@ -148,6 +148,7 @@ class MultiSplitDecisionTreeClassifier:
         self.__hierarchy = hierarchy if hierarchy else {}
 
         self.__numerical_nan_mode = numerical_nan_mode
+        self.__fill_numerical_nan_values = {}
         self.__categorical_nan_mode = categorical_nan_mode
 
         self.__is_fitted = False
@@ -309,11 +310,15 @@ class MultiSplitDecisionTreeClassifier:
 
         match self.__numerical_nan_mode:
             case 'min':
-                for num_feature_name in self.__numerical_feature_names:
-                    X[num_feature_name].fillna(X[num_feature_name].min(), inplace=True)
+                for num_feature in self.__numerical_feature_names:
+                    fill_nan_value = X[num_feature].min()
+                    self.__fill_numerical_nan_values[num_feature] = fill_nan_value
+                    X[num_feature].fillna(fill_nan_value, inplace=True)
             case 'max':
                 for num_feature_name in self.__numerical_feature_names:
-                    X[num_feature_name].fillna(X[num_feature_name].max(), inplace=True)
+                    fill_nan_value = X[num_feature_name].max()
+                    self.__fill_numerical_nan_values[fill_nan_value] = fill_nan_value
+                    X[num_feature_name].fillna(fill_nan_value, inplace=True)
             case 'as_category':
                 for num_feature_name in self.__numerical_feature_names:
                     # если в признаке есть пропуски
@@ -841,6 +846,11 @@ class MultiSplitDecisionTreeClassifier:
         """Предсказывает метки классов для точек данных в X."""
         if not self.__is_fitted:
             raise BaseException  # TODO
+
+        # TODO: check X
+
+        for num_feature in self.__numerical_feature_names:
+            X.fillna(self.__fill_numerical_nan_values[num_feature], inplace=True)
 
         if isinstance(X, pd.DataFrame):
             y_pred = [self.predict(point) for _, point in X.iterrows()]
