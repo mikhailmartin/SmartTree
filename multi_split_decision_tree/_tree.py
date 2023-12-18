@@ -10,7 +10,6 @@
 # поменять rank_feature_names как numerical
 # feature_value в numerical_node
 # узлы через именованные кортежи? (оптимизация по оперативке)
-# raises
 # None в аннотация типов
 # раскрасить визуализацию дерева
 # cat_nan_mod = 'include' and 'as_category'
@@ -32,6 +31,7 @@ from multi_split_decision_tree._checkers import _check_init_params
 from multi_split_decision_tree._tree_node import TreeNode
 from multi_split_decision_tree._utils import (
     cat_partitions, get_thresholds, rank_partitions)
+from multi_split_decision_tree._exceptions import NotFittedError
 
 
 class MultiSplitDecisionTreeClassifier:
@@ -195,21 +195,30 @@ class MultiSplitDecisionTreeClassifier:
     @property
     def tree(self) -> TreeNode:
         if not self.__is_fitted:
-            raise BaseException
+            raise NotFittedError(
+                'This MultiSplitDecisionTree instance is not fitted yet.'
+                ' Call `fit` with appropriate arguments before using this estimator.'
+            )
 
         return self.__root
 
     @property
     def class_names(self) -> list[str]:
         if not self.__is_fitted:
-            raise BaseException
+            raise NotFittedError(
+                'This MultiSplitDecisionTree instance is not fitted yet.'
+                ' Call `fit` with appropriate arguments before using this estimator.'
+            )
 
         return self.__class_names
 
     @property
     def feature_names(self) -> list[str]:
         if not self.__is_fitted:
-            raise BaseException
+            raise NotFittedError(
+                'This MultiSplitDecisionTree instance is not fitted yet.'
+                ' Call `fit` with appropriate arguments before using this estimator.'
+            )
 
         return self.__feature_names
 
@@ -227,6 +236,12 @@ class MultiSplitDecisionTreeClassifier:
 
     @property
     def feature_importances(self) -> dict[str, float]:
+        if not self.__is_fitted:
+            raise NotFittedError(
+                'This MultiSplitDecisionTree instance is not fitted yet.'
+                ' Call `fit` with appropriate arguments before using this estimator.'
+            )
+
         return self.__feature_importances
 
     def __check_fit_params(self, X, y):
@@ -845,7 +860,10 @@ class MultiSplitDecisionTreeClassifier:
     def predict(self, X: pd.DataFrame | pd.Series) -> list[str] | str:
         """Предсказывает метки классов для точек данных в X."""
         if not self.__is_fitted:
-            raise BaseException  # TODO
+            raise NotFittedError(
+                'This MultiSplitDecisionTree instance is not fitted yet.'
+                ' Call `fit` with appropriate arguments before using this estimator.'
+            )
 
         # TODO: check X
 
@@ -877,7 +895,10 @@ class MultiSplitDecisionTreeClassifier:
             classes corresponds to that in the attribute :term:`class_names`.
         """
         if not self.__is_fitted:
-            raise BaseException  # TODO
+            raise NotFittedError(
+                'This MultiSplitDecisionTree instance is not fitted yet.'
+                ' Call `fit` with appropriate arguments before using this estimator.'
+            )
 
         if isinstance(X, pd.DataFrame):
             y_pred_proba = [self.predict_proba(point) for _, point in X.iterrows()]
@@ -1004,7 +1025,10 @@ class MultiSplitDecisionTreeClassifier:
     ) -> float:
         """Возвращает метрику accuracy."""
         if not self.__is_fitted:
-            raise BaseException  # TODO
+            raise NotFittedError(
+                'This MultiSplitDecisionTree instance is not fitted yet.'
+                ' Call `fit` with appropriate arguments before using this estimator.'
+            )
 
         self.__check_score_params(X, y, sample_weight)
 
@@ -1078,7 +1102,10 @@ class MultiSplitDecisionTreeClassifier:
             визуализации.
         """
         if not self.__is_fitted:
-            raise BaseException
+            raise NotFittedError(
+                'This MultiSplitDecisionTree instance is not fitted yet.'
+                ' Call `fit` with appropriate arguments before using this estimator.'
+            )
 
         if self.__graph is None:
             self.__create_graph(
