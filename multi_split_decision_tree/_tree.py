@@ -303,25 +303,36 @@ class MultiSplitDecisionTreeClassifier:
         for feature_name in self.__feature_names:
             self.__feature_importances[feature_name] = 0
 
-        setted_num_features_set = set(self.__numerical_feature_names)
-        X_num_features_set = set(self.X.select_dtypes('number').columns.tolist())
-        if setted_num_features_set != X_num_features_set:
-            lacking_num_features = list(X_num_features_set - setted_num_features_set)
-            self.__numerical_feature_names.extend(lacking_num_features)
-            logging.info(
-                f'[MultiSplitDecisionTree] [Info] {lacking_num_features} are added to'
-                ' `numerical_feature_names`.'
-            )
+        # numerical_feature_names and categorical_feature_names extensions
+        ################################################################################
+        unsetted_features_set = set(self.X.columns) - (
+            set(self.__numerical_feature_names) |
+            set(self.__categorical_feature_names) |
+            set(self.__rank_feature_names)
+        )
 
-        setted_cat_features_set = set(self.__categorical_feature_names)
-        X_cat_features_set = set(self.X.select_dtypes(include=['category', 'object']))
-        if setted_cat_features_set != X_cat_features_set:
-            lacking_cat_features = list(X_cat_features_set - setted_cat_features_set)
-            self.__categorical_feature_names.extend(lacking_cat_features)
-            logging.info(
-                f'[MultiSplitDecisionTree] [Info] {lacking_cat_features} are added to'
-                ' `categorical_feature_names`.'
+        if unsetted_features_set:
+            unsetted_num_features = (
+                self.X[list(unsetted_features_set)]
+                .select_dtypes('number').columns.tolist()
             )
+            if unsetted_num_features:
+                self.__numerical_feature_names.extend(unsetted_num_features)
+                logging.info(
+                    f'[MultiSplitDecisionTree] [Info] {unsetted_num_features} are added'
+                    ' to `numerical_feature_names`.'
+                )
+            unsetted_cat_features = (
+                self.X[list(unsetted_features_set)]
+                .select_dtypes(include=['category', 'object']).columns.tolist()
+            )
+            if unsetted_cat_features:
+                self.__categorical_feature_names.extend(unsetted_cat_features)
+                logging.info(
+                    f'[MultiSplitDecisionTree] [Info] {unsetted_cat_features} are added'
+                    ' to `categorical_feature_names`.'
+                )
+        ################################################################################
 
         match self.__numerical_nan_mode:
             case 'min':
