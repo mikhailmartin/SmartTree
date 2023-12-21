@@ -4,8 +4,6 @@
 """
 # TODO:
 # Алгоритм предварительной сортировки
-# Дополнение numerical_feature_names
-# доделать 'as_category'
 # описать листья дерева через правила и предиктить по ним
 # поменять rank_feature_names как numerical
 # feature_value в numerical_node
@@ -16,7 +14,6 @@
 # min_weight_fraction_leaf
 # совместимость с GridSearchCV (нужна picklable)
 
-# logging
 
 import bisect
 import logging
@@ -346,14 +343,6 @@ class MultiSplitDecisionTreeClassifier:
                     fill_nan_value = X[num_feature_name].max()
                     self.__fill_numerical_nan_values[fill_nan_value] = fill_nan_value
                     X[num_feature_name].fillna(fill_nan_value, inplace=True)
-            case 'as_category':
-                for num_feature_name in self.__numerical_feature_names:
-                    # если в признаке есть пропуски
-                    if X[num_feature_name].isna().sum():
-                        miss_feature_name = f'miss_{num_feature_name}'
-                        X[miss_feature_name] = X[num_feature_name].isna()
-                        # добавляем новое правило разбиений
-                        self.__hierarchy[miss_feature_name] = num_feature_name
 
         hierarchy = self.__hierarchy.copy()
         available_feature_names = X.columns.tolist()
@@ -874,8 +863,9 @@ class MultiSplitDecisionTreeClassifier:
 
         # TODO: check X
 
-        for num_feature in self.__numerical_feature_names:
-            X.fillna(self.__fill_numerical_nan_values[num_feature], inplace=True)
+        if self.__numerical_nan_mode in ['min', 'max']:
+            for num_feature in self.__numerical_feature_names:
+                X.fillna(self.__fill_numerical_nan_values[num_feature], inplace=True)
 
         if isinstance(X, pd.DataFrame):
             y_pred = [self.predict(point) for _, point in X.iterrows()]
@@ -906,6 +896,10 @@ class MultiSplitDecisionTreeClassifier:
                 'This MultiSplitDecisionTree instance is not fitted yet.'
                 ' Call `fit` with appropriate arguments before using this estimator.'
             )
+
+        if self.__numerical_nan_mode in ['min', 'max']:
+            for num_feature in self.__numerical_feature_names:
+                X.fillna(self.__fill_numerical_nan_values[num_feature], inplace=True)
 
         if isinstance(X, pd.DataFrame):
             y_pred_proba = [self.predict_proba(point) for _, point in X.iterrows()]
@@ -1038,6 +1032,10 @@ class MultiSplitDecisionTreeClassifier:
             )
 
         self.__check_score_params(X, y, sample_weight)
+
+        if self.__numerical_nan_mode in ['min', 'max']:
+            for num_feature in self.__numerical_feature_names:
+                X.fillna(self.__fill_numerical_nan_values[num_feature], inplace=True)
 
         score = accuracy_score(y, self.predict(X), sample_weight=sample_weight)
 
