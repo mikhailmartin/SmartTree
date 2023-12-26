@@ -24,11 +24,11 @@ y = data['Метка']
         ),
         param(
             'X', y,
-            raises(ValueError, match='X должен представлять собой pd.DataFrame.'),
+            raises(ValueError, match='X must be a pandas.DataFrame.'),
         ),
         param(
             X, 'y',
-            raises(ValueError, match='y должен представлять собой pd.Series.')
+            raises(ValueError, match='y must be a pandas.Series.')
         ),
         param(
             X, y[:-1],

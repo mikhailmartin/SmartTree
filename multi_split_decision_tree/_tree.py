@@ -8,10 +8,10 @@
 # поменять rank_feature_names как numerical
 # feature_value в numerical_node
 # узлы через именованные кортежи? (оптимизация по оперативке)
-# None в аннотация типов
 # раскрасить визуализацию дерева
 # cat_nan_mod = 'include' and 'as_category'
 # min_weight_fraction_leaf
+
 # совместимость с GridSearchCV (нужна picklable)
 
 
@@ -25,11 +25,17 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import accuracy_score
 
-from multi_split_decision_tree._checkers import _check_init_params
 from multi_split_decision_tree._tree_node import TreeNode
 from multi_split_decision_tree._utils import (
     cat_partitions, get_thresholds, rank_partitions)
 from multi_split_decision_tree._exceptions import NotFittedError
+
+
+def current_value_message(param_name, current_value):
+    if isinstance(current_value, str):
+        current_value = f'"{current_value}"'
+
+    return f'The current value of `{param_name}` is {current_value}.'
 
 
 class MultiSplitDecisionTreeClassifier:
@@ -43,6 +49,201 @@ class MultiSplitDecisionTreeClassifier:
         numerical_feature_names: список численных признаков.
         categorical_feature_names: список категориальных признаков.
     """
+    @staticmethod
+    def __check_init_params(
+        criterion,
+        max_depth,
+        min_samples_split,
+        min_samples_leaf,
+        max_leaf_nodes,
+        min_impurity_decrease,
+        max_childs,
+        numerical_feature_names,
+        categorical_feature_names,
+        rank_feature_names,
+        hierarchy,
+        numerical_nan_mode,
+        categorical_nan_mode,
+        verbose,
+    ):
+        if criterion not in ['entropy', 'gini', 'log_loss']:
+            raise ValueError(
+                '`criterion` mist be Literal["entropy", "log_loss", "gini"].'
+                f' {current_value_message("criterion", criterion)}'
+            )
+
+        if max_depth:
+            if not isinstance(max_depth, int) or max_depth <= 0:
+                raise ValueError(
+                    '`max_depth` must be an integer and strictly greater than 0.'
+                    f' {current_value_message("max_depth", max_depth)}'
+                )
+
+        if (
+            not isinstance(min_samples_split, (int, float))
+            or (isinstance(min_samples_split, int) and min_samples_split < 2)
+            or (
+                isinstance(min_samples_split, float)
+                and (min_samples_split <= 0 or min_samples_split >= 1)
+            )
+        ):
+            raise ValueError(
+                '`min_samples_split` must be an integer and lie in the range [2, +inf),'
+                ' or float and lie in the range (0, 1).'
+                f' {current_value_message("min_samples_split", min_samples_split)}.'
+            )
+
+        if (
+            not isinstance(min_samples_leaf, (int, float))
+            or (isinstance(min_samples_leaf, int) and min_samples_leaf < 1)
+            or (
+                isinstance(min_samples_leaf, float)
+                and (min_samples_leaf <= 0 or min_samples_leaf >= 1)
+            )
+        ):
+            raise ValueError(
+                '`min_samples_leaf` must be an integer and lie in the range [1, +inf),'
+                ' or float and lie in the range (0, 1).'
+                f' {current_value_message("min_samples_leaf", min_samples_leaf)}'
+            )
+
+        if (
+            not (isinstance(max_leaf_nodes, int) or max_leaf_nodes == float('+inf'))
+            or max_leaf_nodes < 2
+        ):
+            raise ValueError(
+                '`max_leaf_nodes` must be an integer and strictly greater than 2.'
+                f' {current_value_message("max_leaf_nodes", max_leaf_nodes)}'
+            )
+
+        if not isinstance(min_impurity_decrease, float) or min_impurity_decrease < 0:
+            raise ValueError(
+                '`min_impurity_decrease` must be float and non-negative.'
+                f' {current_value_message("min_impurity_decrease", min_impurity_decrease)}'
+            )
+
+        if (
+            (isinstance(min_samples_split, int) and isinstance(min_samples_leaf, int))
+            and min_samples_split < 2 * min_samples_leaf
+        ):
+            raise ValueError(
+                '`min_samples_split` должен быть строго в 2 раза больше'
+                ' `min_samples_leaf`. Текущее значение `min_samples_split` ='
+                f' {min_samples_split}, `min_samples_leaf` = {min_samples_leaf}.'
+            )
+
+        if (
+            not (isinstance(max_childs, int) or max_childs == float('+inf'))
+            or max_childs < 2
+        ):
+            raise ValueError(
+                '`max_childs` must be integer and strictly greater than 2.'
+                f' {current_value_message("max_childs", max_childs)}'
+            )
+
+        if numerical_feature_names:
+            if not isinstance(numerical_feature_names, (list, str)):
+                raise ValueError(
+                    '`numerical_feature_names` must be a string or list of strings.'
+                    f' {current_value_message("numerical_feature_names", numerical_feature_names)}'
+                )
+            for numerical_feature_name in numerical_feature_names:
+                if not isinstance(numerical_feature_name, str):
+                    raise ValueError(
+                        'If `numerical_feature_names` is a list, it must consists of'
+                        ' strings.'
+                        f' The element {numerical_feature_name} of the list isnt a'
+                        ' string.'
+                    )
+
+        if categorical_feature_names:
+            if not isinstance(categorical_feature_names, (list, str)):
+                raise ValueError(
+                    '`categorical_feature_names` must be string or list of strings.'
+                    f' {current_value_message("categorical_feature_names", categorical_feature_names)}'
+                )
+            for categorical_feature_name in categorical_feature_names:
+                if not isinstance(categorical_feature_name, str):
+                    raise ValueError(
+                        'If `categorical_feature_names` is a list, it must consists of'
+                        ' strings.'
+                        f' The element {categorical_feature_name} of the list isnt string.'
+                    )
+
+        if rank_feature_names:
+            if not isinstance(rank_feature_names, dict):
+                raise ValueError(
+                    '`rank_feature_names` must be a dictionary {rang feature name: list'
+                    ' of its ordered values}.'
+                )
+            for rank_feature_name, value_list in rank_feature_names.items():
+                if not isinstance(rank_feature_name, str):
+                    raise ValueError(
+                        'Keys in `rank_feature_names` must be a strings.'
+                        f' The key {rank_feature_name} isnt a string.'
+                    )
+                if not isinstance(value_list, list):
+                    raise ValueError(
+                        'Values in `rank_feature_names` must be lists.'
+                        f' The value {value_list} of the key {rank_feature_name} isnt a'
+                        ' list.'
+                    )
+
+        if hierarchy:
+            if not isinstance(hierarchy, dict):
+                raise ValueError(
+                    '`hierarchy` must be a dictionary {opening feature: opened feature /'
+                    ' list of opened strings}.'
+                    f' {current_value_message("hierarchy", hierarchy)}'
+                )
+            for key, value in hierarchy.items():
+                if not isinstance(key, str):
+                    raise ValueError(
+                        '`hierarchy` must be a dictionary {opening feature: opened'
+                        ' feature / list of opened features}.'
+                        f' Value {key} of opening feature isnt a string.'
+                    )
+                if not isinstance(value, (str, list)):
+                    raise ValueError(
+                        '`hierarchy` must be a dictionary {opening feature: opened'
+                        ' feature / list of opened features}.'
+                        f' Value {value} of opened feature(s) isnt a string (list of'
+                        ' strings).'
+                    )
+                if isinstance(value, list):
+                    for elem in value:
+                        if not isinstance(elem, str):
+                            raise ValueError(
+                                '`hierarchy` must be a dictionary {opening feature:'
+                                ' opened feature / list of opened features}.'
+                                f' Value {elem} of opened feature isnt a string.'
+                            )
+
+        if numerical_nan_mode not in ['include', 'min', 'max']:
+            raise ValueError(
+                '`numerical_nan_mode` must be Literal["include", "min", "max"].'
+                f' {current_value_message("numerical_nan_mode", numerical_nan_mode)}'
+            )
+
+        if categorical_nan_mode not in ['include']:
+            raise ValueError(
+                '`categorical_nan_mode` must be Literal["include"].'
+                f' {current_value_message("categorical_nan_mode", categorical_nan_mode)}'
+            )
+
+        if (
+            not isinstance(verbose, (str, int))
+            or (
+                isinstance(verbose, str)
+                and verbose not in ['critical', 'error', 'warning', 'info', 'debug']
+            )
+        ):
+            raise ValueError(
+                '`verbose` must be integer or Literal["critical", "error", "warning",'
+                ' "info", "debug"].'
+                f' {current_value_message("verbose", verbose)}'
+            )
+
     def __init__(
         self,
         *,
@@ -61,20 +262,7 @@ class MultiSplitDecisionTreeClassifier:
         categorical_nan_mode: Literal['include'] = 'include',
         verbose: Literal['critical', 'error', 'warning', 'info', 'debug'] | int = 2,
     ) -> None:
-        if verbose == 'critical' or verbose < 0:
-            logging_level = logging.CRITICAL
-        elif verbose == 'error' or verbose == 0:
-            logging_level = logging.ERROR
-        elif verbose == 'warning' or verbose == 1:
-            logging_level = logging.WARNING
-        elif verbose == 'info' or verbose == 2:
-            logging_level = logging.INFO
-        elif verbose == 'debug' or verbose > 2:
-            logging_level = logging.DEBUG
-
-        logging.basicConfig(level=logging_level)
-
-        _check_init_params(
+        self.__check_init_params(
             criterion,
             max_depth,
             min_samples_split,
@@ -90,6 +278,30 @@ class MultiSplitDecisionTreeClassifier:
             categorical_nan_mode,
             verbose,
         )
+        if isinstance(verbose, str):
+            match verbose:
+                case 'critical':
+                    logging_level = logging.CRITICAL
+                case 'error':
+                    logging_level = logging.ERROR
+                case 'warning':
+                    logging_level = logging.WARNING
+                case 'info':
+                    logging_level = logging.INFO
+                case 'debug':
+                    logging_level = logging.DEBUG
+        elif verbose < 0:
+            logging_level = logging.CRITICAL
+        elif verbose == 0:
+            logging_level = logging.ERROR
+        elif verbose == 1:
+            logging_level = logging.WARNING
+        elif verbose == 2:
+            logging_level = logging.INFO
+        elif verbose > 2:
+            logging_level = logging.DEBUG
+
+        logging.basicConfig(level=logging_level)
 
         self.__criterion = criterion
 
@@ -244,10 +456,10 @@ class MultiSplitDecisionTreeClassifier:
 
     def __check_fit_params(self, X, y):
         if not isinstance(X, pd.DataFrame):
-            raise ValueError('X должен представлять собой pd.DataFrame.')
+            raise ValueError('X must be a pandas.DataFrame.')
 
         if not isinstance(y, pd.Series):
-            raise ValueError('y должен представлять собой pd.Series.')
+            raise ValueError('y must be a pandas.Series.')
 
         if X.shape[0] != y.shape[0]:
             raise ValueError('X и y должны быть одной длины.')
@@ -480,7 +692,7 @@ class MultiSplitDecisionTreeClassifier:
         """
         Находит лучшее разделение узла дерева, если оно существует.
 
-        Args:
+        Parameters:
             parent_mask: булевая маска узла дерева.
             available_feature_names: список признаков, по которым допустимы разбиения.
 
@@ -547,7 +759,7 @@ class MultiSplitDecisionTreeClassifier:
         Находит лучшее разделение узла дерева по заданному численному признаку, если оно
         существует.
 
-        Args:
+        Parameters:
             parent_mask: булевая маска узла дерева.
             split_feature_name: название заданного численного признака, по которому
               нужно найти лучшее разделение.
@@ -617,7 +829,7 @@ class MultiSplitDecisionTreeClassifier:
         """
         Разделяет входное множество по категориальному признаку наилучшим образом.
 
-        Args:
+        Parameters:
             parent_mask: булева маска родительского узла.
             split_feature_name: признак, по которому нужно разделить входное множество.
 
@@ -675,7 +887,7 @@ class MultiSplitDecisionTreeClassifier:
         Разделяет входное множество по категориальному признаку согласно заданным
         значениям.
 
-        Args:
+        Parameters:
             parent_mask: булевая маска родительского узла.
             split_feature_name: признак, по которому нужно разделить входное множество.
             feature_values: значения признаков, соответствующие дочерним подмножествам.
@@ -755,7 +967,7 @@ class MultiSplitDecisionTreeClassifier:
         """
         Считает прирост информативности.
 
-        Args:
+        Parameters:
             parent_mask: булевая маска родительского узла.
             child_masks: список булевых масок дочерних узлов.
             nan_mode: режим обработки пропусков.
@@ -1094,7 +1306,7 @@ class MultiSplitDecisionTreeClassifier:
 
         Если указаны именованные параметры, сохраняет визуализацию в виде файла(ов).
 
-        Args:
+        Parameters:
             rounded: скруглять ли углы у узлов (они в форме прямоугольника).
             show_impurity: показывать ли загрязнённость узла.
             show_num_samples: показывать ли количество точек в узле.
