@@ -3,16 +3,10 @@ sys.path.append(sys.path[0] + '/../')
 from contextlib import nullcontext as does_not_raise
 import re
 
-from multi_split_decision_tree._checkers import _check_init_params
+from multi_split_decision_tree import MultiSplitDecisionTreeClassifier
 
 import pytest
 from pytest import param, raises
-
-
-VERBOSE_ERROR_MESSAGE = (
-    '`verbose` must be integer or Literal["critical", "error", "warning", "info",'
-    ' "debug"].'
-)
 
 
 @pytest.mark.parametrize(
@@ -25,9 +19,9 @@ VERBOSE_ERROR_MESSAGE = (
             'gjni',
             raises(
                 ValueError,
-                match=(
-                    'Для `criterion` доступны значения "entropy", "gini" и "log_loss".'
-                    ' Текущее значение `criterion` = gjni.'
+                match=re.escape(
+                    '`criterion` mist be Literal["entropy", "log_loss", "gini"]. The'
+                    ' current value of `criterion` is "gjni".'
                 ),
             ),
             id='invalid-criterion',
@@ -36,7 +30,7 @@ VERBOSE_ERROR_MESSAGE = (
 )
 def test_init_param__criterion(criterion, expected):
     with expected:
-        _check_init_params(criterion=criterion)
+        MultiSplitDecisionTreeClassifier(criterion=criterion)
 
 
 @pytest.mark.parametrize(
@@ -49,8 +43,8 @@ def test_init_param__criterion(criterion, expected):
             raises(
                 ValueError,
                 match=(
-                    '`max_depth` должен представлять собой int и быть строго больше 0'
-                    ' Текущее значение `max_depth` = -1.'
+                    '`max_depth` must be an integer and strictly greater than 0. The'
+                    ' current value of `max_depth` is -1.'
                 ),
             ),
         ),
@@ -59,8 +53,8 @@ def test_init_param__criterion(criterion, expected):
             raises(
                 ValueError,
                 match=(
-                    '`max_depth` должен представлять собой int и быть строго больше 0'
-                    ' Текущее значение `max_depth` = 1.5.'
+                    '`max_depth` must be an integer and strictly greater than 0. The'
+                    ' current value of `max_depth` is 1.5.'
                 ),
             ),
         ),
@@ -69,8 +63,8 @@ def test_init_param__criterion(criterion, expected):
             raises(
                 ValueError,
                 match=(
-                    '`max_depth` должен представлять собой int и быть строго больше 0'
-                    ' Текущее значение `max_depth` = string.'
+                    '`max_depth` must be an integer and strictly greater than 0. The'
+                    ' current value of `max_depth` is "string".'
                 ),
             ),
         ),
@@ -78,7 +72,7 @@ def test_init_param__criterion(criterion, expected):
 )
 def test_init_param__max_depth(max_depth, expected):
     with expected:
-        _check_init_params(max_depth=max_depth)
+        MultiSplitDecisionTreeClassifier(max_depth=max_depth)
 
 
 @pytest.mark.parametrize(
@@ -90,9 +84,9 @@ def test_init_param__max_depth(max_depth, expected):
             raises(
                 ValueError,
                 match=re.escape(
-                    '`min_samples_split` должен представлять собой либо int и лежать в'
-                    ' диапазоне [2, +inf), либо float и лежать в диапазоне (0, 1).'
-                    ' Текущее значение `min_samples_split` = 1.'
+                    '`min_samples_split` must be an integer and lie in the range'
+                    ' [2, +inf), or float and lie in the range (0, 1). The current'
+                    ' value of `min_samples_split` is 1.'
                 ),
             ),
         ),
@@ -102,9 +96,9 @@ def test_init_param__max_depth(max_depth, expected):
             raises(
                 ValueError,
                 match=re.escape(
-                    '`min_samples_split` должен представлять собой либо int и лежать в'
-                    ' диапазоне [2, +inf), либо float и лежать в диапазоне (0, 1).'
-                    ' Текущее значение `min_samples_split` = 0.0.'
+                    '`min_samples_split` must be an integer and lie in the range'
+                    ' [2, +inf), or float and lie in the range (0, 1). The current'
+                    ' value of `min_samples_split` is 0.0.'
                 ),
             ),
         ),
@@ -113,9 +107,9 @@ def test_init_param__max_depth(max_depth, expected):
             raises(
                 ValueError,
                 match=re.escape(
-                    '`min_samples_split` должен представлять собой либо int и лежать в'
-                    ' диапазоне [2, +inf), либо float и лежать в диапазоне (0, 1).'
-                    ' Текущее значение `min_samples_split` = 1.0.'
+                    '`min_samples_split` must be an integer and lie in the range'
+                    ' [2, +inf), or float and lie in the range (0, 1). The current'
+                    ' value of `min_samples_split` is 1.0.'
                 ),
             ),
         ),
@@ -124,9 +118,9 @@ def test_init_param__max_depth(max_depth, expected):
             raises(
                 ValueError,
                 match=re.escape(
-                    '`min_samples_split` должен представлять собой либо int и лежать в'
-                    ' диапазоне [2, +inf), либо float и лежать в диапазоне (0, 1).'
-                    ' Текущее значение `min_samples_split` = string.'
+                    '`min_samples_split` must be an integer and lie in the range'
+                    ' [2, +inf), or float and lie in the range (0, 1). The current'
+                    ' value of `min_samples_split` is "string".'
                 ),
             ),
         ),
@@ -134,7 +128,7 @@ def test_init_param__max_depth(max_depth, expected):
 )
 def test_init_param__min_samples_split(min_samples_split, expected):
     with expected:
-        _check_init_params(min_samples_split=min_samples_split)
+        MultiSplitDecisionTreeClassifier(min_samples_split=min_samples_split)
 
 
 @pytest.mark.parametrize(
@@ -146,9 +140,9 @@ def test_init_param__min_samples_split(min_samples_split, expected):
             raises(
                 ValueError,
                 match=re.escape(
-                    '`min_samples_leaf` должен представлять собой либо int и лежать в'
-                    ' диапазоне [1, +inf), либо float и лежать в диапазоне (0, 1).'
-                    ' Текущее значение `min_samples_leaf` = 0.'
+                    '`min_samples_leaf` must be an integer and lie in the range'
+                    ' [1, +inf), or float and lie in the range (0, 1). The current'
+                    ' value of `min_samples_leaf` is 0.'
                 ),
             ),
         ),
@@ -158,9 +152,9 @@ def test_init_param__min_samples_split(min_samples_split, expected):
             raises(
                 ValueError,
                 match=re.escape(
-                    '`min_samples_leaf` должен представлять собой либо int и лежать в'
-                    ' диапазоне [1, +inf), либо float и лежать в диапазоне (0, 1).'
-                    ' Текущее значение `min_samples_leaf` = 0.0.'
+                    '`min_samples_leaf` must be an integer and lie in the range'
+                    ' [1, +inf), or float and lie in the range (0, 1). The current'
+                    ' value of `min_samples_leaf` is 0.0.'
                 ),
             ),
         ),
@@ -169,9 +163,9 @@ def test_init_param__min_samples_split(min_samples_split, expected):
             raises(
                 ValueError,
                 match=re.escape(
-                    '`min_samples_leaf` должен представлять собой либо int и лежать в'
-                    ' диапазоне [1, +inf), либо float и лежать в диапазоне (0, 1).'
-                    ' Текущее значение `min_samples_leaf` = 1.0.'
+                    '`min_samples_leaf` must be an integer and lie in the range'
+                    ' [1, +inf), or float and lie in the range (0, 1). The current'
+                    ' value of `min_samples_leaf` is 1.0.'
                 ),
             ),
         ),
@@ -180,9 +174,9 @@ def test_init_param__min_samples_split(min_samples_split, expected):
             raises(
                 ValueError,
                 match=re.escape(
-                    '`min_samples_leaf` должен представлять собой либо int и лежать в'
-                    ' диапазоне [1, +inf), либо float и лежать в диапазоне (0, 1).'
-                    ' Текущее значение `min_samples_leaf` = string.'
+                    '`min_samples_leaf` must be an integer and lie in the range'
+                    ' [1, +inf), or float and lie in the range (0, 1). The current'
+                    ' value of `min_samples_leaf` is "string".'
                 ),
             ),
         ),
@@ -190,7 +184,7 @@ def test_init_param__min_samples_split(min_samples_split, expected):
 )
 def test_init_params__min_samples_leaf(min_samples_leaf, expected):
     with expected:
-        _check_init_params(min_samples_leaf=min_samples_leaf)
+        MultiSplitDecisionTreeClassifier(min_samples_leaf=min_samples_leaf)
 
 
 @pytest.mark.parametrize(
@@ -203,8 +197,8 @@ def test_init_params__min_samples_leaf(min_samples_leaf, expected):
             raises(
                 ValueError,
                 match=re.escape(
-                    '`max_leaf_nodes` должен представлять собой int и быть строго больше 2.'
-                    ' Текущее значение `max_leaf_nodes` = 1.'
+                    '`max_leaf_nodes` must be an integer and strictly greater than 2.'
+                    ' The current value of `max_leaf_nodes` is 1.'
                 ),
             ),
         ),
@@ -213,8 +207,8 @@ def test_init_params__min_samples_leaf(min_samples_leaf, expected):
             raises(
                 ValueError,
                 match=re.escape(
-                    '`max_leaf_nodes` должен представлять собой int и быть строго больше 2.'
-                    ' Текущее значение `max_leaf_nodes` = string.'
+                    '`max_leaf_nodes` must be an integer and strictly greater than 2.'
+                    ' The current value of `max_leaf_nodes` is "string".'
                 ),
             ),
         ),
@@ -222,7 +216,7 @@ def test_init_params__min_samples_leaf(min_samples_leaf, expected):
 )
 def test_init_params__max_leaf_nodes(max_leaf_nodes, expected):
     with expected:
-        _check_init_params(max_leaf_nodes=max_leaf_nodes)
+        MultiSplitDecisionTreeClassifier(max_leaf_nodes=max_leaf_nodes)
 
 
 @pytest.mark.parametrize(
@@ -234,9 +228,8 @@ def test_init_params__max_leaf_nodes(max_leaf_nodes, expected):
             raises(
                 ValueError,
                 match=re.escape(
-                    '`min_impurity_decrease` должен представлять собой float'
-                    ' и быть неотрицательным.'
-                    ' Текущее значение `min_impurity_decrease` = -1.0.'
+                    '`min_impurity_decrease` must be float and non-negative. The current'
+                    ' value of `min_impurity_decrease` is -1.0.'
                 ),
             ),
         ),
@@ -245,9 +238,8 @@ def test_init_params__max_leaf_nodes(max_leaf_nodes, expected):
             raises(
                 ValueError,
                 match=re.escape(
-                    '`min_impurity_decrease` должен представлять собой float'
-                    ' и быть неотрицательным.'
-                    ' Текущее значение `min_impurity_decrease` = string.'
+                    '`min_impurity_decrease` must be float and non-negative. The current'
+                    ' value of `min_impurity_decrease` is "string".'
                 ),
             ),
         ),
@@ -255,7 +247,7 @@ def test_init_params__max_leaf_nodes(max_leaf_nodes, expected):
 )
 def test_init_params__min_impurity_decrease(min_impurity_decrease, expected):
     with expected:
-        _check_init_params(min_impurity_decrease=min_impurity_decrease)
+        MultiSplitDecisionTreeClassifier(min_impurity_decrease=min_impurity_decrease)
 
 
 @pytest.mark.parametrize(
@@ -267,8 +259,8 @@ def test_init_params__min_impurity_decrease(min_impurity_decrease, expected):
             raises(
                 ValueError,
                 match=re.escape(
-                    '`max_childs` должен представлять собой int и быть строго больше 2.'
-                    ' Текущее значение `max_childs` = 1.'
+                    '`max_childs` must be integer and strictly greater than 2. The'
+                    ' current value of `max_childs` is 1.'
                 ),
             ),
         ),
@@ -277,8 +269,8 @@ def test_init_params__min_impurity_decrease(min_impurity_decrease, expected):
             raises(
                 ValueError,
                 match=re.escape(
-                    '`max_childs` должен представлять собой int и быть строго больше 2.'
-                    ' Текущее значение `max_childs` = string.'
+                    '`max_childs` must be integer and strictly greater than 2. The'
+                    ' current value of `max_childs` is "string".'
                 ),
             ),
         ),
@@ -286,7 +278,7 @@ def test_init_params__min_impurity_decrease(min_impurity_decrease, expected):
 )
 def test_init_params__max_childs(max_childs, expected):
     with expected:
-        _check_init_params(max_childs=max_childs)
+        MultiSplitDecisionTreeClassifier(max_childs=max_childs)
 
 
 @pytest.mark.parametrize(
@@ -300,9 +292,8 @@ def test_init_params__max_childs(max_childs, expected):
             raises(
                 ValueError,
                 match=(
-                    '`numerical_feature_names` должен представлять собой список строк'
-                    ' либо строку.'
-                    ' Текущее значение `numerical_feature_names` = 1.0.'
+                    '`numerical_feature_names` must be a string or list of strings.'
+                    ' The current value of `numerical_feature_names` is 1.0.'
                 ),
             ),
         ),
@@ -311,9 +302,8 @@ def test_init_params__max_childs(max_childs, expected):
             raises(
                 ValueError,
                 match=(
-                    'Если `numerical_feature_names` представляет собой список,'
-                    ' то должен содержать строки.'
-                    f' Элемент списка 1.0 - не строка.'
+                    'If `numerical_feature_names` is a list, it must consists of'
+                    ' strings. The element 1.0 of the list isnt a string.'
                 ),
             ),
         ),
@@ -321,7 +311,7 @@ def test_init_params__max_childs(max_childs, expected):
 )
 def test_init_params__numerical_feature_names(numerical_feature_names, expected):
     with expected:
-        _check_init_params(numerical_feature_names=numerical_feature_names)
+        MultiSplitDecisionTreeClassifier(numerical_feature_names=numerical_feature_names)
 
 
 @pytest.mark.parametrize(
@@ -335,9 +325,8 @@ def test_init_params__numerical_feature_names(numerical_feature_names, expected)
             raises(
                 ValueError,
                 match=(
-                    '`categorical_feature_names` должен представлять собой список строк'
-                    ' либо строку.'
-                    ' Текущее значение `categorical_feature_names` = 1.0.'
+                    '`categorical_feature_names` must be string or list of strings.'
+                    ' The current value of `categorical_feature_names` is 1.0.'
                 ),
             ),
         ),
@@ -346,9 +335,8 @@ def test_init_params__numerical_feature_names(numerical_feature_names, expected)
             raises(
                 ValueError,
                 match=(
-                    'Если `categorical_feature_names` представляет собой список,'
-                    ' то должен содержать строки.'
-                    f' Элемент списка 1.0 - не строка.'
+                    'If `categorical_feature_names` is a list, it must consists of'
+                    ' strings. The element 1.0 of the list isnt string.'
                 ),
             ),
         ),
@@ -356,7 +344,8 @@ def test_init_params__numerical_feature_names(numerical_feature_names, expected)
 )
 def test_init_params__categorical_feature_names(categorical_feature_names, expected):
     with expected:
-        _check_init_params(categorical_feature_names=categorical_feature_names)
+        MultiSplitDecisionTreeClassifier(
+            categorical_feature_names=categorical_feature_names)
 
 
 @pytest.mark.parametrize(
@@ -369,8 +358,8 @@ def test_init_params__categorical_feature_names(categorical_feature_names, expec
             raises(
                 ValueError,
                 match=(
-                    '`rank_feature_names` должен представлять собой словарь'
-                    ' {название рангового признака: упорядоченный список его значений}.'
+                    '`rank_feature_names` must be a dictionary {rang feature name: list'
+                    ' of its ordered values}.'
                 ),
             ),
         ),
@@ -379,8 +368,8 @@ def test_init_params__categorical_feature_names(categorical_feature_names, expec
             raises(
                 ValueError,
                 match=(
-                    'Ключи в `rank_feature_names` должны представлять собой строки.'
-                    ' 1 - не строка.'
+                    'Keys in `rank_feature_names` must be a strings. The key 1 isnt a'
+                    ' string.'
                 ),
             ),
         ),
@@ -389,8 +378,8 @@ def test_init_params__categorical_feature_names(categorical_feature_names, expec
             raises(
                 ValueError,
                 match=(
-                    'Значения в `rank_feature_names` должны представлять собой списки.'
-                    ' Значение feature = value - не список.'
+                    'Values in `rank_feature_names` must be lists. The value value of'
+                    ' the key feature isnt a list.'
                 ),
             ),
         ),
@@ -398,7 +387,7 @@ def test_init_params__categorical_feature_names(categorical_feature_names, expec
 )
 def test_init_params__rank_feature_names(rank_feature_names, expected):
     with expected:
-        _check_init_params(rank_feature_names=rank_feature_names)
+        MultiSplitDecisionTreeClassifier(rank_feature_names=rank_feature_names)
 
 
 @pytest.mark.parametrize(
@@ -411,10 +400,10 @@ def test_init_params__rank_feature_names(rank_feature_names, expected):
             'feature',
             raises(
                 ValueError,
-                match=(
-                    '`hierarchy` должен представлять собой словарь {открывающий признак:'
-                    ' открывающийся признак / список открывающихся признаков}.'
-                    f' Текущее значение `hierarchy` = feature.'
+                match=re.escape(
+                    '`hierarchy` must be a dictionary {opening feature: opened feature /'
+                    ' list of opened strings}.'
+                    f' The current value of `hierarchy` is "feature".'
                 ),
             ),
         ),
@@ -423,9 +412,9 @@ def test_init_params__rank_feature_names(rank_feature_names, expected):
             raises(
                 ValueError,
                 match=(
-                    '`hierarchy` должен представлять собой словарь {открывающий признак:'
-                    ' открывающийся признак / список открывающихся признаков}.'
-                    ' Значение открывающего признака 1 - не строка.'
+                    '`hierarchy` must be a dictionary {opening feature: opened feature /'
+                    ' list of opened features}.'
+                    f' Value 1 of opening feature isnt a string.'
                 ),
             ),
         ),
@@ -434,9 +423,9 @@ def test_init_params__rank_feature_names(rank_feature_names, expected):
             raises(
                 ValueError,
                 match=re.escape(
-                    '`hierarchy` должен представлять собой словарь {открывающий признак:'
-                    ' открывающийся признак / список открывающихся признаков}.'
-                    ' Значение открывающегося признака(ов) 1 - не строка (список строк).'
+                    '`hierarchy` must be a dictionary {opening feature: opened feature /'
+                    ' list of opened features}.'
+                    ' Value 1 of opened feature(s) isnt a string (list of strings).'
                 ),
             ),
         ),
@@ -444,10 +433,10 @@ def test_init_params__rank_feature_names(rank_feature_names, expected):
             {'feature_key': ['feature1', 1]},
             raises(
                 ValueError,
-                match=re.escape(
-                    '`hierarchy` должен представлять собой словарь {открывающий признак:'
-                    ' открывающийся признак / список открывающихся признаков}.'
-                    " Значение открывающегося признака(ов) ['feature1', 1] - не строка (список строк)."
+                match=(
+                    '`hierarchy` must be a dictionary {opening feature: opened feature /'
+                    ' list of opened features}. Value 1 of opened feature isnt a'
+                    ' string.'
                 ),
             ),
         ),
@@ -455,7 +444,7 @@ def test_init_params__rank_feature_names(rank_feature_names, expected):
 )
 def test_init_params__hierarchy(hierarchy, expected):
     with expected:
-        _check_init_params(hierarchy=hierarchy)
+        MultiSplitDecisionTreeClassifier(hierarchy=hierarchy)
 
 
 @pytest.mark.parametrize(
@@ -468,9 +457,9 @@ def test_init_params__hierarchy(hierarchy, expected):
             'smth',
             raises(
                 ValueError,
-                match=(
-                    'Для `numerical_nan_mode` доступны значения "include", "min" и "max".'
-                    ' Текущее значение `numerical_nan_mode` = smth.'
+                match=re.escape(
+                    '`numerical_nan_mode` must be Literal["include", "min", "max"].'
+                    f' The current value of `numerical_nan_mode` is "smth".'
                 ),
             ),
         ),
@@ -478,7 +467,7 @@ def test_init_params__hierarchy(hierarchy, expected):
 )
 def test_init_params__numerical_nan_mode(numerical_nan_mode, expected):
     with expected:
-        _check_init_params(numerical_nan_mode=numerical_nan_mode)
+        MultiSplitDecisionTreeClassifier(numerical_nan_mode=numerical_nan_mode)
 
 
 @pytest.mark.parametrize(
@@ -489,9 +478,9 @@ def test_init_params__numerical_nan_mode(numerical_nan_mode, expected):
             'smth',
             raises(
                 ValueError,
-                match=(
-                    'Для `categorical_nan_mode` доступно значение "include".'
-                    ' Текущее значение `categorical_nan_mode` = smth.'
+                match=re.escape(
+                    '`categorical_nan_mode` must be Literal["include"].'
+                    f' The current value of `categorical_nan_mode` is "smth".'
                 ),
             ),
         ),
@@ -499,7 +488,7 @@ def test_init_params__numerical_nan_mode(numerical_nan_mode, expected):
 )
 def test_init_params__categorical_nan_mode(categorical_nan_mode, expected):
     with expected:
-        _check_init_params(categorical_nan_mode=categorical_nan_mode)
+        MultiSplitDecisionTreeClassifier(categorical_nan_mode=categorical_nan_mode)
 
 
 @pytest.mark.parametrize(
@@ -511,13 +500,30 @@ def test_init_params__categorical_nan_mode(categorical_nan_mode, expected):
         param('warning', does_not_raise()),
         param('info', does_not_raise()),
         param('debug', does_not_raise()),
-        param(1.5, raises(ValueError, match=re.escape(VERBOSE_ERROR_MESSAGE))),
+        param(
+            1.5,
+            raises(
+                ValueError,
+                match=re.escape(
+                    '`verbose` must be integer or Literal["critical", "error",'
+                    ' "warning", "info", "debug"].'
+                    f' The current value of `verbose` is 1.5.'
+                ),
+            ),
+        ),
         param(
             'crjtjcal',
-            raises(ValueError, match=re.escape(VERBOSE_ERROR_MESSAGE)),
+            raises(
+                ValueError,
+                match=re.escape(
+                    '`verbose` must be integer or Literal["critical", "error",'
+                    ' "warning", "info", "debug"].'
+                    f' The current value of `verbose` is "crjtjcal".'
+                ),
+            ),
         ),
     ],
 )
 def test_init_params__verbose(verbose, expected):
     with expected:
-        _check_init_params(verbose=verbose)
+        MultiSplitDecisionTreeClassifier(verbose=verbose)
