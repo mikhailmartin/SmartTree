@@ -1,7 +1,4 @@
-"""
-Кастомная реализация дерева решений, которая может работать с категориальными и
-численными признаками.
-"""
+"""Custom realization of Decision Tree which can handle categorical features."""
 # TODO:
 # Алгоритм предварительной сортировки
 # описать листья дерева через правила и предиктить по ним
@@ -40,7 +37,93 @@ def current_value_message(param_name, current_value):
 
 class MultiSplitDecisionTreeClassifier:
     """
-    Дерево решений.
+    A decision tree classifier.
+
+    Parameters:
+        criterion: {'gini', 'entropy', 'log_loss'}, default='gini'
+            The function to measure the quality of a split. Supported criteria
+            are 'gini' for the Gini impurity and 'log_loss' and 'entropy' both
+            for the Shannon information gain.
+
+        max_depth: int, default=None
+            The maximum depth of the tree. If None, then nodes are expanded
+            until all leaves are pure or until all leaves contain less than
+            min_samples_split samples.
+
+        min_samples_split: int or float, default=2.
+            The minimum number of samples required to split an internal node:
+
+            - If int, then consider `min_samples_split` as the minimum number.
+            - If float, then `min_samples_split` is a fraction and
+              `ceil(min_samples_split * n_samples)` are the minimum number of
+              samples for each split.
+
+        min_samples_leaf: int or float, default=1.
+            The minimum number of samples required to be a leaf node.
+            A split point at eny depth will only be considered if it leaves at
+            least `min_samples_leaf` training samples in each of the left and
+            right branches. This may have the effect of smoothing the model,
+            especially in regression.
+
+            - If int, then consider `min_samples_leaf` as the minimum number.
+            - If float, then `min_samples_leaf` is a fraction and
+              `ceil(min_samples_leaf * n_samples)` are the minimum number of
+              samples for each node.
+
+        max_leaf_nodes: int, default=None
+            Grow a tree with `max_leaf_nodes` in best-first fashion. Best nodes
+            are defined as relative reduction in impurity. If None then unlimited
+            number of leaf nodes.
+
+        min_impurity_decrease: float, default=0.0
+            A node wil be split if this split induces a decrease of the impurity
+            greater than or equal to this value.
+
+            TODO: formula
+
+        max_childs: int, default=None
+            When choosing a categorical split, `max_childs` limits the maximum
+            number of child nodes. If None then unlimited number of child nodes.
+
+        numerical_feature_names: list[str], default=None
+            List of numerical feature names. If None `numerical_feature_names`
+            will be set from unset feature names in X while .fit().
+
+        categorical_feature_names: list[str], default=None
+            List of categorical feature names. If None `categorical_feature_names`
+            will be set from unset feature names in X while .fit().
+
+        rank_feature_names: list[str], default=None
+            List of rank feature names.
+
+        hierarchy: dict, default=None
+
+        numerical_nan_mode: Literal['include', 'min', 'max'], default='include'
+            The mode of handling missing values in a numerical feature.
+
+            - If 'include': While training samples with missing values are
+              included into all child nodes. While predicting decision is
+              weighted mean of all decisions in child nodes.
+            - If 'min', missing values are filled with minimum value of
+              a numerical feature in training data.
+            - If 'max', missing values are filled with maximum value of
+              a numerical feature in training data.
+
+        categorical_nan_mode: Literal['include'], default='include'
+            The mode of handling missing values in a categorical feature.
+
+            - If 'include': While training samples with missing values are
+              included into all child nodes. While predicting decision is
+              weighted mean of all decisions in child nodes.
+
+        verbose: Literal['critical', 'error', 'warning', 'info', 'debug'] or int, default=2
+            Controls the level of decision tree verbosity.
+
+            - If 'critical'
+            - If 'error'
+            - If 'warning'
+            - If 'info'
+            - If 'debug'
 
     Attributes:
         tree: базовый древовидный объект.
@@ -167,7 +250,8 @@ class MultiSplitDecisionTreeClassifier:
                     raise ValueError(
                         'If `categorical_feature_names` is a list, it must consists of'
                         ' strings.'
-                        f' The element {categorical_feature_name} of the list isnt string.'
+                        f' The element {categorical_feature_name} of the list isnt'
+                        ' string.'
                     )
 
         if rank_feature_names:
@@ -487,11 +571,11 @@ class MultiSplitDecisionTreeClassifier:
 
     def fit(self, X: pd.DataFrame, y: pd.Series) -> None:
         """
-        Обучает дерево решений.
+        Build a decision tree classifier from the training set (X, y).
 
-        Args:
-            X: pd.DataFrame с точками данных.
-            y: pd.Series с соответствующими метками.
+        Parameters:
+            X: The training input samples.
+            y: The target values.
         """
         self.__check_fit_params(X, y)
 
@@ -659,7 +743,7 @@ class MultiSplitDecisionTreeClassifier:
         available_feature_names: list[str],
         depth: int,
     ) -> TreeNode:
-        """Создаёт узел дерева."""
+        """Create a node of the tree."""
         hierarchy = hierarchy.copy()
         available_feature_names = available_feature_names.copy()
 
@@ -697,10 +781,10 @@ class MultiSplitDecisionTreeClassifier:
             available_feature_names: список признаков, по которым допустимы разбиения.
 
         Returns:
-            Кортеж `(inf_gain, split_type, split_feature_name, feature_values,
+            Tuple `(inf_gain, split_type, split_feature_name, feature_values,
             child_masks)`.
-              inf_gain: прирост информативности после разбиения.
-              split_type: тип разбиения.
+              inf_gain: information gain of the split.
+              split_type: split type.
               split_feature_name: признак, по которому лучше всего разбивать входное
                 множество.
               feature_values: значения признаков, соответствующие дочерним
@@ -765,8 +849,8 @@ class MultiSplitDecisionTreeClassifier:
               нужно найти лучшее разделение.
 
         Returns:
-            Кортеж `(inf_gain, feature_values, child_masks)`.
-              inf_gain: прирост информативности при разделении.
+            Tuple `(inf_gain, feature_values, child_masks)`.
+              inf_gain: information gain of the split.
               feature_values: значения признаков, соответствующие дочерним
                 подмножествам.
               child_masks: булевые маски дочерних узлов.
@@ -827,18 +911,17 @@ class MultiSplitDecisionTreeClassifier:
         split_feature_name: str,
     ) -> tuple[float, list[list[str]] | None, list[pd.Series] | None]:
         """
-        Разделяет входное множество по категориальному признаку наилучшим образом.
+        Split a node according to a categorical feature in the best way.
 
         Parameters:
-            parent_mask: булева маска родительского узла.
-            split_feature_name: признак, по которому нужно разделить входное множество.
+            parent_mask: boolean mask of split node.
+            split_feature_name: feature according to which node should be split.
 
         Returns:
-            Кортеж `(inf_gain, feature_values, child_masks)`.
-              inf_gain: прирост информативности при разделении.
-              feature_values: значения признаков, соответствующие дочерним
-                подмножествам.
-              child_masks: булевы маски дочерних узлов.
+            Tuple `(inf_gain, feature_values, child_masks)`.
+              inf_gain: information gain of the split.
+              feature_values: feature values corresponding to child nodes.
+              child_masks: boolean masks of child nodes.
         """
         available_feature_values = self.X.loc[parent_mask, split_feature_name].unique()
         # TODO nan_mode
@@ -884,18 +967,18 @@ class MultiSplitDecisionTreeClassifier:
         feature_values: list[list],
     ) -> tuple[float, list[pd.Series] | None]:
         """
-        Разделяет входное множество по категориальному признаку согласно заданным
-        значениям.
+        Split a node according to a categorical feature according to the defined feature
+        values.
 
         Parameters:
-            parent_mask: булевая маска родительского узла.
-            split_feature_name: признак, по которому нужно разделить входное множество.
+            parent_mask: boolean mask of split node.
+            split_feature_name: feature according to which node should be split.
             feature_values: значения признаков, соответствующие дочерним подмножествам.
 
         Returns:
-            Кортеж `(inf_gain, child_masks)`.
-              inf_gain: прирост информативности при разделении.
-              child_masks: булевые маски дочерних узлов.
+            Tuple `(inf_gain, child_masks)`.
+              inf_gain: information gain of the split.
+              child_masks: boolean masks of child nodes.
         """
         mask_na = parent_mask & self.X[split_feature_name].isna()
 
@@ -916,7 +999,7 @@ class MultiSplitDecisionTreeClassifier:
         parent_mask: pd.Series,
         split_feature_name: str,
     ) -> tuple[float, list[list[str]], list[pd.Series]]:
-        """Разделяет входное множество по ранговому признаку наилучшим образом."""
+        """Split a node according to a rank feature in the best way."""
         available_feature_values = self.__rank_feature_names[split_feature_name]
 
         best_inf_gain = float('-inf')
