@@ -1,15 +1,12 @@
 """Custom realization of Decision Tree which can handle categorical features."""
-# TODO:
-# Алгоритм предварительной сортировки
-# описать листья дерева через правила и предиктить по ним
-# поменять rank_feature_names как numerical
-# feature_value в numerical_node
-# узлы через именованные кортежи? (оптимизация по оперативке)
-# раскрасить визуализацию дерева
-# cat_nan_mod = 'include' and 'as_category'
-# min_weight_fraction_leaf
-
-# совместимость с GridSearchCV (нужна picklable)
+# TODO: Алгоритм предварительной сортировки
+# TODO: описать листья дерева через правила и предиктить по ним
+# TODO: поменять rank_feature_names как numerical
+# TODO: feature_value в numerical_node
+# TODO: узлы через именованные кортежи? (оптимизация по оперативке)
+# TODO: раскрасить визуализацию дерева
+# TODO: min_weight_fraction_leaf
+# TODO: совместимость с GridSearchCV (нужна picklable)
 
 
 import bisect
@@ -109,12 +106,19 @@ class MultiSplitDecisionTreeClassifier:
             - If 'max', missing values are filled with maximum value of
               a numerical feature in training data.
 
-        categorical_nan_mode: Literal['include'], default='include'
+        categorical_nan_mode: Literal['include', 'as_category'], default='include'
             The mode of handling missing values in a categorical feature.
 
             - If 'include': While training samples with missing values are
               included into all child nodes. While predicting decision is
               weighted mean of all decisions in child nodes.
+            - If 'as_category': While training and predicting missing values
+              will be filled with `categorical_nan_filler`.
+
+        categorical_nan_filler: str, default='missing_value'
+            If `categorical_nan_mode` is set to "as_category", then during
+            training and predicting missing values will be filled with
+            `categorical_nan_filler`.
 
         verbose: Literal['critical', 'error', 'warning', 'info', 'debug'] or int, default=2
             Controls the level of decision tree verbosity.
@@ -147,6 +151,7 @@ class MultiSplitDecisionTreeClassifier:
         hierarchy,
         numerical_nan_mode,
         categorical_nan_mode,
+        categorical_nan_filler,
         verbose,
     ):
         if criterion not in ['entropy', 'gini', 'log_loss']:
@@ -309,10 +314,16 @@ class MultiSplitDecisionTreeClassifier:
                 f' {current_value_message("numerical_nan_mode", numerical_nan_mode)}'
             )
 
-        if categorical_nan_mode not in ['include']:
+        if categorical_nan_mode not in ['include', 'as_category']:
             raise ValueError(
-                '`categorical_nan_mode` must be Literal["include"].'
+                '`categorical_nan_mode` must be Literal["include", "as_category"].'
                 f' {current_value_message("categorical_nan_mode", categorical_nan_mode)}'
+            )
+
+        if not isinstance(categorical_nan_filler, str):
+            raise ValueError(
+                '`categorical_nan_filler` must be a string.'
+                f' {current_value_message("categorical_nan_filler", categorical_nan_filler)}'
             )
 
         if (
@@ -343,7 +354,8 @@ class MultiSplitDecisionTreeClassifier:
         rank_feature_names: dict[str, list] | None = None,
         hierarchy: dict[str, str | list[str]] | None = None,
         numerical_nan_mode: Literal['include', 'min', 'max'] = 'min',
-        categorical_nan_mode: Literal['include'] = 'include',
+        categorical_nan_mode: Literal['include', 'as_category'] = 'include',
+        categorical_nan_filler: str = 'missing_value',
         verbose: Literal['critical', 'error', 'warning', 'info', 'debug'] | int = 2,
     ) -> None:
         self.__check_init_params(
@@ -360,6 +372,7 @@ class MultiSplitDecisionTreeClassifier:
             hierarchy,
             numerical_nan_mode,
             categorical_nan_mode,
+            categorical_nan_filler,
             verbose,
         )
         if isinstance(verbose, str):
@@ -444,6 +457,7 @@ class MultiSplitDecisionTreeClassifier:
         self.__numerical_nan_mode = numerical_nan_mode
         self.__fill_numerical_nan_values = {}
         self.__categorical_nan_mode = categorical_nan_mode
+        self.__categorical_nan_filler = categorical_nan_filler
 
         self.__is_fitted = False
 
@@ -481,6 +495,8 @@ class MultiSplitDecisionTreeClassifier:
             repr_.append(f'numerical_nan_mode={self.__numerical_nan_mode}')
         if self.__categorical_nan_mode != 'include':
             repr_.append(f'categorical_nan_mode={self.__categorical_nan_mode}')
+        if self.__categorical_nan_filler != 'missing_value':
+            repr_.append(f'categorical_nan_filler={self.__categorical_nan_filler}')
 
         return (
             f'{self.__class__.__name__}({", ".join(repr_)})'
@@ -639,6 +655,12 @@ class MultiSplitDecisionTreeClassifier:
                     fill_nan_value = X[num_feature_name].max()
                     self.__fill_numerical_nan_values[fill_nan_value] = fill_nan_value
                     X[num_feature_name].fillna(fill_nan_value, inplace=True)
+
+        if self.__categorical_nan_mode == 'as_category':
+            # TODO: проверить следующее
+            # X.select_dtypes(include=['category', 'object']).fillna(self.__categorical_nan_filler, inplace=True)
+            for cat_feature in self.__categorical_feature_names:
+                X[cat_feature].fillna(self.__categorical_nan_filler, inplace=True)
 
         hierarchy = self.__hierarchy.copy()
         available_feature_names = X.columns.tolist()
@@ -1162,6 +1184,10 @@ class MultiSplitDecisionTreeClassifier:
             for num_feature in self.__numerical_feature_names:
                 X.fillna(self.__fill_numerical_nan_values[num_feature], inplace=True)
 
+        if self.__categorical_nan_mode == 'as_category':
+            for cat_feature in self.__categorical_feature_names:
+                X[cat_feature].fillna(self.__categorical_nan_filler, inplace=True)
+
         if isinstance(X, pd.DataFrame):
             y_pred = [self.predict(point) for _, point in X.iterrows()]
         elif isinstance(X, pd.Series):
@@ -1355,6 +1381,7 @@ class MultiSplitDecisionTreeClassifier:
             'hierarchy': self.__hierarchy,
             'numerical_nan_mode': self.__numerical_nan_mode,
             'categorical_nan_mode': self.__categorical_nan_mode,
+            'categorical_nan_filler': self.__categorical_nan_filler,
         }
 
     def set_params(self, **params):

@@ -474,12 +474,13 @@ def test_init_params__numerical_nan_mode(numerical_nan_mode, expected):
     ('categorical_nan_mode', 'expected'),
     [
         param('include', does_not_raise()),
+        param('as_category', does_not_raise()),
         param(
             'smth',
             raises(
                 ValueError,
                 match=re.escape(
-                    '`categorical_nan_mode` must be Literal["include"].'
+                    '`categorical_nan_mode` must be Literal["include", "as_category"].'
                     f' The current value of `categorical_nan_mode` is "smth".'
                 ),
             ),
@@ -489,6 +490,27 @@ def test_init_params__numerical_nan_mode(numerical_nan_mode, expected):
 def test_init_params__categorical_nan_mode(categorical_nan_mode, expected):
     with expected:
         MultiSplitDecisionTreeClassifier(categorical_nan_mode=categorical_nan_mode)
+
+
+@pytest.mark.parametrize(
+    ('categorical_nan_filler', 'expected'),
+    [
+        param('nan', does_not_raise()),
+        param(
+            1,
+            raises(
+                ValueError,
+                match=(
+                    '`categorical_nan_filler` must be a string.'
+                    ' The current value of `categorical_nan_filler` is 1.'
+                ),
+            ),
+        ),
+    ],
+)
+def test_init_param__categorical_nan_filler(categorical_nan_filler, expected):
+    with expected:
+        MultiSplitDecisionTreeClassifier(categorical_nan_filler=categorical_nan_filler)
 
 
 @pytest.mark.parametrize(
