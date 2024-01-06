@@ -204,21 +204,23 @@ class MultiSplitDecisionTreeClassifier:
                 f' {current_value_message("max_leaf_nodes", max_leaf_nodes)}'
             )
 
+        # TODO: could impurity_decrease be greater 1?
         if not isinstance(min_impurity_decrease, float) or min_impurity_decrease < 0:
             raise ValueError(
                 '`min_impurity_decrease` must be float and non-negative.'
                 f' {current_value_message("min_impurity_decrease", min_impurity_decrease)}'
             )
 
-        if (
-            (isinstance(min_samples_split, int) and isinstance(min_samples_leaf, int))
-            and min_samples_split < 2 * min_samples_leaf
-        ):
-            raise ValueError(
-                '`min_samples_split` должен быть строго в 2 раза больше'
-                ' `min_samples_leaf`. Текущее значение `min_samples_split` ='
-                f' {min_samples_split}, `min_samples_leaf` = {min_samples_leaf}.'
-            )
+        # TODO: finish this part
+        # if (
+        #     (isinstance(min_samples_split, int) and isinstance(min_samples_leaf, int))
+        #     and min_samples_split < 2 * min_samples_leaf
+        # ):
+        #     raise ValueError(
+        #         '`min_samples_split` должен быть строго в 2 раза больше'
+        #         ' `min_samples_leaf`. Текущее значение `min_samples_split` ='
+        #         f' {min_samples_split}, `min_samples_leaf` = {min_samples_leaf}.'
+        #     )
 
         if (
             not (isinstance(max_childs, int) or max_childs == float('+inf'))
@@ -469,13 +471,13 @@ class MultiSplitDecisionTreeClassifier:
 
         # if a parameter value differs from default, then it added to the representation
         if self.__criterion != 'gini':
-            repr_.append(f'criterion={self.__criterion}')
+            repr_.append(f'criterion={repr(self.__criterion)}')
         if self.__max_depth:
             repr_.append(f'max_depth={self.__max_depth}')
         if self.__min_samples_split != 2:
             repr_.append(f'min_samples_split={self.__min_samples_split}')
         if self.__min_samples_leaf != 1:
-            repr_.append(f'min_samples_split={self.__min_samples_split}')
+            repr_.append(f'min_samples_leaf={self.__min_samples_leaf}')
         if self.__max_leaf_nodes != float('+inf'):
             repr_.append(f'max_leaf_nodes={self.__max_leaf_nodes}')
         if self.__min_impurity_decrease != .0:
@@ -491,11 +493,11 @@ class MultiSplitDecisionTreeClassifier:
         if self.__hierarchy:
             repr_.append(f'hierarchy={self.__hierarchy}')
         if self.__numerical_nan_mode != 'min':
-            repr_.append(f'numerical_nan_mode={self.__numerical_nan_mode}')
+            repr_.append(f'numerical_nan_mode={repr(self.__numerical_nan_mode)}')
         if self.__categorical_nan_mode != 'include':
-            repr_.append(f'categorical_nan_mode={self.__categorical_nan_mode}')
+            repr_.append(f'categorical_nan_mode={repr(self.__categorical_nan_mode)}')
         if self.__categorical_nan_filler != 'missing_value':
-            repr_.append(f'categorical_nan_filler={self.__categorical_nan_filler}')
+            repr_.append(f'categorical_nan_filler={repr(self.__categorical_nan_filler)}')
 
         return (
             f'{self.__class__.__name__}({", ".join(repr_)})'
