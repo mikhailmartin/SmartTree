@@ -32,15 +32,15 @@ y = data['Метка']
         ),
         param(
             X, y[:-1],
-            raises(ValueError, match='X и y должны быть одной длины.'),
+            raises(ValueError, match='X and y must be the equal length.'),
         ),
         param(
             X.drop(columns='2. Возраст'), y,
             raises(
                 ValueError,
                 match=(
-                    '`numerical_feature_names` содержит признак 2. Возраст,'
-                    ' которого нет в обучающих данных.'
+                    '`numerical_feature_names` contain feature 2. Возраст,'
+                    ' which isnt present in the training data.'
                 ),
             ),
         ),
@@ -49,8 +49,8 @@ y = data['Метка']
             raises(
                 ValueError,
                 match=(
-                    '`categorical_feature_names` содержит признак 3. Семейное положение,'
-                    ' которого нет в обучающих данных.'
+                    '`categorical_feature_names` contain feature 3. Семейное положение,'
+                    ' which isnt present in the training data.'
                 ),
             ),
         ),
@@ -59,8 +59,8 @@ y = data['Метка']
             raises(
                 ValueError,
                 match=re.escape(
-                    '`rank_feature_names` содержит признак 5. В какой семье Вы выросли?,'
-                    ' которого нет в обучающих данных.'
+                    '`rank_feature_names` contain feature 5. В какой семье Вы выросли?,'
+                    ' which isnt present in the training data.'
                 ),
             ),
         ),

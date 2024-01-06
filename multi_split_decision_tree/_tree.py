@@ -7,6 +7,7 @@
 # TODO: раскрасить визуализацию дерева
 # TODO: min_weight_fraction_leaf
 # TODO: совместимость с GridSearchCV (нужна picklable)
+# TODO: check_score_params не нужен, его можно перенести в .predict()
 
 
 import bisect
@@ -82,15 +83,15 @@ class MultiSplitDecisionTreeClassifier:
             When choosing a categorical split, `max_childs` limits the maximum
             number of child nodes. If None then unlimited number of child nodes.
 
-        numerical_feature_names: list[str], default=None
+        numerical_feature_names: list[str] or str, default=None
             List of numerical feature names. If None `numerical_feature_names`
             will be set from unset feature names in X while .fit().
 
-        categorical_feature_names: list[str], default=None
+        categorical_feature_names: list[str] or str, default=None
             List of categorical feature names. If None `categorical_feature_names`
             will be set from unset feature names in X while .fit().
 
-        rank_feature_names: list[str], default=None
+        rank_feature_names: list[str] or str, default=None
             List of rank feature names.
 
         hierarchy: dict, default=None
@@ -467,8 +468,7 @@ class MultiSplitDecisionTreeClassifier:
     def __repr__(self):
         repr_ = []
 
-        # если значение параметра отличается от того, что задано по умолчанию, то
-        # добавляем его в репрезентацию
+        # if a parameter value differs from default, then it added to the representation
         if self.__criterion != 'gini':
             repr_.append(f'criterion={self.__criterion}')
         if self.__max_depth:
@@ -554,7 +554,7 @@ class MultiSplitDecisionTreeClassifier:
 
         return self.__feature_importances
 
-    def __check_fit_params(self, X, y):
+    def __check_fit_data(self, X, y):
         if not isinstance(X, pd.DataFrame):
             raise ValueError('X must be a pandas.DataFrame.')
 
@@ -562,27 +562,27 @@ class MultiSplitDecisionTreeClassifier:
             raise ValueError('y must be a pandas.Series.')
 
         if X.shape[0] != y.shape[0]:
-            raise ValueError('X и y должны быть одной длины.')
+            raise ValueError('X and y must be the equal length.')
 
         for num_feature_name in self.numerical_feature_names:
             if num_feature_name not in X.columns:
                 raise ValueError(
-                    f'`numerical_feature_names` содержит признак {num_feature_name},'
-                    ' которого нет в обучающих данных.'
+                    f'`numerical_feature_names` contain feature {num_feature_name},'
+                    ' which isnt present in the training data.'
                 )
 
         for cat_feature_name in self.categorical_feature_names:
             if cat_feature_name not in X.columns:
                 raise ValueError(
-                    f'`categorical_feature_names` содержит признак {cat_feature_name},'
-                    ' которого нет в обучающих данных.'
+                    f'`categorical_feature_names` contain feature {cat_feature_name},'
+                    ' which isnt present in the training data.'
                 )
 
         for rank_feature_name in self.rank_feature_names.keys():
             if rank_feature_name not in X.columns:
                 raise ValueError(
-                    f'`rank_feature_names` содержит признак {rank_feature_name},'
-                    ' которого нет в обучающих данных.'
+                    f'`rank_feature_names` contain feature {rank_feature_name},'
+                    ' which isnt present in the training data.'
                 )
 
     def fit(self, X: pd.DataFrame, y: pd.Series) -> None:
@@ -593,12 +593,12 @@ class MultiSplitDecisionTreeClassifier:
             X: The training input samples.
             y: The target values.
         """
-        self.__check_fit_params(X, y)
+        self.__check_fit_data(X, y)
 
-        # до конца обучения инкапсулируем X и y
+        # until the end of the training, we encapsulate X and y
         self.X = X.copy()
         self.y = y.copy()
-        # технический атрибут
+        # technical attribute
         self.splittable_leaf_nodes = []
 
         self.__feature_names = X.columns.tolist()
@@ -609,7 +609,7 @@ class MultiSplitDecisionTreeClassifier:
         if isinstance(self.__min_samples_leaf, float):
             self.__min_samples_leaf = math.ceil(self.__min_samples_leaf * X.shape[0])
 
-        # инициализируем feature_importances всеми признаками и дефолтным значением 0
+        # initialize feature_importances with all the features and the default value of 0
         for feature_name in self.__feature_names:
             self.__feature_importances[feature_name] = 0
 
@@ -657,14 +657,12 @@ class MultiSplitDecisionTreeClassifier:
                     X[num_feature_name].fillna(fill_nan_value, inplace=True)
 
         if self.__categorical_nan_mode == 'as_category':
-            # TODO: проверить следующее
-            # X.select_dtypes(include=['category', 'object']).fillna(self.__categorical_nan_filler, inplace=True)
             for cat_feature in self.__categorical_feature_names:
                 X[cat_feature].fillna(self.__categorical_nan_filler, inplace=True)
 
         hierarchy = self.__hierarchy.copy()
         available_feature_names = X.columns.tolist()
-        # удаляем те признаки, которые пока не могут рассматриваться
+        # remove those features that cannot be considered yet
         for value in hierarchy.values():
             if isinstance(value, str):
                 available_feature_names.remove(value)
@@ -701,7 +699,7 @@ class MultiSplitDecisionTreeClassifier:
             self.__feature_importances[split_feature_name] += inf_gain
 
             for child_mask, feature_value in zip(child_masks, feature_values):
-                # добавляем открывшиеся признаки
+                # add opened features
                 if split_feature_name in best_node._hierarchy:
                     value = best_node._hierarchy.pop(split_feature_name)
                     if isinstance(value, str):
@@ -740,7 +738,7 @@ class MultiSplitDecisionTreeClassifier:
         self.__is_fitted = True
 
     def __is_splittable(self, node: TreeNode) -> bool:
-        """Проверяет, может ли узел дерева быть разделён."""
+        """Checks whether a tree node can be split."""
         if self.__max_depth and node._depth >= self.__max_depth:
             return False
 
@@ -796,11 +794,11 @@ class MultiSplitDecisionTreeClassifier:
         available_feature_names: list[str],
     ) -> tuple[float, str | None, str | None, list[list[str]] | None, list[pd.Series] | None]:
         """
-        Находит лучшее разделение узла дерева, если оно существует.
+        Finds the best tree node split, if it exists.
 
         Parameters:
-            parent_mask: булевая маска узла дерева.
-            available_feature_names: список признаков, по которым допустимы разбиения.
+            parent_mask: boolean mask of the tree node.
+            available_feature_names: the list of features available for splitting.
 
         Returns:
             Tuple `(inf_gain, split_type, split_feature_name, feature_values,
@@ -862,20 +860,20 @@ class MultiSplitDecisionTreeClassifier:
         split_feature_name: str,
     ) -> tuple[float, list[list[str]] | None, list[pd.Series] | None]:
         """
-        Находит лучшее разделение узла дерева по заданному численному признаку, если оно
-        существует.
+        Находит лучшее разделение узла дерева по заданному численному признаку,
+        если оно существует.
 
         Parameters:
             parent_mask: булевая маска узла дерева.
-            split_feature_name: название заданного численного признака, по которому
-              нужно найти лучшее разделение.
+            split_feature_name: название заданного численного признака, по
+              которому нужно найти лучшее разделение.
 
         Returns:
             Tuple `(inf_gain, feature_values, child_masks)`.
               inf_gain: information gain of the split.
               feature_values: значения признаков, соответствующие дочерним
                 подмножествам.
-              child_masks: булевые маски дочерних узлов.
+              child_masks: boolean masks of child nodes.
         """
         use_including_na = (
             self.__numerical_nan_mode == 'include'
@@ -946,15 +944,16 @@ class MultiSplitDecisionTreeClassifier:
               child_masks: boolean masks of child nodes.
         """
         available_feature_values = self.X.loc[parent_mask, split_feature_name].unique()
-        # TODO nan_mode
-        # если содержит NaN (float('nan'))
-        if pd.isna(available_feature_values).any():
+        if (
+            self.__categorical_nan_mode == 'include'
+            and pd.isna(available_feature_values).any()  # if contains missing values
+        ):
             available_feature_values = available_feature_values[~pd.isna(available_feature_values)]
         if len(available_feature_values) <= 1:
             return float('-inf'), None, None
         available_feature_values = sorted(available_feature_values)
 
-        # получаем список всех возможных разбиений
+        # get list of all possible partitions
         partitions = []
         for partition in cat_partitions(available_feature_values):
             # если разбиение - на самом деле не разбиение
@@ -989,8 +988,8 @@ class MultiSplitDecisionTreeClassifier:
         feature_values: list[list],
     ) -> tuple[float, list[pd.Series] | None]:
         """
-        Split a node according to a categorical feature according to the defined feature
-        values.
+        Split a node according to a categorical feature according to the
+        defined feature values.
 
         Parameters:
             parent_mask: boolean mask of split node.
@@ -1044,7 +1043,8 @@ class MultiSplitDecisionTreeClassifier:
         feature_values: list[list[str]],
     ) -> tuple[float, list[pd.Series] | None]:
         """
-        Разделяет входное множество по ранговому признаку согласно заданным значениям.
+        Splits a node according to a rank feature according to the defined feature
+        values.
         """
         left_list_, right_list_ = feature_values
 
@@ -1070,7 +1070,7 @@ class MultiSplitDecisionTreeClassifier:
         nan_mode: str | None = None,
     ) -> float:
         """
-        Считает прирост информативности.
+        Calculates information gain of the split.
 
         Parameters:
             parent_mask: булевая маска родительского узла.
@@ -1079,14 +1079,14 @@ class MultiSplitDecisionTreeClassifier:
               Если 'include', то подрубает нормализацию дочерних загрязнений.
 
         Returns:
-            прирост информативности.
+            information gain.
 
         References:
             https://scikit-learn.org/stable/modules/generated/sklearn.tree.DecisionTreeClassifier.html
 
-        Формула в LaTeX:
+        Formula in LaTeX:
             \text{Information Gain} = \frac{N_{\text{parent}}}{N} * \Big(\text{impurity}_{\text{parent}} - \sum^C_{i=1}{\frac{N_{\text{child}_i}}{N_{\text{parent}}}} * \text{impurity}_{\text{child}_i} \Big)
-            где
+            where
             \text{Information Gain} - собственно прирост информативности;
             N - количество примеров во всём обучающем наборе;
             N_{\text{parent}} - количество примеров в родительском узле;
@@ -1120,12 +1120,12 @@ class MultiSplitDecisionTreeClassifier:
 
     def __gini_index(self, mask: pd.Series) -> float:
         """
-        Считает индекс джини в узле дерева.
+        Calculates Gini index in a tree node.
 
-        Формула индекса Джини в LaTeX:
+        Gini index formula in LaTeX:
             \text{Gini Index} = \sum^C_{i=1} p_i \times (1 - p_i)
-            где
-            \text{Gini Index} - собственно индекс Джини;
+            where
+            \text{Gini Index} - Gini index;
             C - общее количество классов;
             p_i - вероятность выбора примера с классом i.
         """
@@ -1141,12 +1141,12 @@ class MultiSplitDecisionTreeClassifier:
 
     def __entropy(self, mask: pd.Series) -> float:
         """
-        Считает энтропию в узле дерева.
+        Calculates entropy in a tree node.
 
-        Формула энтропии в LaTeX:
+        Entropy formula in LaTeX:
         H = \log{\overline{N}} = \sum^N_{i=1} p_i \log{(1/p_i)} = -\sum^N_{i=1} p_i \log{p_i}
-        где
-        H - энтропия;
+        where
+        H - entropy;
         \overline{N} - эффективное количество состояний;
         p_i - вероятность состояния системы.
         """
@@ -1178,8 +1178,6 @@ class MultiSplitDecisionTreeClassifier:
                 ' Call `fit` with appropriate arguments before using this estimator.'
             )
 
-        # TODO: check X
-
         if self.__numerical_nan_mode in ['min', 'max']:
             for num_feature in self.__numerical_feature_names:
                 X.fillna(self.__fill_numerical_nan_values[num_feature], inplace=True)
@@ -1194,7 +1192,7 @@ class MultiSplitDecisionTreeClassifier:
             y_pred_proba, samples = self.__predict_proba(self.__root, X)
             y_pred = self.__class_names[y_pred_proba.argmax()]
         else:
-            raise ValueError('X должен представлять собой pd.DataFrame или pd.Series.')
+            raise ValueError('X must be a pandas.DataFrame or a pandas.Series.')
 
         return y_pred
 
@@ -1295,22 +1293,21 @@ class MultiSplitDecisionTreeClassifier:
 
         return y_pred_proba, samples
 
-    def __check_score_params(self, X, y, sample_weight):
+    def __check_score_data(self, X, y, sample_weight):
         if not isinstance(X, pd.DataFrame):
-            raise ValueError('X должен представлять собой pd.DataFrame.')
+            raise ValueError('X must be a pandas.DataFrame.')
 
         if not isinstance(y, pd.Series):
-            raise ValueError('y должен представлять собой pd.Series.')
+            raise ValueError('y must be a pandas.Series.')
 
         if X.shape[0] != y.shape[0]:
-            raise ValueError('X и y должны быть одной длины.')
+            raise ValueError('X and y must be the equal length.')
 
         fitted_features_set = set(self.__feature_names)
         X_features_set = set(X.columns)
         if fitted_features_set != X_features_set:
             message = (
-                'Названия признаков должны совпадать с теми,'
-                ' что были переданы во время обучения.\n'
+                'The feature names should match those that were passed during fit.\n'
             )
 
             unexpected_names = sorted(X_features_set - fitted_features_set)
@@ -1327,15 +1324,14 @@ class MultiSplitDecisionTreeClassifier:
                 return output
 
             if unexpected_names:
-                message += 'Названия признаков, что не были переданы во время обучения:\n'
+                message += 'Feature names unseen at fit time:\n'
                 message += add_names(unexpected_names)
 
             if missing_names:
-                message += (
-                    'Названия признаков, что были переданы во время обучения,'
-                    ' но сейчас отсутствуют:\n'
-                )
+                message += 'Feature names seen at fit time, yet now missing:\n'
                 message += add_names(missing_names)
+
+            # TODO: same order of features
 
             raise ValueError(message)
 
@@ -1352,7 +1348,7 @@ class MultiSplitDecisionTreeClassifier:
                 ' Call `fit` with appropriate arguments before using this estimator.'
             )
 
-        self.__check_score_params(X, y, sample_weight)
+        self.__check_score_data(X, y, sample_weight)
 
         if self.__numerical_nan_mode in ['min', 'max']:
             for num_feature in self.__numerical_feature_names:
@@ -1385,16 +1381,15 @@ class MultiSplitDecisionTreeClassifier:
         }
 
     def set_params(self, **params):
-        """Задаёт параметры этому классификатору."""
+        """Set the parameters of this estimator."""
         valid_params = self.get_params(deep=True)
 
         for param, value in params.items():
             if param not in valid_params:
                 raise ValueError(
-                    f'Недопустимый параметр {param} для дерева {self}. Проверьте список'
-                    ' доступных параметров с помощью `estimator.get_params().keys()`.'
+                    f'Invalid parameter {param} for estimator {self}. '
+                    'Valid parameters are `estimator.get_params().keys()`.'
                 )
-            # TODO: _check_params
             # TODO: работает пока совпадают параметры и приватные атрибуты
             # TODO: почему через setattr()?
             setattr(self, f'_{self.__class__.__name__}__{param}', value)
@@ -1499,8 +1494,7 @@ class MultiSplitDecisionTreeClassifier:
         self.__graph.node(name=node_name, label=node_content)
 
         if parent_name:
-            # TODO
-            edge_label = '\n'.join([str(i) for i in node.feature_value])
+            edge_label = '\n'.join([str(fv) for fv in node.feature_value])
             self.__graph.edge(
                 tail_name=parent_name,
                 head_name=node_name,

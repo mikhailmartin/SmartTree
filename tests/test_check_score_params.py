@@ -21,28 +21,27 @@ y = data['Метка']
         param(X, y, does_not_raise()),
         param(
             'X', y,
-            raises(ValueError, match='X должен представлять собой pd.DataFrame.'),
+            raises(ValueError, match='X must be a pandas.DataFrame.'),
         ),
         param(
             X, 'y',
             raises(
                 ValueError,
-                match='y должен представлять собой pd.Series.',
+                match='y must be a pandas.Series.',
             ),
         ),
         param(
             X, y[:-1],
-            raises(ValueError, match='X и y должны быть одной длины.'),
+            raises(ValueError, match='X and y must be the equal length.'),
         ),
         param(
             X.rename(columns={'2. Возраст': '2. Age'}), y,
             raises(
                 ValueError,
                 match=(
-                    'Названия признаков, что не были переданы во время обучения:\n'
+                    'Feature names unseen at fit time:\n'
                     '- 2. Age\n'
-                    'Названия признаков, что были переданы во время обучения,'
-                    ' но сейчас отсутствуют:\n'
+                    'Feature names seen at fit time, yet now missing:\n'
                     '- 2. Возраст\n'
                 ),
             ),
