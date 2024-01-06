@@ -7,7 +7,6 @@
 # TODO: раскрасить визуализацию дерева
 # TODO: min_weight_fraction_leaf
 # TODO: совместимость с GridSearchCV (нужна picklable)
-# TODO: check_score_params не нужен, его можно перенести в .predict()
 
 
 import bisect
@@ -263,8 +262,8 @@ class MultiSplitDecisionTreeClassifier:
         if rank_feature_names:
             if not isinstance(rank_feature_names, dict):
                 raise ValueError(
-                    '`rank_feature_names` must be a dictionary {rang feature name: list'
-                    ' of its ordered values}.'
+                    '`rank_feature_names` must be a dictionary'
+                    ' {rang feature name: list of its ordered values}.'
                 )
             for rank_feature_name, value_list in rank_feature_names.items():
                 if not isinstance(rank_feature_name, str):
@@ -289,14 +288,14 @@ class MultiSplitDecisionTreeClassifier:
             for key, value in hierarchy.items():
                 if not isinstance(key, str):
                     raise ValueError(
-                        '`hierarchy` must be a dictionary {opening feature: opened'
-                        ' feature / list of opened features}.'
+                        '`hierarchy` must be a dictionary'
+                        ' {opening feature: opened feature / list of opened features}.'
                         f' Value {key} of opening feature isnt a string.'
                     )
                 if not isinstance(value, (str, list)):
                     raise ValueError(
-                        '`hierarchy` must be a dictionary {opening feature: opened'
-                        ' feature / list of opened features}.'
+                        '`hierarchy` must be a dictionary'
+                        ' {opening feature: opened feature / list of opened features}.'
                         f' Value {value} of opened feature(s) isnt a string (list of'
                         ' strings).'
                     )
@@ -376,28 +375,28 @@ class MultiSplitDecisionTreeClassifier:
             categorical_nan_filler,
             verbose,
         )
-        if isinstance(verbose, str):
-            match verbose:
-                case 'critical':
+        match verbose:
+            case 'critical':
+                logging_level = logging.CRITICAL
+            case 'error':
+                logging_level = logging.ERROR
+            case 'warning':
+                logging_level = logging.WARNING
+            case 'info':
+                logging_level = logging.INFO
+            case 'debug':
+                logging_level = logging.DEBUG
+            case _:
+                if verbose < 0:
                     logging_level = logging.CRITICAL
-                case 'error':
+                elif verbose == 0:
                     logging_level = logging.ERROR
-                case 'warning':
+                elif verbose == 1:
                     logging_level = logging.WARNING
-                case 'info':
+                elif verbose == 2:
                     logging_level = logging.INFO
-                case 'debug':
+                elif verbose > 2:
                     logging_level = logging.DEBUG
-        elif verbose < 0:
-            logging_level = logging.CRITICAL
-        elif verbose == 0:
-            logging_level = logging.ERROR
-        elif verbose == 1:
-            logging_level = logging.WARNING
-        elif verbose == 2:
-            logging_level = logging.INFO
-        elif verbose > 2:
-            logging_level = logging.DEBUG
 
         logging.basicConfig(level=logging_level)
 
@@ -1170,7 +1169,7 @@ class MultiSplitDecisionTreeClassifier:
 
         return distribution
 
-    def predict(self, X: pd.DataFrame | pd.Series) -> list[str] | str:
+    def predict(self, X: pd.DataFrame) -> list[str]:
         """Предсказывает метки классов для точек данных в X."""
         if not self.__is_fitted:
             raise NotFittedError(
@@ -1178,25 +1177,12 @@ class MultiSplitDecisionTreeClassifier:
                 ' Call `fit` with appropriate arguments before using this estimator.'
             )
 
-        if self.__numerical_nan_mode in ['min', 'max']:
-            for num_feature in self.__numerical_feature_names:
-                X.fillna(self.__fill_numerical_nan_values[num_feature], inplace=True)
-
-        if self.__categorical_nan_mode == 'as_category':
-            for cat_feature in self.__categorical_feature_names:
-                X[cat_feature].fillna(self.__categorical_nan_filler, inplace=True)
-
-        if isinstance(X, pd.DataFrame):
-            y_pred = [self.predict(point) for _, point in X.iterrows()]
-        elif isinstance(X, pd.Series):
-            y_pred_proba, samples = self.__predict_proba(self.__root, X)
-            y_pred = self.__class_names[y_pred_proba.argmax()]
-        else:
-            raise ValueError('X must be a pandas.DataFrame or a pandas.Series.')
+        y_pred_proba_s = self.predict_proba(X)
+        y_pred = [self.__class_names[y_pred_proba.argmax()] for y_pred_proba in y_pred_proba_s]
 
         return y_pred
 
-    def predict_proba(self, X: pd.DataFrame | pd.Series) -> np.array:
+    def predict_proba(self, X: pd.DataFrame) -> np.array:
         """
         Predict class probabilities of the input samples X.
 
@@ -1216,18 +1202,35 @@ class MultiSplitDecisionTreeClassifier:
                 ' Call `fit` with appropriate arguments before using this estimator.'
             )
 
+        # TODO: write __check_predict_proba_data()
+
+        X = self.__preprocess(X)
+
+        y_pred_proba = np.array([
+            self.__predict_proba(self.__root, point)[0]
+            for _, point in X.iterrows()
+        ])
+
+        return y_pred_proba
+
+    def __preprocess(self, X: pd.DataFrame) -> pd.DataFrame:
+        """
+        Preprocesses data for prediction.
+
+        Fills in the missing values with the corresponding values according to
+        the `categorical_nan_mode` and `numerical_nan_mode`.
+        """
+        X = X.copy()
+
         if self.__numerical_nan_mode in ['min', 'max']:
             for num_feature in self.__numerical_feature_names:
                 X.fillna(self.__fill_numerical_nan_values[num_feature], inplace=True)
 
-        if isinstance(X, pd.DataFrame):
-            y_pred_proba = [self.predict_proba(point) for _, point in X.iterrows()]
-        elif isinstance(X, pd.Series):
-            y_pred_proba, samples = self.__predict_proba(self.__root, X)
-        else:
-            assert False
+        if self.__categorical_nan_mode == 'as_category':
+            for cat_feature in self.__categorical_feature_names:
+                X[cat_feature].fillna(self.__categorical_nan_filler, inplace=True)
 
-        return y_pred_proba
+        return X
 
     def __predict_proba(
         self,
@@ -1349,10 +1352,6 @@ class MultiSplitDecisionTreeClassifier:
             )
 
         self.__check_score_data(X, y, sample_weight)
-
-        if self.__numerical_nan_mode in ['min', 'max']:
-            for num_feature in self.__numerical_feature_names:
-                X.fillna(self.__fill_numerical_nan_values[num_feature], inplace=True)
 
         score = accuracy_score(y, self.predict(X), sample_weight=sample_weight)
 
