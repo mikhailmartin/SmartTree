@@ -516,7 +516,11 @@ def test_init_param__categorical_nan_filler(categorical_nan_filler, expected):
 @pytest.mark.parametrize(
     ('verbose', 'expected'),
     [
+        param(-1, does_not_raise()),
+        param(0, does_not_raise()),
+        param(1, does_not_raise()),
         param(2, does_not_raise()),
+        param(3, does_not_raise()),
         param('critical', does_not_raise()),
         param('error', does_not_raise()),
         param('warning', does_not_raise()),
@@ -527,8 +531,8 @@ def test_init_param__categorical_nan_filler(categorical_nan_filler, expected):
             raises(
                 ValueError,
                 match=re.escape(
-                    '`verbose` must be integer or Literal["critical", "error",'
-                    ' "warning", "info", "debug"].'
+                    '`verbose` must be integer or'
+                    ' Literal["critical", "error", "warning", "info", "debug"].'
                     f' The current value of `verbose` is 1.5.'
                 ),
             ),
@@ -538,8 +542,8 @@ def test_init_param__categorical_nan_filler(categorical_nan_filler, expected):
             raises(
                 ValueError,
                 match=re.escape(
-                    '`verbose` must be integer or Literal["critical", "error",'
-                    ' "warning", "info", "debug"].'
+                    '`verbose` must be integer or'
+                    ' Literal["critical", "error", "warning", "info", "debug"].'
                     f' The current value of `verbose` is "crjtjcal".'
                 ),
             ),
