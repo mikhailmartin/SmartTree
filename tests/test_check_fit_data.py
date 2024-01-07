@@ -18,22 +18,10 @@ y = data['Метка']
 @pytest.mark.parametrize(
     ('X', 'y', 'expected'),
     [
-        param(
-            X, y,
-            does_not_raise(),
-        ),
-        param(
-            'X', y,
-            raises(ValueError, match='X must be a pandas.DataFrame.'),
-        ),
-        param(
-            X, 'y',
-            raises(ValueError, match='y must be a pandas.Series.')
-        ),
-        param(
-            X, y[:-1],
-            raises(ValueError, match='X and y must be the equal length.'),
-        ),
+        param(X, y, does_not_raise()),
+        param('X', y, raises(ValueError, match='X must be a pandas.DataFrame.')),
+        param(X, 'y', raises(ValueError, match='y must be a pandas.Series.')),
+        param(X, y[:-1], raises(ValueError, match='X and y must be the equal length.')),
         param(
             X.drop(columns='2. Возраст'), y,
             raises(

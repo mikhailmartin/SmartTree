@@ -25,13 +25,6 @@ from multi_split_decision_tree._utils import (
 from multi_split_decision_tree._exceptions import NotFittedError
 
 
-def current_value_message(param_name, current_value):
-    if isinstance(current_value, str):
-        current_value = f'"{current_value}"'
-
-    return f'The current value of `{param_name}` is {current_value}.'
-
-
 class MultiSplitDecisionTreeClassifier:
     """
     A decision tree classifier.
@@ -47,7 +40,7 @@ class MultiSplitDecisionTreeClassifier:
             until all leaves are pure or until all leaves contain less than
             min_samples_split samples.
 
-        min_samples_split: int or float, default=2.
+        min_samples_split: int or float, default=2
             The minimum number of samples required to split an internal node:
 
             - If int, then consider `min_samples_split` as the minimum number.
@@ -55,7 +48,7 @@ class MultiSplitDecisionTreeClassifier:
               `ceil(min_samples_split * n_samples)` are the minimum number of
               samples for each split.
 
-        min_samples_leaf: int or float, default=1.
+        min_samples_leaf: int or float, default=1
             The minimum number of samples required to be a leaf node.
             A split point at eny depth will only be considered if it leaves at
             least `min_samples_leaf` training samples in each of the left and
@@ -154,17 +147,17 @@ class MultiSplitDecisionTreeClassifier:
         categorical_nan_filler,
         verbose,
     ):
-        if criterion not in ['entropy', 'gini', 'log_loss']:
+        if criterion not in ["entropy", "gini", "log_loss"]:
             raise ValueError(
-                '`criterion` mist be Literal["entropy", "log_loss", "gini"].'
-                f' {current_value_message("criterion", criterion)}'
+                "`criterion` mist be Literal['entropy', 'log_loss', 'gini']."
+                f" The current value of `criterion` is {repr(criterion)}."
             )
 
         if max_depth:
             if not isinstance(max_depth, int) or max_depth <= 0:
                 raise ValueError(
-                    '`max_depth` must be an integer and strictly greater than 0.'
-                    f' {current_value_message("max_depth", max_depth)}'
+                    "`max_depth` must be an integer and strictly greater than 0."
+                    f" The current value of `max_depth` is {repr(max_depth)}."
                 )
 
         if (
@@ -176,9 +169,9 @@ class MultiSplitDecisionTreeClassifier:
             )
         ):
             raise ValueError(
-                '`min_samples_split` must be an integer and lie in the range [2, +inf),'
-                ' or float and lie in the range (0, 1).'
-                f' {current_value_message("min_samples_split", min_samples_split)}.'
+                "`min_samples_split` must be an integer and lie in the range"
+                " [2, +inf), or float and lie in the range (0, 1)."
+                f" The current value of `min_samples_split` is {repr(min_samples_split)}."
             )
 
         if (
@@ -190,25 +183,25 @@ class MultiSplitDecisionTreeClassifier:
             )
         ):
             raise ValueError(
-                '`min_samples_leaf` must be an integer and lie in the range [1, +inf),'
-                ' or float and lie in the range (0, 1).'
-                f' {current_value_message("min_samples_leaf", min_samples_leaf)}'
+                "`min_samples_leaf` must be an integer and lie in the range"
+                " [1, +inf), or float and lie in the range (0, 1)."
+                f" The current value of `min_samples_leaf` is {repr(min_samples_leaf)}."
             )
 
         if (
-            not (isinstance(max_leaf_nodes, int) or max_leaf_nodes == float('+inf'))
+            not (isinstance(max_leaf_nodes, int) or max_leaf_nodes == float("+inf"))
             or max_leaf_nodes < 2
         ):
             raise ValueError(
-                '`max_leaf_nodes` must be an integer and strictly greater than 2.'
-                f' {current_value_message("max_leaf_nodes", max_leaf_nodes)}'
+                "`max_leaf_nodes` must be an integer and strictly greater than 2."
+                f" The current value of `max_leaf_nodes` is {repr(max_leaf_nodes)}."
             )
 
         # TODO: could impurity_decrease be greater 1?
         if not isinstance(min_impurity_decrease, float) or min_impurity_decrease < 0:
             raise ValueError(
-                '`min_impurity_decrease` must be float and non-negative.'
-                f' {current_value_message("min_impurity_decrease", min_impurity_decrease)}'
+                "`min_impurity_decrease` must be float and non-negative."
+                f" The current value of `min_impurity_decrease` is {repr(min_impurity_decrease)}."
             )
 
         # TODO: finish this part
@@ -223,142 +216,142 @@ class MultiSplitDecisionTreeClassifier:
         #     )
 
         if (
-            not (isinstance(max_childs, int) or max_childs == float('+inf'))
+            not (isinstance(max_childs, int) or max_childs == float("+inf"))
             or max_childs < 2
         ):
             raise ValueError(
-                '`max_childs` must be integer and strictly greater than 2.'
-                f' {current_value_message("max_childs", max_childs)}'
+                "`max_childs` must be integer and strictly greater than 2."
+                f" The current value of `max_childs` is {repr(max_childs)}."
             )
 
         if numerical_feature_names:
             if not isinstance(numerical_feature_names, (list, str)):
                 raise ValueError(
-                    '`numerical_feature_names` must be a string or list of strings.'
-                    f' {current_value_message("numerical_feature_names", numerical_feature_names)}'
+                    "`numerical_feature_names` must be a string or list of strings."
+                    f" The current value of `numerical_feature_names` is {repr(numerical_feature_names)}."
                 )
             for numerical_feature_name in numerical_feature_names:
                 if not isinstance(numerical_feature_name, str):
                     raise ValueError(
-                        'If `numerical_feature_names` is a list, it must consists of'
-                        ' strings.'
-                        f' The element {numerical_feature_name} of the list isnt a'
-                        ' string.'
+                        "If `numerical_feature_names` is a list, it must consists of"
+                        " strings."
+                        f" The element {numerical_feature_name} of the list isnt a"
+                        " string."
                     )
 
         if categorical_feature_names:
             if not isinstance(categorical_feature_names, (list, str)):
                 raise ValueError(
-                    '`categorical_feature_names` must be string or list of strings.'
-                    f' {current_value_message("categorical_feature_names", categorical_feature_names)}'
+                    "`categorical_feature_names` must be string or list of strings."
+                    f" The current value of `categorical_feature_names` is {repr(categorical_feature_names)}."
                 )
             for categorical_feature_name in categorical_feature_names:
                 if not isinstance(categorical_feature_name, str):
                     raise ValueError(
-                        'If `categorical_feature_names` is a list, it must consists of'
-                        ' strings.'
-                        f' The element {categorical_feature_name} of the list isnt'
-                        ' string.'
+                        "If `categorical_feature_names` is a list, it must consists of"
+                        " strings."
+                        f" The element {categorical_feature_name} of the list isnt"
+                        " string."
                     )
 
         if rank_feature_names:
             if not isinstance(rank_feature_names, dict):
                 raise ValueError(
-                    '`rank_feature_names` must be a dictionary'
-                    ' {rang feature name: list of its ordered values}.'
+                    "`rank_feature_names` must be a dictionary"
+                    " {rang feature name: list of its ordered values}."
                 )
             for rank_feature_name, value_list in rank_feature_names.items():
                 if not isinstance(rank_feature_name, str):
                     raise ValueError(
-                        'Keys in `rank_feature_names` must be a strings.'
-                        f' The key {rank_feature_name} isnt a string.'
+                        "Keys in `rank_feature_names` must be a strings."
+                        f" The key {rank_feature_name} isnt a string."
                     )
                 if not isinstance(value_list, list):
                     raise ValueError(
-                        'Values in `rank_feature_names` must be lists.'
-                        f' The value {value_list} of the key {rank_feature_name} isnt a'
-                        ' list.'
+                        "Values in `rank_feature_names` must be lists."
+                        f" The value {value_list} of the key {rank_feature_name} isnt a"
+                        " list."
                     )
 
         if hierarchy:
             if not isinstance(hierarchy, dict):
                 raise ValueError(
-                    '`hierarchy` must be a dictionary {opening feature: opened feature /'
-                    ' list of opened strings}.'
-                    f' {current_value_message("hierarchy", hierarchy)}'
+                    "`hierarchy` must be a dictionary"
+                    " {opening feature: opened feature / list of opened strings}."
+                    f" The current value of `hierarchy` is {repr(hierarchy)}."
                 )
             for key, value in hierarchy.items():
                 if not isinstance(key, str):
                     raise ValueError(
-                        '`hierarchy` must be a dictionary'
-                        ' {opening feature: opened feature / list of opened features}.'
-                        f' Value {key} of opening feature isnt a string.'
+                        "`hierarchy` must be a dictionary"
+                        " {opening feature: opened feature / list of opened strings}."
+                        f" Value {repr(key)} of opening feature isnt a string."
                     )
                 if not isinstance(value, (str, list)):
                     raise ValueError(
-                        '`hierarchy` must be a dictionary'
-                        ' {opening feature: opened feature / list of opened features}.'
-                        f' Value {value} of opened feature(s) isnt a string (list of'
-                        ' strings).'
+                        "`hierarchy` must be a dictionary"
+                        " {opening feature: opened feature / list of opened features}."
+                        f" Value {value} of opened feature(s) isnt a string (list of"
+                        " strings)."
                     )
                 if isinstance(value, list):
                     for elem in value:
                         if not isinstance(elem, str):
                             raise ValueError(
-                                '`hierarchy` must be a dictionary {opening feature:'
-                                ' opened feature / list of opened features}.'
-                                f' Value {elem} of opened feature isnt a string.'
+                                "`hierarchy` must be a dictionary {opening feature:"
+                                " opened feature / list of opened features}."
+                                f" Value {elem} of opened feature isnt a string."
                             )
 
-        if numerical_nan_mode not in ['include', 'min', 'max']:
+        if numerical_nan_mode not in ["include", "min", "max"]:
             raise ValueError(
-                '`numerical_nan_mode` must be Literal["include", "min", "max"].'
-                f' {current_value_message("numerical_nan_mode", numerical_nan_mode)}'
+                "`numerical_nan_mode` must be Literal['include', 'min', 'max']."
+                f" The current value of `numerical_nan_mode` is {repr(numerical_nan_mode)}."
             )
 
         if categorical_nan_mode not in ['include', 'as_category']:
             raise ValueError(
-                '`categorical_nan_mode` must be Literal["include", "as_category"].'
-                f' {current_value_message("categorical_nan_mode", categorical_nan_mode)}'
+                "`categorical_nan_mode` must be Literal['include', 'as_category']."
+                f" The current value of `categorical_nan_mode` is {repr(categorical_nan_mode)}."
             )
 
         if not isinstance(categorical_nan_filler, str):
             raise ValueError(
-                '`categorical_nan_filler` must be a string.'
-                f' {current_value_message("categorical_nan_filler", categorical_nan_filler)}'
+                "`categorical_nan_filler` must be a string."
+                f" The current value of `categorical_nan_filler` is {repr(categorical_nan_filler)}."
             )
 
         if (
             not isinstance(verbose, (str, int))
             or (
                 isinstance(verbose, str)
-                and verbose not in ['critical', 'error', 'warning', 'info', 'debug']
+                and verbose not in ["critical", "error", "warning", "info", "debug"]
             )
         ):
             raise ValueError(
-                '`verbose` must be integer or Literal["critical", "error", "warning",'
-                ' "info", "debug"].'
-                f' {current_value_message("verbose", verbose)}'
+                "`verbose` must be an integer or"
+                " Literal['critical', 'error', 'warning', 'info', 'debug']."
+                f" The current value of `verbose` is {repr(verbose)}."
             )
 
     def __init__(
         self,
         *,
-        criterion: Literal['gini', 'entropy', 'log_loss'] = 'gini',
+        criterion: Literal['gini', 'entropy', 'log_loss'] = "gini",
         max_depth: int | None = None,
         min_samples_split: int | float = 2,
         min_samples_leaf: int | float = 1,
-        max_leaf_nodes: int | float = float('+inf'),
+        max_leaf_nodes: int | float = float("+inf"),
         min_impurity_decrease: float = .0,
-        max_childs: int | float = float('+inf'),
+        max_childs: int | float = float("+inf"),
         numerical_feature_names: list[str] | str | None = None,
         categorical_feature_names: list[str] | str | None = None,
         rank_feature_names: dict[str, list] | None = None,
         hierarchy: dict[str, str | list[str]] | None = None,
-        numerical_nan_mode: Literal['include', 'min', 'max'] = 'min',
-        categorical_nan_mode: Literal['include', 'as_category'] = 'include',
-        categorical_nan_filler: str = 'missing_value',
-        verbose: Literal['critical', 'error', 'warning', 'info', 'debug'] | int = 2,
+        numerical_nan_mode: Literal["include", "min", "max"] = "min",
+        categorical_nan_mode: Literal["include", "as_category"] = "include",
+        categorical_nan_filler: str = "missing_value",
+        verbose: Literal["critical", "error", "warning", "info", "debug"] | int = 2,
     ) -> None:
         self.__check_init_params(
             criterion,
@@ -378,15 +371,15 @@ class MultiSplitDecisionTreeClassifier:
             verbose,
         )
         match verbose:
-            case 'critical':
+            case "critical":
                 logging_level = logging.CRITICAL
-            case 'error':
+            case "error":
                 logging_level = logging.ERROR
-            case 'warning':
+            case "warning":
                 logging_level = logging.WARNING
-            case 'info':
+            case "info":
                 logging_level = logging.INFO
-            case 'debug':
+            case "debug":
                 logging_level = logging.DEBUG
             case _:
                 if verbose < 0:
@@ -405,9 +398,9 @@ class MultiSplitDecisionTreeClassifier:
         self.__criterion = criterion
 
         match criterion:
-            case 'gini':
+            case "gini":
                 self.__impurity = self.__gini_index
-            case 'entropy' | 'log_loss':
+            case "entropy" | "log_loss":
                 self.__impurity = self.__entropy
 
         # критерии остановки ветвления
@@ -434,8 +427,8 @@ class MultiSplitDecisionTreeClassifier:
         elif isinstance(numerical_feature_names, list):
             self.__numerical_feature_names = numerical_feature_names
         logging.debug(
-            '[MultiSplitDecisionTree] [Debug] `numerical_feature_names` is set to'
-            f' {self.__numerical_feature_names}.'
+            "[MultiSplitDecisionTree] [Debug] `numerical_feature_names` is set to"
+            f" {self.__numerical_feature_names}."
         )
 
         if categorical_feature_names is None:
@@ -445,8 +438,8 @@ class MultiSplitDecisionTreeClassifier:
         elif isinstance(categorical_feature_names, list):
             self.__categorical_feature_names = categorical_feature_names
         logging.debug(
-            '[MultiSplitDecisionTree] [Debug] `categorical_feature_names` is set to'
-            f' {self.__categorical_feature_names}.'
+            "[MultiSplitDecisionTree] [Debug] `categorical_feature_names` is set to"
+            f" {self.__categorical_feature_names}."
         )
 
         if rank_feature_names is None:
@@ -470,45 +463,45 @@ class MultiSplitDecisionTreeClassifier:
         repr_ = []
 
         # if a parameter value differs from default, then it added to the representation
-        if self.__criterion != 'gini':
-            repr_.append(f'criterion={repr(self.__criterion)}')
+        if self.__criterion != "gini":
+            repr_.append(f"criterion={repr(self.__criterion)}")
         if self.__max_depth:
-            repr_.append(f'max_depth={self.__max_depth}')
+            repr_.append(f"max_depth={self.__max_depth}")
         if self.__min_samples_split != 2:
-            repr_.append(f'min_samples_split={self.__min_samples_split}')
+            repr_.append(f"min_samples_split={self.__min_samples_split}")
         if self.__min_samples_leaf != 1:
-            repr_.append(f'min_samples_leaf={self.__min_samples_leaf}')
-        if self.__max_leaf_nodes != float('+inf'):
-            repr_.append(f'max_leaf_nodes={self.__max_leaf_nodes}')
+            repr_.append(f"min_samples_leaf={self.__min_samples_leaf}")
+        if self.__max_leaf_nodes != float("+inf"):
+            repr_.append(f"max_leaf_nodes={self.__max_leaf_nodes}")
         if self.__min_impurity_decrease != .0:
-            repr_.append(f'min_impurity_decrease={self.__min_impurity_decrease}')
-        if self.__max_childs != float('+inf'):
-            repr_.append(f'max_childs={self.__max_childs}')
+            repr_.append(f"min_impurity_decrease={self.__min_impurity_decrease}")
+        if self.__max_childs != float("+inf"):
+            repr_.append(f"max_childs={self.__max_childs}")
         if self.__numerical_feature_names:
-            repr_.append(f'numerical_feature_names={self.__numerical_feature_names}')
+            repr_.append(f"numerical_feature_names={self.__numerical_feature_names}")
         if self.__categorical_feature_names:
-            repr_.append(f'categorical_feature_names={self.__categorical_feature_names}')
+            repr_.append(f"categorical_feature_names={self.__categorical_feature_names}")
         if self.__rank_feature_names:
-            repr_.append(f'rank_feature_names={self.__rank_feature_names}')
+            repr_.append(f"rank_feature_names={self.__rank_feature_names}")
         if self.__hierarchy:
-            repr_.append(f'hierarchy={self.__hierarchy}')
-        if self.__numerical_nan_mode != 'min':
-            repr_.append(f'numerical_nan_mode={repr(self.__numerical_nan_mode)}')
-        if self.__categorical_nan_mode != 'include':
-            repr_.append(f'categorical_nan_mode={repr(self.__categorical_nan_mode)}')
-        if self.__categorical_nan_filler != 'missing_value':
-            repr_.append(f'categorical_nan_filler={repr(self.__categorical_nan_filler)}')
+            repr_.append(f"hierarchy={self.__hierarchy}")
+        if self.__numerical_nan_mode != "min":
+            repr_.append(f"numerical_nan_mode={repr(self.__numerical_nan_mode)}")
+        if self.__categorical_nan_mode != "include":
+            repr_.append(f"categorical_nan_mode={repr(self.__categorical_nan_mode)}")
+        if self.__categorical_nan_filler != "missing_value":
+            repr_.append(f"categorical_nan_filler={repr(self.__categorical_nan_filler)}")
 
         return (
-            f'{self.__class__.__name__}({", ".join(repr_)})'
+            f"{self.__class__.__name__}({', '.join(repr_)})"
         )
 
     @property
     def tree(self) -> TreeNode:
         if not self.__is_fitted:
             raise NotFittedError(
-                'This MultiSplitDecisionTree instance is not fitted yet.'
-                ' Call `fit` with appropriate arguments before using this estimator.'
+                "This MultiSplitDecisionTree instance is not fitted yet."
+                " Call `fit` with appropriate arguments before using this estimator."
             )
 
         return self.__root
@@ -517,8 +510,8 @@ class MultiSplitDecisionTreeClassifier:
     def class_names(self) -> list[str]:
         if not self.__is_fitted:
             raise NotFittedError(
-                'This MultiSplitDecisionTree instance is not fitted yet.'
-                ' Call `fit` with appropriate arguments before using this estimator.'
+                "This MultiSplitDecisionTree instance is not fitted yet."
+                " Call `fit` with appropriate arguments before using this estimator."
             )
 
         return self.__class_names
@@ -527,8 +520,8 @@ class MultiSplitDecisionTreeClassifier:
     def feature_names(self) -> list[str]:
         if not self.__is_fitted:
             raise NotFittedError(
-                'This MultiSplitDecisionTree instance is not fitted yet.'
-                ' Call `fit` with appropriate arguments before using this estimator.'
+                "This MultiSplitDecisionTree instance is not fitted yet."
+                " Call `fit` with appropriate arguments before using this estimator."
             )
 
         return self.__feature_names
@@ -549,41 +542,41 @@ class MultiSplitDecisionTreeClassifier:
     def feature_importances(self) -> dict[str, float]:
         if not self.__is_fitted:
             raise NotFittedError(
-                'This MultiSplitDecisionTree instance is not fitted yet.'
-                ' Call `fit` with appropriate arguments before using this estimator.'
+                "This MultiSplitDecisionTree instance is not fitted yet."
+                " Call `fit` with appropriate arguments before using this estimator."
             )
 
         return self.__feature_importances
 
     def __check_fit_data(self, X, y):
         if not isinstance(X, pd.DataFrame):
-            raise ValueError('X must be a pandas.DataFrame.')
+            raise ValueError("X must be a pandas.DataFrame.")
 
         if not isinstance(y, pd.Series):
-            raise ValueError('y must be a pandas.Series.')
+            raise ValueError("y must be a pandas.Series.")
 
         if X.shape[0] != y.shape[0]:
-            raise ValueError('X and y must be the equal length.')
+            raise ValueError("X and y must be the equal length.")
 
         for num_feature_name in self.numerical_feature_names:
             if num_feature_name not in X.columns:
                 raise ValueError(
-                    f'`numerical_feature_names` contain feature {num_feature_name},'
-                    ' which isnt present in the training data.'
+                    f"`numerical_feature_names` contain feature {num_feature_name},"
+                    " which isnt present in the training data."
                 )
 
         for cat_feature_name in self.categorical_feature_names:
             if cat_feature_name not in X.columns:
                 raise ValueError(
-                    f'`categorical_feature_names` contain feature {cat_feature_name},'
-                    ' which isnt present in the training data.'
+                    f"`categorical_feature_names` contain feature {cat_feature_name},"
+                    " which isnt present in the training data."
                 )
 
         for rank_feature_name in self.rank_feature_names.keys():
             if rank_feature_name not in X.columns:
                 raise ValueError(
-                    f'`rank_feature_names` contain feature {rank_feature_name},'
-                    ' which isnt present in the training data.'
+                    f"`rank_feature_names` contain feature {rank_feature_name},"
+                    " which isnt present in the training data."
                 )
 
     def fit(self, X: pd.DataFrame, y: pd.Series) -> None:
@@ -625,39 +618,39 @@ class MultiSplitDecisionTreeClassifier:
         if unsetted_features_set:
             unsetted_num_features = (
                 self.X[list(unsetted_features_set)]
-                .select_dtypes('number').columns.tolist()
+                .select_dtypes("number").columns.tolist()
             )
             if unsetted_num_features:
                 self.__numerical_feature_names.extend(unsetted_num_features)
                 logging.info(
-                    f'[MultiSplitDecisionTree] [Info] {unsetted_num_features} are added'
-                    ' to `numerical_feature_names`.'
+                    f"[MultiSplitDecisionTree] [Info] {unsetted_num_features} are added"
+                    " to `numerical_feature_names`."
                 )
             unsetted_cat_features = (
                 self.X[list(unsetted_features_set)]
-                .select_dtypes(include=['category', 'object']).columns.tolist()
+                .select_dtypes(include=["category", "object"]).columns.tolist()
             )
             if unsetted_cat_features:
                 self.__categorical_feature_names.extend(unsetted_cat_features)
                 logging.info(
-                    f'[MultiSplitDecisionTree] [Info] {unsetted_cat_features} are added'
-                    ' to `categorical_feature_names`.'
+                    f"[MultiSplitDecisionTree] [Info] {unsetted_cat_features} are added"
+                    " to `categorical_feature_names`."
                 )
         ################################################################################
 
         match self.__numerical_nan_mode:
-            case 'min':
+            case "min":
                 for num_feature in self.__numerical_feature_names:
                     fill_nan_value = X[num_feature].min()
                     self.__fill_numerical_nan_values[num_feature] = fill_nan_value
                     X[num_feature].fillna(fill_nan_value, inplace=True)
-            case 'max':
+            case "max":
                 for num_feature_name in self.__numerical_feature_names:
                     fill_nan_value = X[num_feature_name].max()
                     self.__fill_numerical_nan_values[fill_nan_value] = fill_nan_value
                     X[num_feature_name].fillna(fill_nan_value, inplace=True)
 
-        if self.__categorical_nan_mode == 'as_category':
+        if self.__categorical_nan_mode == "as_category":
             for cat_feature in self.__categorical_feature_names:
                 X[cat_feature].fillna(self.__categorical_nan_filler, inplace=True)
 
@@ -812,28 +805,28 @@ class MultiSplitDecisionTreeClassifier:
                 подмножествам.
               child_masks: булевые маски дочерних узлов.
         """
-        best_inf_gain = float('-inf')
+        best_inf_gain = float("-inf")
         best_split_type = None
         best_split_feature_name = None
         best_feature_values = None
         best_child_masks = None
         for split_feature_name in available_feature_names:
             if split_feature_name in self.__numerical_feature_names:
-                split_type = 'numerical'
+                split_type = "numerical"
                 (
                     inf_gain,
                     feature_values,
                     child_masks,
                 ) = self.__num_split(parent_mask, split_feature_name)
             elif split_feature_name in self.__categorical_feature_names:
-                split_type = 'categorical'
+                split_type = "categorical"
                 (
                     inf_gain,
                     feature_values,
                     child_masks,
                 ) = self.__best_cat_split(parent_mask, split_feature_name)
             elif split_feature_name in self.__rank_feature_names:
-                split_type = 'rank'
+                split_type = "rank"
                 (
                     inf_gain,
                     feature_values,
@@ -877,7 +870,7 @@ class MultiSplitDecisionTreeClassifier:
               child_masks: boolean masks of child nodes.
         """
         use_including_na = (
-            self.__numerical_nan_mode == 'include'
+            self.__numerical_nan_mode == "include"
             # и есть примеры с пропусками
             and (parent_mask & self.X[split_feature_name].isna()).sum()
         )
@@ -886,7 +879,7 @@ class MultiSplitDecisionTreeClassifier:
             mask_notna = parent_mask & self.X[split_feature_name].notna()
             # если невозможно разделение по значению признака
             if mask_notna.sum() <= 1:
-                return float('-inf'), None, None
+                return float("-inf"), None, None
             mask_na = parent_mask & self.X[split_feature_name].isna()
 
             points = self.X.loc[mask_notna, split_feature_name].to_numpy()
@@ -895,7 +888,7 @@ class MultiSplitDecisionTreeClassifier:
 
         thresholds = get_thresholds(points)
 
-        best_inf_gain = float('-inf')
+        best_inf_gain = float("-inf")
         best_feature_values = None
         best_child_masks = None
         for threshold in thresholds:
@@ -919,8 +912,8 @@ class MultiSplitDecisionTreeClassifier:
 
             if best_inf_gain < inf_gain:
                 best_inf_gain = inf_gain
-                less_values = [f'<= {threshold}']
-                more_values = [f'> {threshold}']
+                less_values = [f"<= {threshold}"]
+                more_values = [f"> {threshold}"]
                 best_feature_values = [less_values, more_values]
                 best_child_masks = child_masks
 
@@ -946,12 +939,12 @@ class MultiSplitDecisionTreeClassifier:
         """
         available_feature_values = self.X.loc[parent_mask, split_feature_name].unique()
         if (
-            self.__categorical_nan_mode == 'include'
+            self.__categorical_nan_mode == "include"
             and pd.isna(available_feature_values).any()  # if contains missing values
         ):
             available_feature_values = available_feature_values[~pd.isna(available_feature_values)]
         if len(available_feature_values) <= 1:
-            return float('-inf'), None, None
+            return float("-inf"), None, None
         available_feature_values = sorted(available_feature_values)
 
         # get list of all possible partitions
@@ -969,7 +962,7 @@ class MultiSplitDecisionTreeClassifier:
 
             partitions.append(partition)
 
-        best_inf_gain = float('-inf')
+        best_inf_gain = float("-inf")
         best_feature_values = None
         best_child_masks = None
         for feature_values in partitions:
@@ -1008,7 +1001,7 @@ class MultiSplitDecisionTreeClassifier:
         for list_ in feature_values:
             child_mask = parent_mask & (self.X[split_feature_name].isin(list_) | mask_na)
             if child_mask.sum() < self.__min_samples_leaf:
-                return float('-inf'), None
+                return float("-inf"), None
             child_masks.append(child_mask)
 
         inf_gain = self.__information_gain(
@@ -1024,7 +1017,7 @@ class MultiSplitDecisionTreeClassifier:
         """Split a node according to a rank feature in the best way."""
         available_feature_values = self.__rank_feature_names[split_feature_name]
 
-        best_inf_gain = float('-inf')
+        best_inf_gain = float("-inf")
         best_child_masks = None
         best_feature_values = None
         for feature_values in rank_partitions(available_feature_values):
@@ -1056,7 +1049,7 @@ class MultiSplitDecisionTreeClassifier:
             mask_left.sum() < self.__min_samples_leaf
             or mask_right.sum() < self.__min_samples_leaf
         ):
-            return float('-inf'), None
+            return float("-inf"), None
 
         child_masks = [mask_left, mask_right]
 
@@ -1109,7 +1102,7 @@ class MultiSplitDecisionTreeClassifier:
             impurity_child_i = self.__impurity(child_mask_i)
             weighted_impurity_childs += (N_child_i / N_parent) * impurity_child_i
 
-        if nan_mode == 'include':
+        if nan_mode == "include":
             norm_coef = N_parent / N_childs
             weighted_impurity_childs *= norm_coef
 
@@ -1175,8 +1168,8 @@ class MultiSplitDecisionTreeClassifier:
         """Предсказывает метки классов для точек данных в X."""
         if not self.__is_fitted:
             raise NotFittedError(
-                'This MultiSplitDecisionTree instance is not fitted yet.'
-                ' Call `fit` with appropriate arguments before using this estimator.'
+                "This MultiSplitDecisionTree instance is not fitted yet."
+                " Call `fit` with appropriate arguments before using this estimator."
             )
 
         y_pred_proba_s = self.predict_proba(X)
@@ -1200,8 +1193,8 @@ class MultiSplitDecisionTreeClassifier:
         """
         if not self.__is_fitted:
             raise NotFittedError(
-                'This MultiSplitDecisionTree instance is not fitted yet.'
-                ' Call `fit` with appropriate arguments before using this estimator.'
+                "This MultiSplitDecisionTree instance is not fitted yet."
+                " Call `fit` with appropriate arguments before using this estimator."
             )
 
         # TODO: write __check_predict_proba_data()
@@ -1224,11 +1217,11 @@ class MultiSplitDecisionTreeClassifier:
         """
         X = X.copy()
 
-        if self.__numerical_nan_mode in ['min', 'max']:
+        if self.__numerical_nan_mode in ["min", "max"]:
             for num_feature in self.__numerical_feature_names:
                 X.fillna(self.__fill_numerical_nan_values[num_feature], inplace=True)
 
-        if self.__categorical_nan_mode == 'as_category':
+        if self.__categorical_nan_mode == "as_category":
             for cat_feature in self.__categorical_feature_names:
                 X[cat_feature].fillna(self.__categorical_nan_filler, inplace=True)
 
@@ -1300,19 +1293,19 @@ class MultiSplitDecisionTreeClassifier:
 
     def __check_score_data(self, X, y, sample_weight):
         if not isinstance(X, pd.DataFrame):
-            raise ValueError('X must be a pandas.DataFrame.')
+            raise ValueError("X must be a pandas.DataFrame.")
 
         if not isinstance(y, pd.Series):
-            raise ValueError('y must be a pandas.Series.')
+            raise ValueError("y must be a pandas.Series.")
 
         if X.shape[0] != y.shape[0]:
-            raise ValueError('X and y must be the equal length.')
+            raise ValueError("X and y must be the equal length.")
 
         fitted_features_set = set(self.__feature_names)
         X_features_set = set(X.columns)
         if fitted_features_set != X_features_set:
             message = (
-                'The feature names should match those that were passed during fit.\n'
+                "The feature names should match those that were passed during fit.\n"
             )
 
             unexpected_names = sorted(X_features_set - fitted_features_set)
@@ -1323,17 +1316,17 @@ class MultiSplitDecisionTreeClassifier:
                 max_n_names = 5
                 for i, name in enumerate(names):
                     if i >= max_n_names:
-                        output += '- ...\n'
+                        output += "- ...\n"
                         break
-                    output += f'- {name}\n'
+                    output += f"- {name}\n"
                 return output
 
             if unexpected_names:
-                message += 'Feature names unseen at fit time:\n'
+                message += "Feature names unseen at fit time:\n"
                 message += add_names(unexpected_names)
 
             if missing_names:
-                message += 'Feature names seen at fit time, yet now missing:\n'
+                message += "Feature names seen at fit time, yet now missing:\n"
                 message += add_names(missing_names)
 
             # TODO: same order of features
@@ -1349,8 +1342,8 @@ class MultiSplitDecisionTreeClassifier:
         """Возвращает метрику accuracy."""
         if not self.__is_fitted:
             raise NotFittedError(
-                'This MultiSplitDecisionTree instance is not fitted yet.'
-                ' Call `fit` with appropriate arguments before using this estimator.'
+                "This MultiSplitDecisionTree instance is not fitted yet."
+                " Call `fit` with appropriate arguments before using this estimator."
             )
 
         self.__check_score_data(X, y, sample_weight)
@@ -1365,20 +1358,20 @@ class MultiSplitDecisionTreeClassifier:
     ) -> dict:
         """Возвращает параметры этого классификатора."""
         return {
-            'criterion': self.__criterion,
-            'max_depth': self.__max_depth,
-            'min_samples_split': self.__min_samples_split,
-            'min_samples_leaf': self.__min_samples_leaf,
-            'max_leaf_nodes': self.__max_leaf_nodes,
-            'min_impurity_decrease': self.__min_impurity_decrease,
-            'max_childs': self.__max_childs,
-            'numerical_feature_names': self.__numerical_feature_names,
-            'categorical_feature_names': self.__categorical_feature_names,
-            'rank_feature_names': self.__rank_feature_names,
-            'hierarchy': self.__hierarchy,
-            'numerical_nan_mode': self.__numerical_nan_mode,
-            'categorical_nan_mode': self.__categorical_nan_mode,
-            'categorical_nan_filler': self.__categorical_nan_filler,
+            "criterion": self.__criterion,
+            "max_depth": self.__max_depth,
+            "min_samples_split": self.__min_samples_split,
+            "min_samples_leaf": self.__min_samples_leaf,
+            "max_leaf_nodes": self.__max_leaf_nodes,
+            "min_impurity_decrease": self.__min_impurity_decrease,
+            "max_childs": self.__max_childs,
+            "numerical_feature_names": self.__numerical_feature_names,
+            "categorical_feature_names": self.__categorical_feature_names,
+            "rank_feature_names": self.__rank_feature_names,
+            "hierarchy": self.__hierarchy,
+            "numerical_nan_mode": self.__numerical_nan_mode,
+            "categorical_nan_mode": self.__categorical_nan_mode,
+            "categorical_nan_filler": self.__categorical_nan_filler,
         }
 
     def set_params(self, **params):
@@ -1388,12 +1381,12 @@ class MultiSplitDecisionTreeClassifier:
         for param, value in params.items():
             if param not in valid_params:
                 raise ValueError(
-                    f'Invalid parameter {param} for estimator {self}. '
-                    'Valid parameters are `estimator.get_params().keys()`.'
+                    f"Invalid parameter {param} for estimator {self}. "
+                    "Valid parameters are `estimator.get_params().keys()`."
                 )
             # TODO: работает пока совпадают параметры и приватные атрибуты
             # TODO: почему через setattr()?
-            setattr(self, f'_{self.__class__.__name__}__{param}', value)
+            setattr(self, f"_{self.__class__.__name__}__{param}", value)
 
         return self
 
@@ -1426,8 +1419,8 @@ class MultiSplitDecisionTreeClassifier:
         """
         if not self.__is_fitted:
             raise NotFittedError(
-                'This MultiSplitDecisionTree instance is not fitted yet.'
-                ' Call `fit` with appropriate arguments before using this estimator.'
+                "This MultiSplitDecisionTree instance is not fitted yet."
+                " Call `fit` with appropriate arguments before using this estimator."
             )
 
         if self.__graph is None:
@@ -1450,11 +1443,11 @@ class MultiSplitDecisionTreeClassifier:
         Создаёт объект класса Digraph, содержащий описание графовой структуры дерева для
         визуализации.
         """
-        node_attr = {'shape': 'box'}
+        node_attr = {"shape": "box"}
         if rounded:
-            node_attr['style'] = 'rounded'
+            node_attr["style"] = "rounded"
 
-        self.__graph = Digraph(name='дерево решений', node_attr=node_attr)
+        self.__graph = Digraph(name="decision tree", node_attr=node_attr)
         self.__add_node(
             node=self.__root,
             parent_name=None,
@@ -1477,25 +1470,25 @@ class MultiSplitDecisionTreeClassifier:
         Рекурсивно добавляет описание узла и его связь с родительским узлом
         (если имеется).
         """
-        node_name = f'node {node.number}'
+        node_name = f"node {node.number}"
 
-        node_content = [f'Узел {node.number}']
+        node_content = [f"Node {node.number}"]
         if node.split_feature_name:
-            node_content.append(f'{node.split_feature_name}')
+            node_content.append(f"{node.split_feature_name}")
         if show_impurity:
-            node_content.append(f'{self.__criterion} = {node.impurity:.2f}')
+            node_content.append(f"{self.__criterion} = {node.impurity:.2f}")
         if show_num_samples:
-            node_content.append(f'samples = {node.samples}')
+            node_content.append(f"samples = {node.samples}")
         if show_distribution:
-            node_content.append(f'distribution = {node.distribution}')
+            node_content.append(f"distribution = {node.distribution}")
         if show_label:
-            node_content.append(f'label = {node.label}')
-        node_content = '\n'.join(node_content)
+            node_content.append(f"label = {node.label}")
+        node_content = "\n".join(node_content)
 
         self.__graph.node(name=node_name, label=node_content)
 
         if parent_name:
-            edge_label = '\n'.join([str(fv) for fv in node.feature_value])
+            edge_label = "\n".join([str(fv) for fv in node.feature_value])
             self.__graph.edge(
                 tail_name=parent_name,
                 head_name=node_name,
