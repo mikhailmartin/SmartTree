@@ -1,5 +1,5 @@
 class TreeNode:
-    """Узел дерева решений."""
+    """Decision Tree Node."""
     def __init__(
         self,
         number: int,
@@ -7,23 +7,32 @@ class TreeNode:
         distribution: list[int],
         impurity: float,
         label: str,
-        # технические атрибуты
+        # technical attributes
         _depth,
         _mask,
         _hierarchy,
         _available_feature_names,
+
+        is_leaf: bool = True,
+        split_type: str | None = None,
+        split_feature_name: str | None = None,
+        feature_value=None,
+        childs: list | None = None,
     ) -> None:
         self.number = number
-        self.is_leaf = True
-        self.split_type = None
-        self.split_feature_name = None
-        self.feature_value = None
-        self.childs = []
+        self.is_leaf = is_leaf
+        self.split_type = split_type
+        self.split_feature_name = split_feature_name
+        self.feature_value = feature_value
+        if childs is None:
+            self.childs = []
+        else:
+            self.childs = childs
         self.samples = samples
         self.distribution = distribution
         self.impurity = impurity
         self.label = label
-        # технические атрибуты
+        # technical attributes
         self._depth = _depth
         self._mask = _mask
         self._hierarchy = _hierarchy
@@ -35,7 +44,7 @@ class TreeNode:
             f'samples={self.samples}',
             f'distribution={self.distribution}',
             f'impurity={self.impurity}',
-            f'label={self.label}',
+            f'label={repr(self.label)}',
         ]
 
         return f'{self.__class__.__name__}({", ".join(representation)})'
