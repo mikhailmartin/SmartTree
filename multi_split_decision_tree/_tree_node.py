@@ -44,7 +44,7 @@ class TreeNode:
             f'samples={self.samples}',
             f'distribution={self.distribution}',
             f'impurity={self.impurity}',
-            f'label={repr(self.label)}',
+            f'label={self.label!r}',
         ]
 
         return f'{self.__class__.__name__}({", ".join(representation)})'

@@ -1,15 +1,4 @@
 """Custom realization of Decision Tree which can handle categorical features."""
-# TODO: Алгоритм предварительной сортировки
-# TODO: описать листья дерева через правила и предиктить по ним
-# TODO: поменять rank_feature_names как numerical
-# TODO: feature_value в numerical_node
-# TODO: узлы через именованные кортежи? (оптимизация по оперативке)
-# TODO: раскрасить визуализацию дерева
-# TODO: min_weight_fraction_leaf
-# TODO: совместимость с GridSearchCV (нужна picklable)
-# TODO: f"{smth:!r}"
-
-
 import bisect
 import logging
 import math
@@ -22,7 +11,8 @@ from sklearn.metrics import accuracy_score
 
 from multi_split_decision_tree._tree_node import TreeNode
 from multi_split_decision_tree._utils import (
-    cat_partitions, get_thresholds, rank_partitions)
+    cat_partitions, get_thresholds, rank_partitions
+)
 from multi_split_decision_tree._exceptions import NotFittedError
 
 
@@ -153,14 +143,14 @@ class MultiSplitDecisionTreeClassifier:
         if criterion not in ["entropy", "gini", "log_loss"]:
             raise ValueError(
                 "`criterion` mist be Literal['entropy', 'log_loss', 'gini']."
-                f" The current value of `criterion` is {repr(criterion)}."
+                f" The current value of `criterion` is {criterion!r}."
             )
 
         if max_depth:
             if not isinstance(max_depth, int) or max_depth <= 0:
                 raise ValueError(
                     "`max_depth` must be an integer and strictly greater than 0."
-                    f" The current value of `max_depth` is {repr(max_depth)}."
+                    f" The current value of `max_depth` is {max_depth!r}."
                 )
 
         if (
@@ -174,7 +164,7 @@ class MultiSplitDecisionTreeClassifier:
             raise ValueError(
                 "`min_samples_split` must be an integer and lie in the range"
                 " [2, +inf), or float and lie in the range (0, 1)."
-                f" The current value of `min_samples_split` is {repr(min_samples_split)}."
+                f" The current value of `min_samples_split` is {min_samples_split!r}."
             )
 
         if (
@@ -188,7 +178,7 @@ class MultiSplitDecisionTreeClassifier:
             raise ValueError(
                 "`min_samples_leaf` must be an integer and lie in the range"
                 " [1, +inf), or float and lie in the range (0, 1)."
-                f" The current value of `min_samples_leaf` is {repr(min_samples_leaf)}."
+                f" The current value of `min_samples_leaf` is {min_samples_leaf!r}."
             )
 
         if (
@@ -197,14 +187,14 @@ class MultiSplitDecisionTreeClassifier:
         ):
             raise ValueError(
                 "`max_leaf_nodes` must be an integer and strictly greater than 2."
-                f" The current value of `max_leaf_nodes` is {repr(max_leaf_nodes)}."
+                f" The current value of `max_leaf_nodes` is {max_leaf_nodes!r}."
             )
 
         # TODO: could impurity_decrease be greater 1?
         if not isinstance(min_impurity_decrease, float) or min_impurity_decrease < 0:
             raise ValueError(
                 "`min_impurity_decrease` must be float and non-negative."
-                f" The current value of `min_impurity_decrease` is {repr(min_impurity_decrease)}."
+                f" The current value of `min_impurity_decrease` is {min_impurity_decrease!r}."
             )
 
         # TODO: finish this part
@@ -224,14 +214,14 @@ class MultiSplitDecisionTreeClassifier:
         ):
             raise ValueError(
                 "`max_childs` must be integer and strictly greater than 2."
-                f" The current value of `max_childs` is {repr(max_childs)}."
+                f" The current value of `max_childs` is {max_childs!r}."
             )
 
         if numerical_feature_names:
             if not isinstance(numerical_feature_names, (list, str)):
                 raise ValueError(
                     "`numerical_feature_names` must be a string or list of strings."
-                    f" The current value of `numerical_feature_names` is {repr(numerical_feature_names)}."
+                    f" The current value of `numerical_feature_names` is {numerical_feature_names!r}."
                 )
             for numerical_feature_name in numerical_feature_names:
                 if not isinstance(numerical_feature_name, str):
@@ -246,7 +236,7 @@ class MultiSplitDecisionTreeClassifier:
             if not isinstance(categorical_feature_names, (list, str)):
                 raise ValueError(
                     "`categorical_feature_names` must be string or list of strings."
-                    f" The current value of `categorical_feature_names` is {repr(categorical_feature_names)}."
+                    f" The current value of `categorical_feature_names` is {categorical_feature_names!r}."
                 )
             for categorical_feature_name in categorical_feature_names:
                 if not isinstance(categorical_feature_name, str):
@@ -281,14 +271,14 @@ class MultiSplitDecisionTreeClassifier:
                 raise ValueError(
                     "`hierarchy` must be a dictionary"
                     " {opening feature: opened feature / list of opened strings}."
-                    f" The current value of `hierarchy` is {repr(hierarchy)}."
+                    f" The current value of `hierarchy` is {hierarchy!r}."
                 )
             for key, value in hierarchy.items():
                 if not isinstance(key, str):
                     raise ValueError(
                         "`hierarchy` must be a dictionary"
                         " {opening feature: opened feature / list of opened strings}."
-                        f" Value {repr(key)} of opening feature isnt a string."
+                        f" Value {key!r} of opening feature isnt a string."
                     )
                 if not isinstance(value, (str, list)):
                     raise ValueError(
@@ -309,19 +299,19 @@ class MultiSplitDecisionTreeClassifier:
         if numerical_nan_mode not in ["include", "min", "max"]:
             raise ValueError(
                 "`numerical_nan_mode` must be Literal['include', 'min', 'max']."
-                f" The current value of `numerical_nan_mode` is {repr(numerical_nan_mode)}."
+                f" The current value of `numerical_nan_mode` is {numerical_nan_mode!r}."
             )
 
         if categorical_nan_mode not in ['include', 'as_category']:
             raise ValueError(
                 "`categorical_nan_mode` must be Literal['include', 'as_category']."
-                f" The current value of `categorical_nan_mode` is {repr(categorical_nan_mode)}."
+                f" The current value of `categorical_nan_mode` is {categorical_nan_mode!r}."
             )
 
         if not isinstance(categorical_nan_filler, str):
             raise ValueError(
                 "`categorical_nan_filler` must be a string."
-                f" The current value of `categorical_nan_filler` is {repr(categorical_nan_filler)}."
+                f" The current value of `categorical_nan_filler` is {categorical_nan_filler!r}."
             )
 
         if (
@@ -334,7 +324,7 @@ class MultiSplitDecisionTreeClassifier:
             raise ValueError(
                 "`verbose` must be an integer or"
                 " Literal['critical', 'error', 'warning', 'info', 'debug']."
-                f" The current value of `verbose` is {repr(verbose)}."
+                f" The current value of `verbose` is {verbose!r}."
             )
 
     def __init__(
@@ -467,7 +457,7 @@ class MultiSplitDecisionTreeClassifier:
 
         # if a parameter value differs from default, then it added to the representation
         if self.__criterion != "gini":
-            repr_.append(f"criterion={repr(self.__criterion)}")
+            repr_.append(f"criterion={self.__criterion!r}")
         if self.__max_depth:
             repr_.append(f"max_depth={self.__max_depth}")
         if self.__min_samples_split != 2:
@@ -489,11 +479,11 @@ class MultiSplitDecisionTreeClassifier:
         if self.__hierarchy:
             repr_.append(f"hierarchy={self.__hierarchy}")
         if self.__numerical_nan_mode != "min":
-            repr_.append(f"numerical_nan_mode={repr(self.__numerical_nan_mode)}")
+            repr_.append(f"numerical_nan_mode={self.__numerical_nan_mode!r}")
         if self.__categorical_nan_mode != "include":
-            repr_.append(f"categorical_nan_mode={repr(self.__categorical_nan_mode)}")
+            repr_.append(f"categorical_nan_mode={self.__categorical_nan_mode!r}")
         if self.__categorical_nan_filler != "missing_value":
-            repr_.append(f"categorical_nan_filler={repr(self.__categorical_nan_filler)}")
+            repr_.append(f"categorical_nan_filler={self.__categorical_nan_filler!r}")
 
         return (
             f"{self.__class__.__name__}({', '.join(repr_)})"
