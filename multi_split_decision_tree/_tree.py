@@ -7,6 +7,7 @@
 # TODO: раскрасить визуализацию дерева
 # TODO: min_weight_fraction_leaf
 # TODO: совместимость с GridSearchCV (нужна picklable)
+# TODO: f"{smth:!r}"
 
 
 import bisect
@@ -123,11 +124,13 @@ class MultiSplitDecisionTreeClassifier:
             - If 'debug'
 
     Attributes:
-        tree: базовый древовидный объект.
-        class_names: отсортированный список классов.
-        feature_names: список всех признаков, находившихся в обучающих данных.
-        numerical_feature_names: список численных признаков.
-        categorical_feature_names: список категориальных признаков.
+        tree: The underlying Tree object.
+        class_names: The sorted list of class names.
+        feature_names: The list of all features in train data.
+        numerical_feature_names: The list of all numerical features in train data.
+        categorical_feature_names: The list of all categorical features in train data.
+        rank_feature_names: The list of all rank features in train data.
+        feature_importances: The dict {feature name: feature importance}.
     """
     @staticmethod
     def __check_init_params(
@@ -403,16 +406,16 @@ class MultiSplitDecisionTreeClassifier:
             case "entropy" | "log_loss":
                 self.__impurity = self.__entropy
 
-        # критерии остановки ветвления
+        # criteria for stopping branching
         self.__max_depth = max_depth
         self.__min_samples_split = min_samples_split
         self.__min_samples_leaf = min_samples_leaf
         self.__max_leaf_nodes = max_leaf_nodes
         self.__min_impurity_decrease = min_impurity_decrease
-        # критерий ограничения ветвления
+        # criteria for limiting branching
         self.__max_childs = max_childs
 
-        # открытые для чтения атрибуты
+        # attributes that are open for reading
         self.__root = None
         self.__graph = None
         self.__class_names = None
@@ -607,8 +610,7 @@ class MultiSplitDecisionTreeClassifier:
         for feature_name in self.__feature_names:
             self.__feature_importances[feature_name] = 0
 
-        # numerical_feature_names and categorical_feature_names extensions
-        ################################################################################
+        # numerical_feature_names and categorical_feature_names extensions ##############
         unsetted_features_set = set(self.X.columns) - (
             set(self.__numerical_feature_names) |
             set(self.__categorical_feature_names) |
@@ -799,11 +801,9 @@ class MultiSplitDecisionTreeClassifier:
             child_masks)`.
               inf_gain: information gain of the split.
               split_type: split type.
-              split_feature_name: признак, по которому лучше всего разбивать входное
-                множество.
-              feature_values: значения признаков, соответствующие дочерним
-                подмножествам.
-              child_masks: булевые маски дочерних узлов.
+              split_feature_name: the feature by which it is best to split the input set.
+              feature_values: feature values corresponding to child nodes.
+              child_masks: list of child masks.
         """
         best_inf_gain = float("-inf")
         best_split_type = None
@@ -854,30 +854,28 @@ class MultiSplitDecisionTreeClassifier:
         split_feature_name: str,
     ) -> tuple[float, list[list[str]] | None, list[pd.Series] | None]:
         """
-        Находит лучшее разделение узла дерева по заданному численному признаку,
-        если оно существует.
+        Finds the best tree node split by set numerical feature, if it exists.
 
         Parameters:
-            parent_mask: булевая маска узла дерева.
-            split_feature_name: название заданного численного признака, по
-              которому нужно найти лучшее разделение.
+            parent_mask: boolean mask of the tree node.
+            split_feature_name: The name of the set numerical feature by which to find
+              the best split.
 
         Returns:
             Tuple `(inf_gain, feature_values, child_masks)`.
               inf_gain: information gain of the split.
-              feature_values: значения признаков, соответствующие дочерним
-                подмножествам.
+              feature_values: feature values corresponding to child nodes.
               child_masks: boolean masks of child nodes.
         """
         use_including_na = (
             self.__numerical_nan_mode == "include"
-            # и есть примеры с пропусками
+            # and there are samples with missing values
             and (parent_mask & self.X[split_feature_name].isna()).sum()
         )
 
         if use_including_na:
             mask_notna = parent_mask & self.X[split_feature_name].notna()
-            # если невозможно разделение по значению признака
+            # if split by feature value is not possible
             if mask_notna.sum() <= 1:
                 return float("-inf"), None, None
             mask_na = parent_mask & self.X[split_feature_name].isna()
@@ -950,13 +948,13 @@ class MultiSplitDecisionTreeClassifier:
         # get list of all possible partitions
         partitions = []
         for partition in cat_partitions(available_feature_values):
-            # если разбиение - на самом деле не разбиение
+            # if partitions is not really partitions
             if len(partition) < 2:
                 continue
-            # ограничение ветвления
+            # limitation of branching
             if len(partition) > self.__max_childs:
                 continue
-            # если после разбиения количество листьев превысит ограничение
+            # if the number of leaves exceeds the limit after splitting
             if self.__leaf_counter + len(partition) > self.__max_leaf_nodes:
                 continue
 
@@ -988,7 +986,7 @@ class MultiSplitDecisionTreeClassifier:
         Parameters:
             parent_mask: boolean mask of split node.
             split_feature_name: feature according to which node should be split.
-            feature_values: значения признаков, соответствующие дочерним подмножествам.
+            feature_values: feature values corresponding to child nodes.
 
         Returns:
             Tuple `(inf_gain, child_masks)`.
@@ -1067,10 +1065,10 @@ class MultiSplitDecisionTreeClassifier:
         Calculates information gain of the split.
 
         Parameters:
-            parent_mask: булевая маска родительского узла.
-            child_masks: список булевых масок дочерних узлов.
-            nan_mode: режим обработки пропусков.
-              Если 'include', то подрубает нормализацию дочерних загрязнений.
+            parent_mask: boolean mask of parent node.
+            child_masks: list of boolean masks of child nodes.
+            nan_mode: missing values handling node.
+              If 'include', then turn on normalization of child nodes impurity.
 
         Returns:
             information gain.
@@ -1081,13 +1079,13 @@ class MultiSplitDecisionTreeClassifier:
         Formula in LaTeX:
             \text{Information Gain} = \frac{N_{\text{parent}}}{N} * \Big(\text{impurity}_{\text{parent}} - \sum^C_{i=1}{\frac{N_{\text{child}_i}}{N_{\text{parent}}}} * \text{impurity}_{\text{child}_i} \Big)
             where
-            \text{Information Gain} - собственно прирост информативности;
-            N - количество примеров во всём обучающем наборе;
-            N_{\text{parent}} - количество примеров в родительском узле;
-            \text{impurity}_{\text{parent}} - загрязнённость родительского узла;
-            С - количество дочерних узлов;
-            N_{\text{child}_i} - количество примеров в дочернем узле;
-            \text{impurity}_{\text{child}_i} - загрязнённость дочернего узла.
+            \text{Information Gain} - information fain;
+            N - the number of samples in the entire training set;
+            N_{\text{parent}} - the number of samples in the parent node;
+            \text{impurity}_{\text{parent}} - the parent node impurity;
+            С - the number of child nodes;
+            N_{\text{child}_i} - the number of samples in the child node;
+            \text{impurity}_{\text{child}_i} - the child node impurity.
         """
         N = self.y.shape[0]
         N_parent = parent_mask.sum()
@@ -1120,8 +1118,8 @@ class MultiSplitDecisionTreeClassifier:
             \text{Gini Index} = \sum^C_{i=1} p_i \times (1 - p_i)
             where
             \text{Gini Index} - Gini index;
-            C - общее количество классов;
-            p_i - вероятность выбора примера с классом i.
+            C - total number of classes;
+            p_i - the probability of choosing a sample with class i.
         """
         N = mask.sum()
 
@@ -1141,8 +1139,8 @@ class MultiSplitDecisionTreeClassifier:
         H = \log{\overline{N}} = \sum^N_{i=1} p_i \log{(1/p_i)} = -\sum^N_{i=1} p_i \log{p_i}
         where
         H - entropy;
-        \overline{N} - эффективное количество состояний;
-        p_i - вероятность состояния системы.
+        \overline{N} - effective number of states;
+        p_i - probability of the i-th system state.
         """
         N = mask.sum()
 
@@ -1156,7 +1154,7 @@ class MultiSplitDecisionTreeClassifier:
         return entropy
 
     def __distribution(self, mask: pd.Series) -> list[int]:
-        """Подсчитывает распределение точек данных по классам."""
+        """Calculates the class distribution."""
         distribution = [
             (mask & (self.y == class_name)).sum()
             for class_name in self.__class_names
@@ -1164,8 +1162,16 @@ class MultiSplitDecisionTreeClassifier:
 
         return distribution
 
-    def predict(self, X: pd.DataFrame) -> list[str]:
-        """Предсказывает метки классов для точек данных в X."""
+    def predict(self, X: pd.DataFrame | pd.Series) -> list[str] | str:
+        """
+        Predict class for samples in X.
+
+        Parameters:
+            X: The input samples.
+
+        Returns:
+            The predicted classes.
+        """
         if not self.__is_fitted:
             raise NotFittedError(
                 "This MultiSplitDecisionTree instance is not fitted yet."
@@ -1232,14 +1238,14 @@ class MultiSplitDecisionTreeClassifier:
         node: TreeNode,
         point: pd.Series,
     ) -> tuple[np.ndarray, int]:
-        """Предсказывает метку класса для точки данных."""
-        # Если мы не дошли до листа
+        """Predicts class for the sample."""
+        # if we haven't reached a leaf
         if not node.is_leaf:
-            # но оказались в узле, в котором правило разделения задано по некоторому
-            # признаку, а точка данных в этом признаке содержит пропуск
+            # but we in a node in which the split rule is set according to some feature,
+            # and the sample in this feature contains a missing value
             if pd.isna(point[node.split_feature_name]):
-                # то идём в дочерние узлы за предсказаниями, а потом их взвешенно
-                # усредняем.
+                # then we go to the child nodes for predictions, and then we weighted
+                # average them.
                 distribution_parent = np.array([0., 0., 0.])
                 samples_parent = 0
                 for child in node.childs:
@@ -1254,7 +1260,7 @@ class MultiSplitDecisionTreeClassifier:
                 samples = samples_parent
 
             elif node.split_feature_name in self.__numerical_feature_names:
-                # ищем ту ветвь, по которой нужно идти
+                # looking for the branch that needs to be followed
                 threshold = float(node.childs[0].feature_value[0][3:])
                 if point[node.split_feature_name] <= threshold:
                     y_pred_proba, samples = self.__predict_proba(node.childs[0], point)
@@ -1267,15 +1273,15 @@ class MultiSplitDecisionTreeClassifier:
                 node.split_feature_name in self.__categorical_feature_names
                 or node.split_feature_name in self.__rank_feature_names
             ):
-                # ищем ту ветвь, по которой нужно идти
+                # looking for the branch that needs to be followed
                 for child in node.childs:
-                    # если нашли
+                    # if found
                     if child.feature_value == point[node.split_feature_name]:
                         y_pred_proba, samples = self.__predict_proba(child, point)
-                        # то можно заканчивать пропуск
+                        # then we can finish the search
                         break
                 else:
-                    # если такой ветви нет TODO
+                    # if there is no such branch TODO
                     distribution = np.array(node.distribution)
                     y_pred_proba = distribution / distribution.sum()
                     samples = node.samples
@@ -1283,7 +1289,7 @@ class MultiSplitDecisionTreeClassifier:
             else:
                 assert False
 
-        # Если мы дошли до листа
+        # if we have reached a leaf
         else:
             distribution = np.array(node.distribution)
             y_pred_proba = distribution / distribution.sum()
@@ -1339,7 +1345,7 @@ class MultiSplitDecisionTreeClassifier:
         y: pd.Series,
         sample_weight: pd.Series | None = None,
     ) -> float:
-        """Возвращает метрику accuracy."""
+        """Returns the accuracy metric."""
         if not self.__is_fitted:
             raise NotFittedError(
                 "This MultiSplitDecisionTree instance is not fitted yet."
@@ -1354,7 +1360,7 @@ class MultiSplitDecisionTreeClassifier:
 
     def get_params(
         self,
-        deep: bool = True,  # реализован для sklearn.model_selection.GridSearchCV
+        deep: bool = True,  # implemented for sklearn.model_selection.GridSearchCV
     ) -> dict:
         """Возвращает параметры этого классификатора."""
         return {
@@ -1376,17 +1382,19 @@ class MultiSplitDecisionTreeClassifier:
 
     def set_params(self, **params):
         """Set the parameters of this estimator."""
+        # Simple optimization to gain speed (inspect is slow)
+        if not params:
+            return self
+
         valid_params = self.get_params(deep=True)
 
         for param, value in params.items():
             if param not in valid_params:
                 raise ValueError(
-                    f"Invalid parameter {param} for estimator {self}. "
-                    "Valid parameters are `estimator.get_params().keys()`."
+                    f"Invalid parameter {param} for estimator {self}."
+                    f" Valid parameters are: {valid_params}."
                 )
-            # TODO: работает пока совпадают параметры и приватные атрибуты
-            # TODO: почему через setattr()?
-            setattr(self, f"_{self.__class__.__name__}__{param}", value)
+            setattr(self, f'_{self.__class__.__name__}__{param}', value)
 
         return self
 
@@ -1401,21 +1409,22 @@ class MultiSplitDecisionTreeClassifier:
         **kwargs,
     ) -> Digraph:
         """
-        Визуализирует дерево решений.
+        Visualizes the decision tree.
 
-        Если указаны именованные параметры, сохраняет визуализацию в виде файла(ов).
+        If named parameters are set, saves the visualization as a file(s).
 
         Parameters:
-            rounded: скруглять ли углы у узлов (они в форме прямоугольника).
-            show_impurity: показывать ли загрязнённость узла.
-            show_num_samples: показывать ли количество точек в узле.
-            show_distribution: показывать ли распределение точек по классам.
-            show_label: показывать ли класс, к которому относится узел.
-            **kwargs: аргументы для graphviz.Digraph.render.
+            rounded: whether to round the corners of the nodes
+              (they are in the shape of a rectangle).
+            show_impurity: whether to show the impurity of the node.
+            show_num_samples: whether to show the number of samples in the node.
+            show_distribution: whether to show the class distribution.
+            show_label: whether to show the class to which the node belongs.
+            **kwargs: arguments for graphviz.Digraph.render.
 
         Returns:
-            Объект класса Digraph, содержащий описание графовой структуры дерева для
-            визуализации.
+            An object of the Digraph class containing a description of the graph
+            structure of the tree for visualization.
         """
         if not self.__is_fitted:
             raise NotFittedError(
@@ -1440,8 +1449,8 @@ class MultiSplitDecisionTreeClassifier:
         show_label: bool,
     ) -> None:
         """
-        Создаёт объект класса Digraph, содержащий описание графовой структуры дерева для
-        визуализации.
+        Creates an object of the Digraph class containing a description of the graph
+        structure of the tree for visualization.
         """
         node_attr = {"shape": "box"}
         if rounded:
@@ -1467,8 +1476,8 @@ class MultiSplitDecisionTreeClassifier:
         show_label: bool,
     ) -> None:
         """
-        Рекурсивно добавляет описание узла и его связь с родительским узлом
-        (если имеется).
+        Recursively adds a description of the node and its relationship to the parent
+        node (if available).
         """
         node_name = f"node {node.number}"
 
