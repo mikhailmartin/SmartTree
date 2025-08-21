@@ -43,6 +43,11 @@ class BaseSmartDecisionTree:
         self.__categorical_feature_names = categorical_feature_names
         self.__rank_feature_names = rank_feature_names
 
+        # attributes that are open for reading
+        self.__feature_names = None
+
+        self.__is_fitted = False
+
         # check
         self.__check__max_depth()
         self.__check__min_samples_split()
@@ -248,6 +253,16 @@ class BaseSmartDecisionTree:
     @property
     def rank_feature_names(self) -> dict[str, list]:
         return self.__rank_feature_names
+
+    @property
+    def feature_names(self) -> list[str]:
+        if not self.__is_fitted:
+            raise NotFittedError(
+                f"This {self.__class__.__name__} instance is not fitted yet."
+                " Call `fit` with appropriate arguments before using this estimator."
+            )
+
+        return self.__feature_names
 
 
 class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
@@ -602,16 +617,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             )
 
         return self.__class_names
-
-    @property
-    def feature_names(self) -> list[str]:
-        if not self.__is_fitted:
-            raise NotFittedError(
-                f"This {self.__class__.__name__} instance is not fitted yet."
-                " Call `fit` with appropriate arguments before using this estimator."
-            )
-
-        return self.__feature_names
 
     @property
     def feature_importances(self) -> dict[str, float]:
