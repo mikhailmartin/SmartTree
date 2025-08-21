@@ -345,6 +345,10 @@ class BaseSmartDecisionTree:
     def categorical_nan_filler(self) -> str:
         return self.__categorical_nan_filler
 
+    @abstractmethod
+    def fit(self):
+        raise NotImplemented
+
 
 class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
     """
