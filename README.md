@@ -1,1 +1,1 @@
-# Multi Split Decision Tree
+# Smart Tree
