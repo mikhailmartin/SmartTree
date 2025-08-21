@@ -353,6 +353,43 @@ class BaseSmartDecisionTree:
     def fit(self, X: pd.DataFrame, y: pd.Series) -> None:
         raise NotImplemented
 
+    @abstractmethod
+    def predict(self, X: pd.DataFrame | pd.Series) -> list[str] | str:  # TODO
+        raise NotImplemented
+
+    @abstractmethod
+    def predict_proba(self, X: pd.DataFrame) -> np.array:
+        raise NotImplemented
+
+    @abstractmethod
+    def score(self,
+        X: pd.DataFrame,
+        y: pd.Series,
+        sample_weight: pd.Series | None = None,
+    ) -> float:
+        raise NotImplemented
+
+    @abstractmethod
+    def get_params(self, deep: bool) -> dict:
+        raise NotImplemented
+
+    @abstractmethod
+    def set_params(self, **params):
+        raise NotImplemented
+
+    @abstractmethod
+    def render(
+        self,
+        *,
+        rounded: bool = False,
+        show_impurity: bool = False,
+        show_num_samples: bool = False,
+        show_distribution: bool = False,
+        show_label: bool = False,
+        **kwargs,
+    ):
+        raise NotImplemented
+
 
 class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
     """
