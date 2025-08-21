@@ -735,8 +735,8 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             if unsetted_num_features:
                 self.numerical_feature_names.extend(unsetted_num_features)
                 logging.info(
-                    f"[MultiSplitDecisionTree] [Info] {unsetted_num_features} are added"
-                    " to `numerical_feature_names`."
+                    f"[{self.__class__.__name__}] [Info] {unsetted_num_features} are"
+                    " added to `numerical_feature_names`."
                 )
             unsetted_cat_features = (
                 self.X[list(unsetted_features_set)]
@@ -745,8 +745,8 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             if unsetted_cat_features:
                 self.categorical_feature_names.extend(unsetted_cat_features)
                 logging.info(
-                    f"[MultiSplitDecisionTree] [Info] {unsetted_cat_features} are added"
-                    " to `categorical_feature_names`."
+                    f"[{self.__class__.__name__}] [Info] {unsetted_cat_features} are"
+                    " added to `categorical_feature_names`."
                 )
         ################################################################################
 
@@ -1284,7 +1284,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         """
         if not self.__is_fitted:
             raise NotFittedError(
-                "This MultiSplitDecisionTree instance is not fitted yet."
+                f"This {self.__class__.__name__} instance is not fitted yet."
                 " Call `fit` with appropriate arguments before using this estimator."
             )
 
@@ -1309,7 +1309,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         """
         if not self.__is_fitted:
             raise NotFittedError(
-                "This MultiSplitDecisionTree instance is not fitted yet."
+                f"This {self.__class__.__name__} instance is not fitted yet."
                 " Call `fit` with appropriate arguments before using this estimator."
             )
 
@@ -1458,7 +1458,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         """Returns the accuracy metric."""
         if not self.__is_fitted:
             raise NotFittedError(
-                "This MultiSplitDecisionTree instance is not fitted yet."
+                f"This {self.__class__.__name__} instance is not fitted yet."
                 " Call `fit` with appropriate arguments before using this estimator."
             )
 
@@ -1538,7 +1538,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         """
         if not self.__is_fitted:
             raise NotFittedError(
-                "This MultiSplitDecisionTree instance is not fitted yet."
+                f"This {self.__class__.__name__} instance is not fitted yet."
                 " Call `fit` with appropriate arguments before using this estimator."
             )
 
