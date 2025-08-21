@@ -7,7 +7,7 @@ import pandas as pd
 import pytest
 from pytest import param, raises
 
-from smarttree import SmartTreeClassifier
+from smarttree import SmartDecisionTreeClassifier
 
 
 data = pd.read_csv(os.path.join("tests", "test_dataset.csv"), index_col=0)
@@ -54,7 +54,7 @@ def test_check_score_params(X, y, expected):
         X_fit = data[["2. Возраст", "3. Семейное положение", "5. В какой семье Вы выросли?"]]
         y_fit = data["Метка"]
 
-        msdt = SmartTreeClassifier(
+        msdt = SmartDecisionTreeClassifier(
             max_depth=1,
             numerical_feature_names=["2. Возраст"],
             categorical_feature_names=["3. Семейное положение"],
