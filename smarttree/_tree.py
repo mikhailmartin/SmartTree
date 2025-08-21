@@ -31,6 +31,7 @@ class BaseSmartDecisionTree:
         numerical_feature_names: list[str] | str | None = None,
         categorical_feature_names: list[str] | str | None = None,
         rank_feature_names: dict[str, list] | None = None,
+        hierarchy: dict[str, str | list[str]] | None = None,
     ) -> None:
 
         # criteria for limiting branching
@@ -42,6 +43,7 @@ class BaseSmartDecisionTree:
         self.__numerical_feature_names = numerical_feature_names
         self.__categorical_feature_names = categorical_feature_names
         self.__rank_feature_names = rank_feature_names
+        self.__hierarchy = hierarchy
 
         # attributes that are open for reading
         self.__feature_names = None
@@ -57,6 +59,7 @@ class BaseSmartDecisionTree:
         self.__check__numerical_feature_names()
         self.__check__categorical_feature_names()
         self.__check__rank_feature_names()
+        self.__check__hierarchy()
 
         # mutate
         if self.__numerical_feature_names is None:
@@ -87,6 +90,8 @@ class BaseSmartDecisionTree:
 
         if self.__rank_feature_names is None:
             self.__rank_feature_names = dict()
+
+        self.__hierarchy = hierarchy if hierarchy else {}
 
     def __check__max_depth(self) -> None:
         if (
@@ -222,6 +227,37 @@ class BaseSmartDecisionTree:
                 " {rang feature name: list of its ordered values}."
             )
 
+    def __check__hierarchy(self) -> None:
+        if isinstance(self.__hierarchy, dict):
+            for key, value in self.__hierarchy.items():
+                if not isinstance(key, str):
+                    raise ValueError(
+                        "`hierarchy` must be a dictionary"
+                        " {opening feature: opened feature / list of opened strings}."
+                        f" Value {key!r} of opening feature isnt a string."
+                    )
+                if not isinstance(value, (str, list)):
+                    raise ValueError(
+                        "`hierarchy` must be a dictionary"
+                        " {opening feature: opened feature / list of opened features}."
+                        f" Value {value} of opened feature(s) isnt a string (list of"
+                        " strings)."
+                    )
+                if isinstance(value, list):
+                    for elem in value:
+                        if not isinstance(elem, str):
+                            raise ValueError(
+                                "`hierarchy` must be a dictionary {opening feature:"
+                                " opened feature / list of opened features}."
+                                f" Value {elem} of opened feature isnt a string."
+                            )
+        elif self.__hierarchy is not None:
+            raise ValueError(
+                "`hierarchy` must be a dictionary"
+                " {opening feature: opened feature / list of opened strings}."
+                f" The current value of `hierarchy` is {self.__hierarchy!r}."
+            )
+
     @property
     def max_depth(self) -> int | None:
         return self.__max_depth
@@ -263,6 +299,10 @@ class BaseSmartDecisionTree:
             )
 
         return self.__feature_names
+
+    @property
+    def hierarchy(self) -> dict[str, str | list[str]]:
+        return self.__hierarchy
 
 
 class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
@@ -375,7 +415,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
     def __check_init_params(
         criterion,
         min_impurity_decrease,
-        hierarchy,
         numerical_nan_mode,
         categorical_nan_mode,
         categorical_nan_filler,
@@ -404,36 +443,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         #         ' `min_samples_leaf`. Текущее значение `min_samples_split` ='
         #         f' {min_samples_split}, `min_samples_leaf` = {min_samples_leaf}.'
         #     )
-
-        if hierarchy:
-            if not isinstance(hierarchy, dict):
-                raise ValueError(
-                    "`hierarchy` must be a dictionary"
-                    " {opening feature: opened feature / list of opened strings}."
-                    f" The current value of `hierarchy` is {hierarchy!r}."
-                )
-            for key, value in hierarchy.items():
-                if not isinstance(key, str):
-                    raise ValueError(
-                        "`hierarchy` must be a dictionary"
-                        " {opening feature: opened feature / list of opened strings}."
-                        f" Value {key!r} of opening feature isnt a string."
-                    )
-                if not isinstance(value, (str, list)):
-                    raise ValueError(
-                        "`hierarchy` must be a dictionary"
-                        " {opening feature: opened feature / list of opened features}."
-                        f" Value {value} of opened feature(s) isnt a string (list of"
-                        " strings)."
-                    )
-                if isinstance(value, list):
-                    for elem in value:
-                        if not isinstance(elem, str):
-                            raise ValueError(
-                                "`hierarchy` must be a dictionary {opening feature:"
-                                " opened feature / list of opened features}."
-                                f" Value {elem} of opened feature isnt a string."
-                            )
 
         if numerical_nan_mode not in ["include", "min", "max"]:
             raise ValueError(
@@ -495,12 +504,12 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             numerical_feature_names,
             categorical_feature_names,
             rank_feature_names,
+            hierarchy,
         )
 
         self.__check_init_params(
             criterion,
             min_impurity_decrease,
-            hierarchy,
             numerical_nan_mode,
             categorical_nan_mode,
             categorical_nan_filler,
@@ -549,8 +558,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         self.__feature_names = None
         self.__feature_importances = {}
 
-        self.__hierarchy = hierarchy if hierarchy else {}
-
         self.__numerical_nan_mode = numerical_nan_mode
         self.__fill_numerical_nan_values = {}
         self.__categorical_nan_mode = categorical_nan_mode
@@ -585,8 +592,8 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             repr_.append(f"categorical_feature_names={self.categorical_feature_names}")
         if self.rank_feature_names:
             repr_.append(f"rank_feature_names={self.rank_feature_names}")
-        if self.__hierarchy:
-            repr_.append(f"hierarchy={self.__hierarchy}")
+        if self.hierarchy:
+            repr_.append(f"hierarchy={self.hierarchy}")
         if self.__numerical_nan_mode != "min":
             repr_.append(f"numerical_nan_mode={self.__numerical_nan_mode!r}")
         if self.__categorical_nan_mode != "include":
@@ -733,7 +740,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             for cat_feature in self.categorical_feature_names:
                 X[cat_feature].fillna(self.__categorical_nan_filler, inplace=True)
 
-        hierarchy = self.__hierarchy.copy()
+        hierarchy = self.hierarchy.copy()
         available_feature_names = X.columns.tolist()
         # remove those features that cannot be considered yet
         for value in hierarchy.values():
@@ -1451,7 +1458,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             "numerical_feature_names": self.numerical_feature_names,
             "categorical_feature_names": self.categorical_feature_names,
             "rank_feature_names": self.rank_feature_names,
-            "hierarchy": self.__hierarchy,
+            "hierarchy": self.hierarchy,
             "numerical_nan_mode": self.__numerical_nan_mode,
             "categorical_nan_mode": self.__categorical_nan_mode,
             "categorical_nan_filler": self.__categorical_nan_filler,
