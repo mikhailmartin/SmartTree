@@ -1,4 +1,5 @@
 """Custom realization of Decision Tree which can handle categorical features."""
+from abc import abstractmethod
 import bisect
 import logging
 import math
@@ -22,9 +23,15 @@ class BaseSmartDecisionTree:
 
     """
 
-    def __init__(self, max_depth: int | None = None) -> None:
+    @abstractmethod
+    def __init__(
+        self,
+        max_depth: int | None = None,
+        min_samples_split: int | float = 2,
+    ) -> None:
 
         self.__max_depth = max_depth
+        self.__min_samples_split = min_samples_split
 
         if self.__max_depth is not None:
             if not isinstance(self.__max_depth, int) or self.__max_depth <= 0:
@@ -32,6 +39,32 @@ class BaseSmartDecisionTree:
                     "`max_depth` must be an integer and strictly greater than 0."
                     f" The current value of `max_depth` is {self.__max_depth!r}."
                 )
+
+        if (
+            not isinstance(self.__min_samples_split, (int, float))
+            or (
+                isinstance(self.__min_samples_split, int)
+                and self.__min_samples_split < 2
+            )
+            or (
+                isinstance(self.__min_samples_split, float)
+                and (self.__min_samples_split <= 0 or self.__min_samples_split >= 1)
+            )
+        ):
+            raise ValueError(
+                "`min_samples_split` must be an integer and lie in the range"
+                " [2, +inf), or float and lie in the range (0, 1)."
+                f" The current value of `min_samples_split` is"
+                f" {self.__min_samples_split!r}."
+            )
+
+    @property
+    def max_depth(self) -> int | None:
+        return self.__max_depth
+
+    @property
+    def min_samples_split(self) -> int | float:
+        return self.__min_samples_split
 
 
 class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
@@ -143,7 +176,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
     @staticmethod
     def __check_init_params(
         criterion,
-        min_samples_split,
         min_samples_leaf,
         max_leaf_nodes,
         min_impurity_decrease,
@@ -161,20 +193,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             raise ValueError(
                 "`criterion` mist be Literal['entropy', 'log_loss', 'gini']."
                 f" The current value of `criterion` is {criterion!r}."
-            )
-
-        if (
-            not isinstance(min_samples_split, (int, float))
-            or (isinstance(min_samples_split, int) and min_samples_split < 2)
-            or (
-                isinstance(min_samples_split, float)
-                and (min_samples_split <= 0 or min_samples_split >= 1)
-            )
-        ):
-            raise ValueError(
-                "`min_samples_split` must be an integer and lie in the range"
-                " [2, +inf), or float and lie in the range (0, 1)."
-                f" The current value of `min_samples_split` is {min_samples_split!r}."
             )
 
         if (
@@ -357,11 +375,10 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         verbose: Literal["critical", "error", "warning", "info", "debug"] | int = 2,
     ) -> None:
 
-        super().__init__(max_depth)
+        super().__init__(max_depth, min_samples_split)
 
         self.__check_init_params(
             criterion,
-            min_samples_split,
             min_samples_leaf,
             max_leaf_nodes,
             min_impurity_decrease,
@@ -409,8 +426,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
                 self.__impurity = self.__entropy
 
         # criteria for stopping branching
-        self.__max_depth = max_depth
-        self.__min_samples_split = min_samples_split
         self.__min_samples_leaf = min_samples_leaf
         self.__max_leaf_nodes = max_leaf_nodes
         self.__min_impurity_decrease = min_impurity_decrease
@@ -470,10 +485,10 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         # if a parameter value differs from default, then it added to the representation
         if self.__criterion != "gini":
             repr_.append(f"criterion={self.__criterion!r}")
-        if self.__max_depth:
-            repr_.append(f"max_depth={self.__max_depth}")
-        if self.__min_samples_split != 2:
-            repr_.append(f"min_samples_split={self.__min_samples_split}")
+        if self.max_depth:
+            repr_.append(f"max_depth={self.max_depth}")
+        if self.min_samples_split != 2:
+            repr_.append(f"min_samples_split={self.min_samples_split}")
         if self.__min_samples_leaf != 1:
             repr_.append(f"min_samples_leaf={self.__min_samples_leaf}")
         if self.__max_leaf_nodes != float("+inf"):
@@ -603,8 +618,8 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         self.__feature_names = X.columns.tolist()
         self.__class_names = sorted(y.unique())
 
-        if isinstance(self.__min_samples_split, float):
-            self.__min_samples_split = math.ceil(self.__min_samples_split * X.shape[0])
+        if isinstance(self.min_samples_split, float):
+            self.min_samples_split = math.ceil(self.min_samples_split * X.shape[0])
         if isinstance(self.__min_samples_leaf, float):
             self.__min_samples_leaf = math.ceil(self.__min_samples_leaf * X.shape[0])
 
@@ -737,10 +752,10 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
 
     def __is_splittable(self, node: TreeNode) -> bool:
         """Checks whether a tree node can be split."""
-        if self.__max_depth and node._depth >= self.__max_depth:
+        if self.max_depth and node._depth >= self.max_depth:
             return False
 
-        if node.samples < self.__min_samples_split:
+        if node.samples < self.min_samples_split:
             return False
 
         if node.impurity == 0:
@@ -1368,7 +1383,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         return {
             "criterion": self.__criterion,
             "max_depth": self.__max_depth,
-            "min_samples_split": self.__min_samples_split,
+            "min_samples_split": self.min_samples_split,
             "min_samples_leaf": self.__min_samples_leaf,
             "max_leaf_nodes": self.__max_leaf_nodes,
             "min_impurity_decrease": self.__min_impurity_decrease,
