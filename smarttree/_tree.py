@@ -16,7 +16,25 @@ from smarttree._utils import (
 from smarttree._exceptions import NotFittedError
 
 
-class SmartDecisionTreeClassifier:
+class BaseSmartDecisionTree:
+    """
+    Base class for smart decision trees.
+
+    """
+
+    def __init__(self, max_depth: int | None = None) -> None:
+
+        self.__max_depth = max_depth
+
+        if self.__max_depth is not None:
+            if not isinstance(self.__max_depth, int) or self.__max_depth <= 0:
+                raise ValueError(
+                    "`max_depth` must be an integer and strictly greater than 0."
+                    f" The current value of `max_depth` is {self.__max_depth!r}."
+                )
+
+
+class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
     """
     A decision tree classifier.
 
@@ -125,7 +143,6 @@ class SmartDecisionTreeClassifier:
     @staticmethod
     def __check_init_params(
         criterion,
-        max_depth,
         min_samples_split,
         min_samples_leaf,
         max_leaf_nodes,
@@ -145,13 +162,6 @@ class SmartDecisionTreeClassifier:
                 "`criterion` mist be Literal['entropy', 'log_loss', 'gini']."
                 f" The current value of `criterion` is {criterion!r}."
             )
-
-        if max_depth:
-            if not isinstance(max_depth, int) or max_depth <= 0:
-                raise ValueError(
-                    "`max_depth` must be an integer and strictly greater than 0."
-                    f" The current value of `max_depth` is {max_depth!r}."
-                )
 
         if (
             not isinstance(min_samples_split, (int, float))
@@ -346,9 +356,11 @@ class SmartDecisionTreeClassifier:
         categorical_nan_filler: str = "missing_value",
         verbose: Literal["critical", "error", "warning", "info", "debug"] | int = 2,
     ) -> None:
+
+        super().__init__(max_depth)
+
         self.__check_init_params(
             criterion,
-            max_depth,
             min_samples_split,
             min_samples_leaf,
             max_leaf_nodes,
