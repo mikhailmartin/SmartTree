@@ -29,11 +29,13 @@ class BaseSmartDecisionTree:
         max_depth: int | None = None,
         min_samples_split: int | float = 2,
         min_samples_leaf: int | float = 1,
+        max_leaf_nodes: int | float = float("+inf"),
     ) -> None:
 
         self.__max_depth = max_depth
         self.__min_samples_split = min_samples_split
         self.__min_samples_leaf = min_samples_leaf
+        self.__max_leaf_nodes = max_leaf_nodes
 
         if self.__max_depth is not None:
             if not isinstance(self.__max_depth, int) or self.__max_depth <= 0:
@@ -78,6 +80,18 @@ class BaseSmartDecisionTree:
                 f" {self.__min_samples_leaf!r}."
             )
 
+        if (
+            not (
+                isinstance(self.__max_leaf_nodes, int)
+                or self.__max_leaf_nodes == float("+inf")
+            )
+            or self.__max_leaf_nodes < 2
+        ):
+            raise ValueError(
+                "`max_leaf_nodes` must be an integer and strictly greater than 2."
+                f" The current value of `max_leaf_nodes` is {self.__max_leaf_nodes!r}."
+            )
+
     @property
     def max_depth(self) -> int | None:
         return self.__max_depth
@@ -89,6 +103,10 @@ class BaseSmartDecisionTree:
     @property
     def min_samples_leaf(self) -> int | float:
         return self.__min_samples_leaf
+
+    @property
+    def max_leaf_nodes(self) -> int | float:
+        return self.__max_leaf_nodes
 
 
 class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
@@ -200,7 +218,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
     @staticmethod
     def __check_init_params(
         criterion,
-        max_leaf_nodes,
         min_impurity_decrease,
         max_childs,
         numerical_feature_names,
@@ -216,15 +233,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             raise ValueError(
                 "`criterion` mist be Literal['entropy', 'log_loss', 'gini']."
                 f" The current value of `criterion` is {criterion!r}."
-            )
-
-        if (
-            not (isinstance(max_leaf_nodes, int) or max_leaf_nodes == float("+inf"))
-            or max_leaf_nodes < 2
-        ):
-            raise ValueError(
-                "`max_leaf_nodes` must be an integer and strictly greater than 2."
-                f" The current value of `max_leaf_nodes` is {max_leaf_nodes!r}."
             )
 
         # TODO: could impurity_decrease be greater 1?
@@ -384,11 +392,10 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         verbose: Literal["critical", "error", "warning", "info", "debug"] | int = 2,
     ) -> None:
 
-        super().__init__(max_depth, min_samples_split, min_samples_leaf)
+        super().__init__(max_depth, min_samples_split, min_samples_leaf, max_leaf_nodes)
 
         self.__check_init_params(
             criterion,
-            max_leaf_nodes,
             min_impurity_decrease,
             max_childs,
             numerical_feature_names,
@@ -434,7 +441,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
                 self.__impurity = self.__entropy
 
         # criteria for stopping branching
-        self.__max_leaf_nodes = max_leaf_nodes
         self.__min_impurity_decrease = min_impurity_decrease
         # criteria for limiting branching
         self.__max_childs = max_childs
@@ -498,8 +504,8 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             repr_.append(f"min_samples_split={self.min_samples_split}")
         if self.min_samples_leaf != 1:
             repr_.append(f"min_samples_leaf={self.min_samples_leaf}")
-        if self.__max_leaf_nodes != float("+inf"):
-            repr_.append(f"max_leaf_nodes={self.__max_leaf_nodes}")
+        if self.max_leaf_nodes != float("+inf"):
+            repr_.append(f"max_leaf_nodes={self.max_leaf_nodes}")
         if self.__min_impurity_decrease != .0:
             repr_.append(f"min_impurity_decrease={self.__min_impurity_decrease}")
         if self.__max_childs != float("+inf"):
@@ -705,7 +711,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
 
         while (
             len(self.splittable_leaf_nodes) > 0
-            and self.__leaf_counter < self.__max_leaf_nodes
+            and self.__leaf_counter < self.max_leaf_nodes
         ):
             best_node = self.splittable_leaf_nodes.pop()
             (
@@ -979,7 +985,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             if len(partition) > self.__max_childs:
                 continue
             # if the number of leaves exceeds the limit after splitting
-            if self.__leaf_counter + len(partition) > self.__max_leaf_nodes:
+            if self.__leaf_counter + len(partition) > self.max_leaf_nodes:
                 continue
 
             partitions.append(partition)
@@ -1392,7 +1398,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             "max_depth": self.__max_depth,
             "min_samples_split": self.min_samples_split,
             "min_samples_leaf": self.min_samples_leaf,
-            "max_leaf_nodes": self.__max_leaf_nodes,
+            "max_leaf_nodes": self.max_leaf_nodes,
             "min_impurity_decrease": self.__min_impurity_decrease,
             "max_childs": self.__max_childs,
             "numerical_feature_names": self.__numerical_feature_names,
