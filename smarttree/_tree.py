@@ -452,31 +452,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         rank_feature_names: The list of all rank features in train data.
         feature_importances: The dict {feature name: feature importance}.
     """
-    @staticmethod
-    def __check_init_params(verbose):
-        # TODO: finish this part
-        # if (
-        #     (isinstance(min_samples_split, int) and isinstance(min_samples_leaf, int))
-        #     and min_samples_split < 2 * min_samples_leaf
-        # ):
-        #     raise ValueError(
-        #         '`min_samples_split` должен быть строго в 2 раза больше'
-        #         ' `min_samples_leaf`. Текущее значение `min_samples_split` ='
-        #         f' {min_samples_split}, `min_samples_leaf` = {min_samples_leaf}.'
-        #     )
-
-        if (
-            not isinstance(verbose, (str, int))
-            or (
-                isinstance(verbose, str)
-                and verbose not in ["critical", "error", "warning", "info", "debug"]
-            )
-        ):
-            raise ValueError(
-                "`verbose` must be an integer or"
-                " Literal['critical', 'error', 'warning', 'info', 'debug']."
-                f" The current value of `verbose` is {verbose!r}."
-            )
 
     def __init__(
         self,
@@ -515,11 +490,11 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
 
         self.__criterion = criterion
         self.__min_impurity_decrease = min_impurity_decrease
+        self.__verbose = verbose
 
         self.__check__criterion()
         self.__check__min_impurity_decrease()
-
-        self.__check_init_params(verbose)
+        self.__check__verbose()
 
         match verbose:
             case "critical":
@@ -583,6 +558,33 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
                 "`min_impurity_decrease` must be float and non-negative."
                 f" The current value of `min_impurity_decrease` is {self.__min_impurity_decrease!r}."
             )
+
+    def __check__verbose(self) -> None:
+        if (
+            not isinstance(self.__verbose, (str, int))
+            or (
+                isinstance(self.__verbose, str)
+                and self.__verbose not in ["critical", "error", "warning", "info", "debug"]
+            )
+        ):
+            raise ValueError(
+                "`verbose` must be an integer or"
+                " Literal['critical', 'error', 'warning', 'info', 'debug']."
+                f" The current value of `verbose` is {self.__verbose!r}."
+            )
+
+    def __check_init_params(self) -> None:
+        # TODO: finish this part
+        # if (
+        #     (isinstance(min_samples_split, int) and isinstance(min_samples_leaf, int))
+        #     and min_samples_split < 2 * min_samples_leaf
+        # ):
+        #     raise ValueError(
+        #         '`min_samples_split` должен быть строго в 2 раза больше'
+        #         ' `min_samples_leaf`. Текущее значение `min_samples_split` ='
+        #         f' {min_samples_split}, `min_samples_leaf` = {min_samples_leaf}.'
+        #     )
+        ...
 
     @property
     def criterion(self) -> Literal["entropy", "log_loss", "gini"]:
