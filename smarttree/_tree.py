@@ -30,6 +30,7 @@ class BaseSmartDecisionTree:
         max_childs: int | float = float("+inf"),
         numerical_feature_names: list[str] | str | None = None,
         categorical_feature_names: list[str] | str | None = None,
+        rank_feature_names: dict[str, list] | None = None,
     ) -> None:
 
         # criteria for limiting branching
@@ -40,6 +41,7 @@ class BaseSmartDecisionTree:
         self.__max_childs = max_childs
         self.__numerical_feature_names = numerical_feature_names
         self.__categorical_feature_names = categorical_feature_names
+        self.__rank_feature_names = rank_feature_names
 
         # check
         self.__check__max_depth()
@@ -49,6 +51,7 @@ class BaseSmartDecisionTree:
         self.__check__max_childs()
         self.__check__numerical_feature_names()
         self.__check__categorical_feature_names()
+        self.__check__rank_feature_names()
 
         # mutate
         if self.__numerical_feature_names is None:
@@ -76,6 +79,9 @@ class BaseSmartDecisionTree:
                 f"[{self.__class__.__name__}] [Debug] `categorical_feature_names`"
                 f" is set to {self.__categorical_feature_names}."
             )
+
+        if self.__rank_feature_names is None:
+            self.__rank_feature_names = dict()
 
     def __check__max_depth(self) -> None:
         if (
@@ -191,6 +197,26 @@ class BaseSmartDecisionTree:
                 f" {self.__categorical_feature_names!r}."
             )
 
+    def __check__rank_feature_names(self) -> None:
+        if isinstance(self.__rank_feature_names, dict):
+            for rank_feature_name, value_list in self.__rank_feature_names.items():
+                if not isinstance(rank_feature_name, str):
+                    raise ValueError(
+                        "Keys in `rank_feature_names` must be a strings."
+                        f" The key {rank_feature_name} isnt a string."
+                    )
+                if not isinstance(value_list, list):
+                    raise ValueError(
+                        "Values in `rank_feature_names` must be lists."
+                        f" The value {value_list} of the key {rank_feature_name} isnt a"
+                        " list."
+                    )
+        elif self.__rank_feature_names is not None:
+            raise ValueError(
+                "`rank_feature_names` must be a dictionary"
+                " {rang feature name: list of its ordered values}."
+            )
+
     @property
     def max_depth(self) -> int | None:
         return self.__max_depth
@@ -218,6 +244,10 @@ class BaseSmartDecisionTree:
     @property
     def categorical_feature_names(self) -> list[str]:
         return self.__categorical_feature_names
+
+    @property
+    def rank_feature_names(self) -> dict[str, list]:
+        return self.__rank_feature_names
 
 
 class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
@@ -330,7 +360,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
     def __check_init_params(
         criterion,
         min_impurity_decrease,
-        rank_feature_names,
         hierarchy,
         numerical_nan_mode,
         categorical_nan_mode,
@@ -360,25 +389,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         #         ' `min_samples_leaf`. Текущее значение `min_samples_split` ='
         #         f' {min_samples_split}, `min_samples_leaf` = {min_samples_leaf}.'
         #     )
-
-        if rank_feature_names:
-            if not isinstance(rank_feature_names, dict):
-                raise ValueError(
-                    "`rank_feature_names` must be a dictionary"
-                    " {rang feature name: list of its ordered values}."
-                )
-            for rank_feature_name, value_list in rank_feature_names.items():
-                if not isinstance(rank_feature_name, str):
-                    raise ValueError(
-                        "Keys in `rank_feature_names` must be a strings."
-                        f" The key {rank_feature_name} isnt a string."
-                    )
-                if not isinstance(value_list, list):
-                    raise ValueError(
-                        "Values in `rank_feature_names` must be lists."
-                        f" The value {value_list} of the key {rank_feature_name} isnt a"
-                        " list."
-                    )
 
         if hierarchy:
             if not isinstance(hierarchy, dict):
@@ -469,12 +479,12 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             max_childs,
             numerical_feature_names,
             categorical_feature_names,
+            rank_feature_names,
         )
 
         self.__check_init_params(
             criterion,
             min_impurity_decrease,
-            rank_feature_names,
             hierarchy,
             numerical_nan_mode,
             categorical_nan_mode,
@@ -524,11 +534,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         self.__feature_names = None
         self.__feature_importances = {}
 
-        if rank_feature_names is None:
-            self.__rank_feature_names = {}
-        elif isinstance(rank_feature_names, dict):
-            self.__rank_feature_names = rank_feature_names
-
         self.__hierarchy = hierarchy if hierarchy else {}
 
         self.__numerical_nan_mode = numerical_nan_mode
@@ -563,8 +568,8 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             repr_.append(f"numerical_feature_names={self.numerical_feature_names}")
         if self.categorical_feature_names:
             repr_.append(f"categorical_feature_names={self.categorical_feature_names}")
-        if self.__rank_feature_names:
-            repr_.append(f"rank_feature_names={self.__rank_feature_names}")
+        if self.rank_feature_names:
+            repr_.append(f"rank_feature_names={self.rank_feature_names}")
         if self.__hierarchy:
             repr_.append(f"hierarchy={self.__hierarchy}")
         if self.__numerical_nan_mode != "min":
@@ -582,7 +587,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
     def tree(self) -> TreeNode:
         if not self.__is_fitted:
             raise NotFittedError(
-                "This MultiSplitDecisionTree instance is not fitted yet."
+                f"This {self.__class__.__name__} instance is not fitted yet."
                 " Call `fit` with appropriate arguments before using this estimator."
             )
 
@@ -592,7 +597,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
     def class_names(self) -> list[str]:
         if not self.__is_fitted:
             raise NotFittedError(
-                "This MultiSplitDecisionTree instance is not fitted yet."
+                f"This {self.__class__.__name__} instance is not fitted yet."
                 " Call `fit` with appropriate arguments before using this estimator."
             )
 
@@ -602,15 +607,11 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
     def feature_names(self) -> list[str]:
         if not self.__is_fitted:
             raise NotFittedError(
-                "This MultiSplitDecisionTree instance is not fitted yet."
+                f"This {self.__class__.__name__} instance is not fitted yet."
                 " Call `fit` with appropriate arguments before using this estimator."
             )
 
         return self.__feature_names
-
-    @property
-    def rank_feature_names(self) -> dict[str, list[str]]:
-        return self.__rank_feature_names
 
     @property
     def feature_importances(self) -> dict[str, float]:
@@ -685,7 +686,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         unsetted_features_set = set(self.X.columns) - (
             set(self.numerical_feature_names) |
             set(self.categorical_feature_names) |
-            set(self.__rank_feature_names)
+            set(self.rank_feature_names)
         )
 
         if unsetted_features_set:
@@ -896,7 +897,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
                     feature_values,
                     child_masks,
                 ) = self.__best_cat_split(parent_mask, split_feature_name)
-            elif split_feature_name in self.__rank_feature_names:
+            elif split_feature_name in self.rank_feature_names:
                 split_type = "rank"
                 (
                     inf_gain,
@@ -1084,7 +1085,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         split_feature_name: str,
     ) -> tuple[float, list[list[str]], list[pd.Series]]:
         """Split a node according to a rank feature in the best way."""
-        available_feature_values = self.__rank_feature_names[split_feature_name]
+        available_feature_values = self.rank_feature_names[split_feature_name]
 
         best_inf_gain = float("-inf")
         best_child_masks = None
@@ -1342,7 +1343,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
 
             elif (
                 node.split_feature_name in self.categorical_feature_names
-                or node.split_feature_name in self.__rank_feature_names
+                or node.split_feature_name in self.rank_feature_names
             ):
                 # looking for the branch that needs to be followed
                 for child in node.childs:
@@ -1444,7 +1445,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             "max_childs": self.max_childs,
             "numerical_feature_names": self.numerical_feature_names,
             "categorical_feature_names": self.categorical_feature_names,
-            "rank_feature_names": self.__rank_feature_names,
+            "rank_feature_names": self.rank_feature_names,
             "hierarchy": self.__hierarchy,
             "numerical_nan_mode": self.__numerical_nan_mode,
             "categorical_nan_mode": self.__categorical_nan_mode,
