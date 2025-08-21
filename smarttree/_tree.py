@@ -29,6 +29,7 @@ class BaseSmartDecisionTree:
         max_leaf_nodes: int | float = float("+inf"),
         max_childs: int | float = float("+inf"),
         numerical_feature_names: list[str] | str | None = None,
+        categorical_feature_names: list[str] | str | None = None,
     ) -> None:
 
         # criteria for limiting branching
@@ -38,6 +39,7 @@ class BaseSmartDecisionTree:
         self.__max_leaf_nodes = max_leaf_nodes
         self.__max_childs = max_childs
         self.__numerical_feature_names = numerical_feature_names
+        self.__categorical_feature_names = categorical_feature_names
 
         # check
         self.__check__max_depth()
@@ -46,6 +48,7 @@ class BaseSmartDecisionTree:
         self.__check__max_leaf_nodes()
         self.__check__max_childs()
         self.__check__numerical_feature_names()
+        self.__check__categorical_feature_names()
 
         # mutate
         if self.__numerical_feature_names is None:
@@ -59,6 +62,19 @@ class BaseSmartDecisionTree:
             logging.debug(
                 f"[{self.__class__.__name__}] [Debug] `numerical_feature_names`"
                 f" is set to {self.__numerical_feature_names}."
+            )
+
+        if self.__categorical_feature_names is None:
+            self.__categorical_feature_names = []
+            logging.debug(
+                f"[{self.__class__.__name__}] [Debug] `categorical_feature_names`"
+                f" is set to {self.__categorical_feature_names}."
+            )
+        elif isinstance(self.__categorical_feature_names, str):
+            self.__categorical_feature_names = [self.__categorical_feature_names]
+            logging.debug(
+                f"[{self.__class__.__name__}] [Debug] `categorical_feature_names`"
+                f" is set to {self.__categorical_feature_names}."
             )
 
     def __check__max_depth(self) -> None:
@@ -155,6 +171,26 @@ class BaseSmartDecisionTree:
                 f" {self.__numerical_feature_names!r}."
             )
 
+    def __check__categorical_feature_names(self) -> None:
+        if isinstance(self.__categorical_feature_names, list):
+            for categorical_feature_name in self.__categorical_feature_names:
+                if not isinstance(categorical_feature_name, str):
+                    raise ValueError(
+                        "If `categorical_feature_names` is a list, it must consists of"
+                        " strings."
+                        f" The element {categorical_feature_name} of the list isnt a"
+                        " string."
+                    )
+        elif not (
+            isinstance(self.__categorical_feature_names, str)
+            or self.__categorical_feature_names is None
+        ):
+            raise ValueError(
+                "`categorical_feature_names` must be a string or list of strings."
+                f" The current value of `categorical_feature_names` is"
+                f" {self.__categorical_feature_names!r}."
+            )
+
     @property
     def max_depth(self) -> int | None:
         return self.__max_depth
@@ -178,6 +214,10 @@ class BaseSmartDecisionTree:
     @property
     def numerical_feature_names(self) -> list[str]:
         return self.__numerical_feature_names
+
+    @property
+    def categorical_feature_names(self) -> list[str]:
+        return self.__categorical_feature_names
 
 
 class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
@@ -290,7 +330,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
     def __check_init_params(
         criterion,
         min_impurity_decrease,
-        categorical_feature_names,
         rank_feature_names,
         hierarchy,
         numerical_nan_mode,
@@ -321,21 +360,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         #         ' `min_samples_leaf`. Текущее значение `min_samples_split` ='
         #         f' {min_samples_split}, `min_samples_leaf` = {min_samples_leaf}.'
         #     )
-
-        if categorical_feature_names:
-            if not isinstance(categorical_feature_names, (list, str)):
-                raise ValueError(
-                    "`categorical_feature_names` must be string or list of strings."
-                    f" The current value of `categorical_feature_names` is {categorical_feature_names!r}."
-                )
-            for categorical_feature_name in categorical_feature_names:
-                if not isinstance(categorical_feature_name, str):
-                    raise ValueError(
-                        "If `categorical_feature_names` is a list, it must consists of"
-                        " strings."
-                        f" The element {categorical_feature_name} of the list isnt"
-                        " string."
-                    )
 
         if rank_feature_names:
             if not isinstance(rank_feature_names, dict):
@@ -444,12 +468,12 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             max_leaf_nodes,
             max_childs,
             numerical_feature_names,
+            categorical_feature_names,
         )
 
         self.__check_init_params(
             criterion,
             min_impurity_decrease,
-            categorical_feature_names,
             rank_feature_names,
             hierarchy,
             numerical_nan_mode,
@@ -500,17 +524,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         self.__feature_names = None
         self.__feature_importances = {}
 
-        if categorical_feature_names is None:
-            self.__categorical_feature_names = []
-        elif isinstance(categorical_feature_names, str):
-            self.__categorical_feature_names = [categorical_feature_names]
-        elif isinstance(categorical_feature_names, list):
-            self.__categorical_feature_names = categorical_feature_names
-        logging.debug(
-            "[MultiSplitDecisionTree] [Debug] `categorical_feature_names` is set to"
-            f" {self.__categorical_feature_names}."
-        )
-
         if rank_feature_names is None:
             self.__rank_feature_names = {}
         elif isinstance(rank_feature_names, dict):
@@ -548,8 +561,8 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             repr_.append(f"max_childs={self.max_childs}")
         if self.numerical_feature_names:
             repr_.append(f"numerical_feature_names={self.numerical_feature_names}")
-        if self.__categorical_feature_names:
-            repr_.append(f"categorical_feature_names={self.__categorical_feature_names}")
+        if self.categorical_feature_names:
+            repr_.append(f"categorical_feature_names={self.categorical_feature_names}")
         if self.__rank_feature_names:
             repr_.append(f"rank_feature_names={self.__rank_feature_names}")
         if self.__hierarchy:
@@ -594,10 +607,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             )
 
         return self.__feature_names
-
-    @property
-    def categorical_feature_names(self) -> list[str]:
-        return self.__categorical_feature_names
 
     @property
     def rank_feature_names(self) -> dict[str, list[str]]:
@@ -675,7 +684,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         # numerical_feature_names and categorical_feature_names extensions ##############
         unsetted_features_set = set(self.X.columns) - (
             set(self.numerical_feature_names) |
-            set(self.__categorical_feature_names) |
+            set(self.categorical_feature_names) |
             set(self.__rank_feature_names)
         )
 
@@ -695,7 +704,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
                 .select_dtypes(include=["category", "object"]).columns.tolist()
             )
             if unsetted_cat_features:
-                self.__categorical_feature_names.extend(unsetted_cat_features)
+                self.categorical_feature_names.extend(unsetted_cat_features)
                 logging.info(
                     f"[MultiSplitDecisionTree] [Info] {unsetted_cat_features} are added"
                     " to `categorical_feature_names`."
@@ -715,7 +724,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
                     X[num_feature_name].fillna(fill_nan_value, inplace=True)
 
         if self.__categorical_nan_mode == "as_category":
-            for cat_feature in self.__categorical_feature_names:
+            for cat_feature in self.categorical_feature_names:
                 X[cat_feature].fillna(self.__categorical_nan_filler, inplace=True)
 
         hierarchy = self.__hierarchy.copy()
@@ -880,7 +889,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
                     feature_values,
                     child_masks,
                 ) = self.__num_split(parent_mask, split_feature_name)
-            elif split_feature_name in self.__categorical_feature_names:
+            elif split_feature_name in self.categorical_feature_names:
                 split_type = "categorical"
                 (
                     inf_gain,
@@ -1290,7 +1299,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
                 X.fillna(self.__fill_numerical_nan_values[num_feature], inplace=True)
 
         if self.__categorical_nan_mode == "as_category":
-            for cat_feature in self.__categorical_feature_names:
+            for cat_feature in self.categorical_feature_names:
                 X[cat_feature].fillna(self.__categorical_nan_filler, inplace=True)
 
         return X
@@ -1332,7 +1341,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
                     assert False
 
             elif (
-                node.split_feature_name in self.__categorical_feature_names
+                node.split_feature_name in self.categorical_feature_names
                 or node.split_feature_name in self.__rank_feature_names
             ):
                 # looking for the branch that needs to be followed
@@ -1434,7 +1443,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             "min_impurity_decrease": self.__min_impurity_decrease,
             "max_childs": self.max_childs,
             "numerical_feature_names": self.numerical_feature_names,
-            "categorical_feature_names": self.__categorical_feature_names,
+            "categorical_feature_names": self.categorical_feature_names,
             "rank_feature_names": self.__rank_feature_names,
             "hierarchy": self.__hierarchy,
             "numerical_nan_mode": self.__numerical_nan_mode,

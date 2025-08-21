@@ -325,7 +325,7 @@ def test_init_params__numerical_feature_names(numerical_feature_names, expected)
             raises(
                 ValueError,
                 match=(
-                    "`categorical_feature_names` must be string or list of strings."
+                    "`categorical_feature_names` must be a string or list of strings."
                     " The current value of `categorical_feature_names` is 1.0."
                 ),
             ),
@@ -336,7 +336,7 @@ def test_init_params__numerical_feature_names(numerical_feature_names, expected)
                 ValueError,
                 match=(
                     "If `categorical_feature_names` is a list, it must consists of"
-                    " strings. The element 1.0 of the list isnt string."
+                    " strings. The element 1.0 of the list isnt a string."
                 ),
             ),
         ),
@@ -344,8 +344,7 @@ def test_init_params__numerical_feature_names(numerical_feature_names, expected)
 )
 def test_init_params__categorical_feature_names(categorical_feature_names, expected):
     with expected:
-        SmartDecisionTreeClassifier(
-            categorical_feature_names=categorical_feature_names)
+        SmartDecisionTreeClassifier(categorical_feature_names=categorical_feature_names)
 
 
 @pytest.mark.parametrize(
