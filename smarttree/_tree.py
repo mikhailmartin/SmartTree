@@ -350,7 +350,7 @@ class BaseSmartDecisionTree:
         return self.__categorical_nan_filler
 
     @abstractmethod
-    def fit(self):
+    def fit(self, X: pd.DataFrame, y: pd.Series) -> None:
         raise NotImplemented
 
 
@@ -722,7 +722,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
                     self.__fill_numerical_nan_values[fill_nan_value] = fill_nan_value
                     X[num_feature_name].fillna(fill_nan_value, inplace=True)
 
-        if self == "as_category":
+        if self.categorical_nan_mode == "as_category":
             for cat_feature in self.categorical_feature_names:
                 X[cat_feature].fillna(self.categorical_nan_filler, inplace=True)
 
