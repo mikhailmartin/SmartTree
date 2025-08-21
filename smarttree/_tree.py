@@ -9,11 +9,11 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import accuracy_score
 
-from multi_split_decision_tree._tree_node import TreeNode
-from multi_split_decision_tree._utils import (
+from smarttree._tree_node import TreeNode
+from smarttree._utils import (
     cat_partitions, get_thresholds, rank_partitions
 )
-from multi_split_decision_tree._exceptions import NotFittedError
+from smarttree._exceptions import NotFittedError
 
 
 class MultiSplitDecisionTreeClassifier:

@@ -3,7 +3,7 @@ sys.path.append(sys.path[0] + "/../")
 from contextlib import nullcontext as does_not_raise
 import re
 
-from multi_split_decision_tree import MultiSplitDecisionTreeClassifier
+from smarttree import MultiSplitDecisionTreeClassifier
 
 import pytest
 from pytest import param, raises

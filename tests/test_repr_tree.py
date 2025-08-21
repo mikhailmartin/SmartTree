@@ -1,7 +1,7 @@
 import pytest
 from pytest import param
 
-from multi_split_decision_tree import MultiSplitDecisionTreeClassifier
+from smarttree import MultiSplitDecisionTreeClassifier
 
 
 @pytest.mark.parametrize(

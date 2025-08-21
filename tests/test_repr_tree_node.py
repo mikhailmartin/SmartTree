@@ -1,4 +1,4 @@
-from multi_split_decision_tree import TreeNode
+from smarttree import TreeNode
 
 
 def test_repr_tree_node():

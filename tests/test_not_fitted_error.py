@@ -1,7 +1,7 @@
 from pytest import raises
 
-from multi_split_decision_tree import MultiSplitDecisionTreeClassifier
-from multi_split_decision_tree._exceptions import NotFittedError
+from smarttree import MultiSplitDecisionTreeClassifier
+from smarttree._exceptions import NotFittedError
 
 
 NOT_FITTED_MSDT = MultiSplitDecisionTreeClassifier()

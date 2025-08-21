@@ -8,7 +8,7 @@ import pandas as pd
 import pytest
 from pytest import param, raises
 
-from multi_split_decision_tree import MultiSplitDecisionTreeClassifier
+from smarttree import MultiSplitDecisionTreeClassifier
 
 data = pd.read_csv(os.path.join('tests', 'test_dataset.csv'), index_col=0)
 X = data[['2. Возраст', '3. Семейное положение', '5. В какой семье Вы выросли?']]
