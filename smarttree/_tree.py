@@ -352,105 +352,97 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
 
     Parameters:
         criterion: {'gini', 'entropy', 'log_loss'}, default='gini'
-            The function to measure the quality of a split. Supported criteria
-            are 'gini' for the Gini impurity and 'log_loss' and 'entropy' both
-            for the Shannon information gain.
+          The function to measure the quality of a split. Supported criteria are
+           'gini' for the Gini impurity and 'log_loss' and 'entropy' both for
+           the Shannon information gain.
 
         max_depth: int, default=None
-            The maximum depth of the tree. If None, then nodes are expanded
-            until all leaves are pure or until all leaves contain less than
-            min_samples_split samples.
+          The maximum depth of the tree. If None, then nodes are expanded until
+          all leaves are pure or until all leaves contain less than
+          `min_samples_split` samples.
 
         min_samples_split: int or float, default=2
-            The minimum number of samples required to split an internal node:
+          The minimum number of samples required to split an internal node:
 
-            - If int, then consider `min_samples_split` as the minimum number.
-            - If float, then `min_samples_split` is a fraction and
-              `ceil(min_samples_split * n_samples)` are the minimum number of
-              samples for each split.
+          - If int, then consider `min_samples_split` as the minimum number.
+          - If float, then `min_samples_split` is a fraction and
+            `ceil(min_samples_split * n_samples)` are the minimum number of
+            samples for each split.
 
         min_samples_leaf: int or float, default=1
-            The minimum number of samples required to be a leaf node.
-            A split point at eny depth will only be considered if it leaves at
-            least `min_samples_leaf` training samples in each of the left and
-            right branches. This may have the effect of smoothing the model,
-            especially in regression.
+          The minimum number of samples required to be a leaf node.
+          A split point at eny depth will only be considered if it leaves at
+          least `min_samples_leaf` training samples in each of the left and
+          right branches. This may have the effect of smoothing the model,
+          especially in regression.
 
-            - If int, then consider `min_samples_leaf` as the minimum number.
-            - If float, then `min_samples_leaf` is a fraction and
-              `ceil(min_samples_leaf * n_samples)` are the minimum number of
-              samples for each node.
+          - If int, then consider `min_samples_leaf` as the minimum number.
+          - If float, then `min_samples_leaf` is a fraction and
+            `ceil(min_samples_leaf * n_samples)` are the minimum number of
+            samples for each node.
 
         max_leaf_nodes: int, default=None
-            Grow a tree with `max_leaf_nodes` in best-first fashion. Best nodes
-            are defined as relative reduction in impurity. If None then unlimited
-            number of leaf nodes.
+          Grow a tree with `max_leaf_nodes` in best-first fashion. Best nodes
+          are defined as relative reduction in impurity. If None then unlimited
+          number of leaf nodes.
 
         min_impurity_decrease: float, default=0.0
-            A node wil be split if this split induces a decrease of the impurity
-            greater than or equal to this value.
+          A node wil be split if this split induces a decrease of the impurity
+          greater than or equal to this value.
 
-            TODO: formula
+          TODO: formula
 
         max_childs: int, default=None
-            When choosing a categorical split, `max_childs` limits the maximum
-            number of child nodes. If None then unlimited number of child nodes.
+          When choosing a categorical split, `max_childs` limits the maximum
+          number of child nodes. If None then unlimited number of child nodes.
 
         numerical_feature_names: list[str] or str, default=None
-            List of numerical feature names. If None `numerical_feature_names`
-            will be set from unset feature names in X while .fit().
+          List of numerical feature names. If None `numerical_feature_names`
+          will be set from unset feature names in X while .fit().
 
         categorical_feature_names: list[str] or str, default=None
-            List of categorical feature names. If None `categorical_feature_names`
-            will be set from unset feature names in X while .fit().
+          List of categorical feature names. If None `categorical_feature_names`
+          will be set from unset feature names in X while .fit().
 
         rank_feature_names: list[str] or str, default=None
-            List of rank feature names.
+          List of rank feature names.
 
         hierarchy: dict, default=None
+          TODO.
 
         numerical_nan_mode: Literal['include', 'min', 'max'], default='include'
-            The mode of handling missing values in a numerical feature.
+          The mode of handling missing values in a numerical feature.
 
-            - If 'include': While training samples with missing values are
-              included into all child nodes. While predicting decision is
-              weighted mean of all decisions in child nodes.
-            - If 'min', missing values are filled with minimum value of
-              a numerical feature in training data.
-            - If 'max', missing values are filled with maximum value of
-              a numerical feature in training data.
+          - If 'include': While training samples with missing values are
+            included into all child nodes. While predicting decision is weighted
+            mean of all decisions in child nodes.
+          - If 'min', missing values are filled with minimum value of
+            a numerical feature in training data.
+          - If 'max', missing values are filled with maximum value of
+            a numerical feature in training data.
 
         categorical_nan_mode: Literal['include', 'as_category'], default='include'
-            The mode of handling missing values in a categorical feature.
+          The mode of handling missing values in a categorical feature.
 
-            - If 'include': While training samples with missing values are
-              included into all child nodes. While predicting decision is
-              weighted mean of all decisions in child nodes.
-            - If 'as_category': While training and predicting missing values
-              will be filled with `categorical_nan_filler`.
+          - If 'include': While training samples with missing values are
+            included into all child nodes. While predicting decision is
+            weighted mean of all decisions in child nodes.
+          - If 'as_category': While training and predicting missing values
+            will be filled with `categorical_nan_filler`.
 
         categorical_nan_filler: str, default='missing_value'
-            If `categorical_nan_mode` is set to "as_category", then during
-            training and predicting missing values will be filled with
-            `categorical_nan_filler`.
+          If `categorical_nan_mode` is set to "as_category", then during
+          training and predicting missing values will be filled with
+          `categorical_nan_filler`.
 
         verbose: Literal['critical', 'error', 'warning', 'info', 'debug'] or int, default=2
-            Controls the level of decision tree verbosity.
+          Controls the level of decision tree verbosity.
 
-            - If 'critical'
-            - If 'error'
-            - If 'warning'
-            - If 'info'
-            - If 'debug'
-
-    Attributes:
-        tree: The underlying Tree object.
-        class_names: The sorted list of class names.
-        feature_names: The list of all features in train data.
-        numerical_feature_names: The list of all numerical features in train data.
-        categorical_feature_names: The list of all categorical features in train data.
-        rank_feature_names: The list of all rank features in train data.
-        feature_importances: The dict {feature name: feature importance}.
+          - If 'critical'
+          - If 'error'
+          - If 'warning'
+          - If 'info'
+          - If 'debug'
     """
 
     def __init__(
