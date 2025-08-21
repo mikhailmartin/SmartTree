@@ -17,9 +17,6 @@ from smarttree._utils import (
 from smarttree._exceptions import NotFittedError
 
 
-NUMERICAL_NAN_MODE_OPTION = Literal["include", "min", "max"]
-
-
 class BaseSmartDecisionTree:
     """Base class for smart decision trees."""
 
@@ -35,7 +32,8 @@ class BaseSmartDecisionTree:
         categorical_feature_names: list[str] | str | None = None,
         rank_feature_names: dict[str, list] | None = None,
         hierarchy: dict[str, str | list[str]] | None = None,
-        numerical_nan_mode: NUMERICAL_NAN_MODE_OPTION = "min",
+        numerical_nan_mode: Literal["include", "min", "max"] = "min",
+        categorical_nan_mode: Literal["include", "as_category"] = "include",
     ) -> None:
 
         # criteria for limiting branching
@@ -51,6 +49,7 @@ class BaseSmartDecisionTree:
         self.__rank_feature_names = rank_feature_names
         self.__feature_names = None
         self.__numerical_nan_mode = numerical_nan_mode
+        self.__categorical_nan_mode = categorical_nan_mode
 
         self.__is_fitted = False
 
@@ -65,6 +64,7 @@ class BaseSmartDecisionTree:
         self.__check__rank_feature_names()
         self.__check__hierarchy()
         self.__check__numerical_nan_mode()
+        self.__check__categorical_nan_mode()
 
         # mutate
         if self.__numerical_feature_names is None:
@@ -270,6 +270,13 @@ class BaseSmartDecisionTree:
                 f" The current value of `numerical_nan_mode` is {self.__numerical_nan_mode!r}."
             )
 
+    def __check__categorical_nan_mode(self) -> None:
+        if self.__categorical_nan_mode not in ["include", "as_category"]:
+            raise ValueError(
+                "`categorical_nan_mode` must be Literal['include', 'as_category']."
+                f" The current value of `categorical_nan_mode` is {self.__categorical_nan_mode!r}."
+            )
+
     @property
     def max_depth(self) -> int | None:
         return self.__max_depth
@@ -317,8 +324,12 @@ class BaseSmartDecisionTree:
         return self.__hierarchy
 
     @property
-    def numerical_nan_mode(self) -> NUMERICAL_NAN_MODE_OPTION:
+    def numerical_nan_mode(self) -> Literal["include", "min", "max"]:
         return self.__numerical_nan_mode
+
+    @property
+    def categorical_nan_mode(self) -> Literal["include", "as_category"]:
+        return self.__categorical_nan_mode
 
 
 class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
@@ -431,7 +442,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
     def __check_init_params(
         criterion,
         min_impurity_decrease,
-        categorical_nan_mode,
         categorical_nan_filler,
         verbose,
     ):
@@ -458,12 +468,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         #         ' `min_samples_leaf`. Текущее значение `min_samples_split` ='
         #         f' {min_samples_split}, `min_samples_leaf` = {min_samples_leaf}.'
         #     )
-
-        if categorical_nan_mode not in ['include', 'as_category']:
-            raise ValueError(
-                "`categorical_nan_mode` must be Literal['include', 'as_category']."
-                f" The current value of `categorical_nan_mode` is {categorical_nan_mode!r}."
-            )
 
         if not isinstance(categorical_nan_filler, str):
             raise ValueError(
@@ -515,12 +519,12 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             rank_feature_names,
             hierarchy,
             numerical_nan_mode,
+            categorical_nan_mode,
         )
 
         self.__check_init_params(
             criterion,
             min_impurity_decrease,
-            categorical_nan_mode,
             categorical_nan_filler,
             verbose,
         )
@@ -568,7 +572,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         self.__feature_importances = {}
 
         self.__fill_numerical_nan_values = {}
-        self.__categorical_nan_mode = categorical_nan_mode
         self.__categorical_nan_filler = categorical_nan_filler
 
         self.__is_fitted = False
@@ -604,8 +607,8 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             repr_.append(f"hierarchy={self.hierarchy}")
         if self.numerical_nan_mode != "min":
             repr_.append(f"numerical_nan_mode={self.numerical_nan_mode!r}")
-        if self.__categorical_nan_mode != "include":
-            repr_.append(f"categorical_nan_mode={self.__categorical_nan_mode!r}")
+        if self.categorical_nan_mode != "include":
+            repr_.append(f"categorical_nan_mode={self.categorical_nan_mode!r}")
         if self.__categorical_nan_filler != "missing_value":
             repr_.append(f"categorical_nan_filler={self.__categorical_nan_filler!r}")
 
@@ -744,7 +747,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
                     self.__fill_numerical_nan_values[fill_nan_value] = fill_nan_value
                     X[num_feature_name].fillna(fill_nan_value, inplace=True)
 
-        if self.__categorical_nan_mode == "as_category":
+        if self == "as_category":
             for cat_feature in self.categorical_feature_names:
                 X[cat_feature].fillna(self.__categorical_nan_filler, inplace=True)
 
@@ -1029,7 +1032,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         """
         available_feature_values = self.X.loc[parent_mask, split_feature_name].unique()
         if (
-            self.__categorical_nan_mode == "include"
+            self.categorical_nan_mode == "include"
             and pd.isna(available_feature_values).any()  # if contains missing values
         ):
             available_feature_values = available_feature_values[~pd.isna(available_feature_values)]
@@ -1095,7 +1098,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             child_masks.append(child_mask)
 
         inf_gain = self.__information_gain(
-            parent_mask, child_masks, nan_mode=self.__categorical_nan_mode)
+            parent_mask, child_masks, nan_mode=self.categorical_nan_mode)
 
         return inf_gain, child_masks
 
@@ -1319,7 +1322,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             for num_feature in self.numerical_feature_names:
                 X.fillna(self.__fill_numerical_nan_values[num_feature], inplace=True)
 
-        if self.__categorical_nan_mode == "as_category":
+        if self.categorical_nan_mode == "as_category":
             for cat_feature in self.categorical_feature_names:
                 X[cat_feature].fillna(self.__categorical_nan_filler, inplace=True)
 
@@ -1468,7 +1471,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             "rank_feature_names": self.rank_feature_names,
             "hierarchy": self.hierarchy,
             "numerical_nan_mode": self.numerical_nan_mode,
-            "categorical_nan_mode": self.__categorical_nan_mode,
+            "categorical_nan_mode": self.categorical_nan_mode,
             "categorical_nan_filler": self.__categorical_nan_filler,
         }
 
