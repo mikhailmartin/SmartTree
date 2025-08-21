@@ -18,10 +18,7 @@ from smarttree._exceptions import NotFittedError
 
 
 class BaseSmartDecisionTree:
-    """
-    Base class for smart decision trees.
-
-    """
+    """Base class for smart decision trees."""
 
     @abstractmethod
     def __init__(
@@ -31,6 +28,7 @@ class BaseSmartDecisionTree:
         min_samples_leaf: int | float = 1,
         max_leaf_nodes: int | float = float("+inf"),
         max_childs: int | float = float("+inf"),
+        numerical_feature_names: list[str] | str | None = None,
     ) -> None:
 
         # criteria for limiting branching
@@ -39,14 +37,41 @@ class BaseSmartDecisionTree:
         self.__min_samples_leaf = min_samples_leaf
         self.__max_leaf_nodes = max_leaf_nodes
         self.__max_childs = max_childs
+        self.__numerical_feature_names = numerical_feature_names
 
-        if self.__max_depth is not None:
-            if not isinstance(self.__max_depth, int) or self.__max_depth <= 0:
-                raise ValueError(
-                    "`max_depth` must be an integer and strictly greater than 0."
-                    f" The current value of `max_depth` is {self.__max_depth!r}."
-                )
+        # check
+        self.__check__max_depth()
+        self.__check__min_samples_split()
+        self.__check__min_samples_leaf()
+        self.__check__max_leaf_nodes()
+        self.__check__max_childs()
+        self.__check__numerical_feature_names()
 
+        # mutate
+        if self.__numerical_feature_names is None:
+            self.__numerical_feature_names = []
+            logging.debug(
+                f"[{self.__class__.__name__}] [Debug] `numerical_feature_names`"
+                f" is set to {self.__numerical_feature_names}."
+            )
+        elif isinstance(numerical_feature_names, str):
+            self.__numerical_feature_names = [self.__numerical_feature_names]
+            logging.debug(
+                f"[{self.__class__.__name__}] [Debug] `numerical_feature_names`"
+                f" is set to {self.__numerical_feature_names}."
+            )
+
+    def __check__max_depth(self) -> None:
+        if (
+            self.__max_depth is not None
+            and (not isinstance(self.__max_depth, int) or self.__max_depth <= 0)
+        ):
+            raise ValueError(
+                "`max_depth` must be an integer and strictly greater than 0."
+                f" The current value of `max_depth` is {self.__max_depth!r}."
+            )
+
+    def __check__min_samples_split(self) -> None:
         if (
             not isinstance(self.__min_samples_split, (int, float))
             or (
@@ -65,16 +90,17 @@ class BaseSmartDecisionTree:
                 f" {self.__min_samples_split!r}."
             )
 
+    def __check__min_samples_leaf(self) -> None:
         if (
             not isinstance(self.__min_samples_leaf, (int, float))
             or (
-                isinstance(self.__min_samples_leaf, int)
-                and self.__min_samples_leaf < 1
-            )
+            isinstance(self.__min_samples_leaf, int)
+            and self.__min_samples_leaf < 1
+        )
             or (
-                isinstance(self.__min_samples_leaf, float)
-                and (self.__min_samples_leaf <= 0 or self.__min_samples_leaf >= 1)
-            )
+            isinstance(self.__min_samples_leaf, float)
+            and (self.__min_samples_leaf <= 0 or self.__min_samples_leaf >= 1)
+        )
         ):
             raise ValueError(
                 "`min_samples_leaf` must be an integer and lie in the range"
@@ -83,6 +109,7 @@ class BaseSmartDecisionTree:
                 f" {self.__min_samples_leaf!r}."
             )
 
+    def __check__max_leaf_nodes(self) -> None:
         if (
             not (
                 isinstance(self.__max_leaf_nodes, int)
@@ -95,6 +122,7 @@ class BaseSmartDecisionTree:
                 f" The current value of `max_leaf_nodes` is {self.__max_leaf_nodes!r}."
             )
 
+    def __check__max_childs(self) -> None:
         if (
             not (
                 isinstance(self.__max_childs, int)
@@ -105,6 +133,26 @@ class BaseSmartDecisionTree:
             raise ValueError(
                 "`max_childs` must be integer and strictly greater than 2."
                 f" The current value of `max_childs` is {self.__max_childs!r}."
+            )
+
+    def __check__numerical_feature_names(self) -> None:
+        if isinstance(self.__numerical_feature_names, list):
+            for numerical_feature_name in self.__numerical_feature_names:
+                if not isinstance(numerical_feature_name, str):
+                    raise ValueError(
+                        "If `numerical_feature_names` is a list, it must consists of"
+                        " strings."
+                        f" The element {numerical_feature_name} of the list isnt a"
+                        " string."
+                    )
+        elif not (
+            isinstance(self.__numerical_feature_names, str)
+            or self.__numerical_feature_names is None
+        ):
+            raise ValueError(
+                "`numerical_feature_names` must be a string or list of strings."
+                f" The current value of `numerical_feature_names` is"
+                f" {self.__numerical_feature_names!r}."
             )
 
     @property
@@ -126,6 +174,10 @@ class BaseSmartDecisionTree:
     @property
     def max_childs(self) -> int | float:
         return self.__max_childs
+
+    @property
+    def numerical_feature_names(self) -> list[str]:
+        return self.__numerical_feature_names
 
 
 class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
@@ -238,7 +290,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
     def __check_init_params(
         criterion,
         min_impurity_decrease,
-        numerical_feature_names,
         categorical_feature_names,
         rank_feature_names,
         hierarchy,
@@ -270,21 +321,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         #         ' `min_samples_leaf`. Текущее значение `min_samples_split` ='
         #         f' {min_samples_split}, `min_samples_leaf` = {min_samples_leaf}.'
         #     )
-
-        if numerical_feature_names:
-            if not isinstance(numerical_feature_names, (list, str)):
-                raise ValueError(
-                    "`numerical_feature_names` must be a string or list of strings."
-                    f" The current value of `numerical_feature_names` is {numerical_feature_names!r}."
-                )
-            for numerical_feature_name in numerical_feature_names:
-                if not isinstance(numerical_feature_name, str):
-                    raise ValueError(
-                        "If `numerical_feature_names` is a list, it must consists of"
-                        " strings."
-                        f" The element {numerical_feature_name} of the list isnt a"
-                        " string."
-                    )
 
         if categorical_feature_names:
             if not isinstance(categorical_feature_names, (list, str)):
@@ -402,13 +438,17 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
     ) -> None:
 
         super().__init__(
-            max_depth, min_samples_split, min_samples_leaf, max_leaf_nodes, max_childs
+            max_depth,
+            min_samples_split,
+            min_samples_leaf,
+            max_leaf_nodes,
+            max_childs,
+            numerical_feature_names,
         )
 
         self.__check_init_params(
             criterion,
             min_impurity_decrease,
-            numerical_feature_names,
             categorical_feature_names,
             rank_feature_names,
             hierarchy,
@@ -460,18 +500,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         self.__feature_names = None
         self.__feature_importances = {}
 
-        # TODO: not DRY
-        if numerical_feature_names is None:
-            self.__numerical_feature_names = []
-        elif isinstance(numerical_feature_names, str):
-            self.__numerical_feature_names = [numerical_feature_names]
-        elif isinstance(numerical_feature_names, list):
-            self.__numerical_feature_names = numerical_feature_names
-        logging.debug(
-            f"[{self.__class__.__name__}] [Debug] `numerical_feature_names` is set to"
-            f" {self.__numerical_feature_names}."
-        )
-
         if categorical_feature_names is None:
             self.__categorical_feature_names = []
         elif isinstance(categorical_feature_names, str):
@@ -518,8 +546,8 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             repr_.append(f"min_impurity_decrease={self.__min_impurity_decrease}")
         if self.max_childs != float("+inf"):
             repr_.append(f"max_childs={self.max_childs}")
-        if self.__numerical_feature_names:
-            repr_.append(f"numerical_feature_names={self.__numerical_feature_names}")
+        if self.numerical_feature_names:
+            repr_.append(f"numerical_feature_names={self.numerical_feature_names}")
         if self.__categorical_feature_names:
             repr_.append(f"categorical_feature_names={self.__categorical_feature_names}")
         if self.__rank_feature_names:
@@ -566,10 +594,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             )
 
         return self.__feature_names
-
-    @property
-    def numerical_feature_names(self) -> list[str]:
-        return self.__numerical_feature_names
 
     @property
     def categorical_feature_names(self) -> list[str]:
@@ -650,7 +674,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
 
         # numerical_feature_names and categorical_feature_names extensions ##############
         unsetted_features_set = set(self.X.columns) - (
-            set(self.__numerical_feature_names) |
+            set(self.numerical_feature_names) |
             set(self.__categorical_feature_names) |
             set(self.__rank_feature_names)
         )
@@ -661,7 +685,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
                 .select_dtypes("number").columns.tolist()
             )
             if unsetted_num_features:
-                self.__numerical_feature_names.extend(unsetted_num_features)
+                self.numerical_feature_names.extend(unsetted_num_features)
                 logging.info(
                     f"[MultiSplitDecisionTree] [Info] {unsetted_num_features} are added"
                     " to `numerical_feature_names`."
@@ -680,12 +704,12 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
 
         match self.__numerical_nan_mode:
             case "min":
-                for num_feature in self.__numerical_feature_names:
+                for num_feature in self.numerical_feature_names:
                     fill_nan_value = X[num_feature].min()
                     self.__fill_numerical_nan_values[num_feature] = fill_nan_value
                     X[num_feature].fillna(fill_nan_value, inplace=True)
             case "max":
-                for num_feature_name in self.__numerical_feature_names:
+                for num_feature_name in self.numerical_feature_names:
                     fill_nan_value = X[num_feature_name].max()
                     self.__fill_numerical_nan_values[fill_nan_value] = fill_nan_value
                     X[num_feature_name].fillna(fill_nan_value, inplace=True)
@@ -849,7 +873,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         best_feature_values = None
         best_child_masks = None
         for split_feature_name in available_feature_names:
-            if split_feature_name in self.__numerical_feature_names:
+            if split_feature_name in self.numerical_feature_names:
                 split_type = "numerical"
                 (
                     inf_gain,
@@ -1262,7 +1286,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         X = X.copy()
 
         if self.__numerical_nan_mode in ["min", "max"]:
-            for num_feature in self.__numerical_feature_names:
+            for num_feature in self.numerical_feature_names:
                 X.fillna(self.__fill_numerical_nan_values[num_feature], inplace=True)
 
         if self.__categorical_nan_mode == "as_category":
@@ -1297,7 +1321,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
                 y_pred_proba = distribution_parent / distribution_parent.sum()
                 samples = samples_parent
 
-            elif node.split_feature_name in self.__numerical_feature_names:
+            elif node.split_feature_name in self.numerical_feature_names:
                 # looking for the branch that needs to be followed
                 threshold = float(node.childs[0].feature_value[0][3:])
                 if point[node.split_feature_name] <= threshold:
@@ -1409,7 +1433,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             "max_leaf_nodes": self.max_leaf_nodes,
             "min_impurity_decrease": self.__min_impurity_decrease,
             "max_childs": self.max_childs,
-            "numerical_feature_names": self.__numerical_feature_names,
+            "numerical_feature_names": self.numerical_feature_names,
             "categorical_feature_names": self.__categorical_feature_names,
             "rank_feature_names": self.__rank_feature_names,
             "hierarchy": self.__hierarchy,
