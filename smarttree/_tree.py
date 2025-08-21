@@ -16,7 +16,7 @@ from smarttree._utils import (
 from smarttree._exceptions import NotFittedError
 
 
-class MultiSplitDecisionTreeClassifier:
+class SmartTreeClassifier:
     """
     A decision tree classifier.
 

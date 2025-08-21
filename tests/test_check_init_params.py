@@ -3,7 +3,7 @@ sys.path.append(sys.path[0] + "/../")
 from contextlib import nullcontext as does_not_raise
 import re
 
-from smarttree import MultiSplitDecisionTreeClassifier
+from smarttree import SmartTreeClassifier
 
 import pytest
 from pytest import param, raises
@@ -30,7 +30,7 @@ from pytest import param, raises
 )
 def test_init_param__criterion(criterion, expected):
     with expected:
-        MultiSplitDecisionTreeClassifier(criterion=criterion)
+        SmartTreeClassifier(criterion=criterion)
 
 
 @pytest.mark.parametrize(
@@ -72,7 +72,7 @@ def test_init_param__criterion(criterion, expected):
 )
 def test_init_param__max_depth(max_depth, expected):
     with expected:
-        MultiSplitDecisionTreeClassifier(max_depth=max_depth)
+        SmartTreeClassifier(max_depth=max_depth)
 
 
 @pytest.mark.parametrize(
@@ -128,7 +128,7 @@ def test_init_param__max_depth(max_depth, expected):
 )
 def test_init_param__min_samples_split(min_samples_split, expected):
     with expected:
-        MultiSplitDecisionTreeClassifier(min_samples_split=min_samples_split)
+        SmartTreeClassifier(min_samples_split=min_samples_split)
 
 
 @pytest.mark.parametrize(
@@ -184,7 +184,7 @@ def test_init_param__min_samples_split(min_samples_split, expected):
 )
 def test_init_params__min_samples_leaf(min_samples_leaf, expected):
     with expected:
-        MultiSplitDecisionTreeClassifier(min_samples_leaf=min_samples_leaf)
+        SmartTreeClassifier(min_samples_leaf=min_samples_leaf)
 
 
 @pytest.mark.parametrize(
@@ -216,7 +216,7 @@ def test_init_params__min_samples_leaf(min_samples_leaf, expected):
 )
 def test_init_params__max_leaf_nodes(max_leaf_nodes, expected):
     with expected:
-        MultiSplitDecisionTreeClassifier(max_leaf_nodes=max_leaf_nodes)
+        SmartTreeClassifier(max_leaf_nodes=max_leaf_nodes)
 
 
 @pytest.mark.parametrize(
@@ -247,7 +247,7 @@ def test_init_params__max_leaf_nodes(max_leaf_nodes, expected):
 )
 def test_init_params__min_impurity_decrease(min_impurity_decrease, expected):
     with expected:
-        MultiSplitDecisionTreeClassifier(min_impurity_decrease=min_impurity_decrease)
+        SmartTreeClassifier(min_impurity_decrease=min_impurity_decrease)
 
 
 @pytest.mark.parametrize(
@@ -278,7 +278,7 @@ def test_init_params__min_impurity_decrease(min_impurity_decrease, expected):
 )
 def test_init_params__max_childs(max_childs, expected):
     with expected:
-        MultiSplitDecisionTreeClassifier(max_childs=max_childs)
+        SmartTreeClassifier(max_childs=max_childs)
 
 
 @pytest.mark.parametrize(
@@ -311,7 +311,7 @@ def test_init_params__max_childs(max_childs, expected):
 )
 def test_init_params__numerical_feature_names(numerical_feature_names, expected):
     with expected:
-        MultiSplitDecisionTreeClassifier(numerical_feature_names=numerical_feature_names)
+        SmartTreeClassifier(numerical_feature_names=numerical_feature_names)
 
 
 @pytest.mark.parametrize(
@@ -344,7 +344,7 @@ def test_init_params__numerical_feature_names(numerical_feature_names, expected)
 )
 def test_init_params__categorical_feature_names(categorical_feature_names, expected):
     with expected:
-        MultiSplitDecisionTreeClassifier(
+        SmartTreeClassifier(
             categorical_feature_names=categorical_feature_names)
 
 
@@ -387,7 +387,7 @@ def test_init_params__categorical_feature_names(categorical_feature_names, expec
 )
 def test_init_params__rank_feature_names(rank_feature_names, expected):
     with expected:
-        MultiSplitDecisionTreeClassifier(rank_feature_names=rank_feature_names)
+        SmartTreeClassifier(rank_feature_names=rank_feature_names)
 
 
 @pytest.mark.parametrize(
@@ -444,7 +444,7 @@ def test_init_params__rank_feature_names(rank_feature_names, expected):
 )
 def test_init_params__hierarchy(hierarchy, expected):
     with expected:
-        MultiSplitDecisionTreeClassifier(hierarchy=hierarchy)
+        SmartTreeClassifier(hierarchy=hierarchy)
 
 
 @pytest.mark.parametrize(
@@ -467,7 +467,7 @@ def test_init_params__hierarchy(hierarchy, expected):
 )
 def test_init_params__numerical_nan_mode(numerical_nan_mode, expected):
     with expected:
-        MultiSplitDecisionTreeClassifier(numerical_nan_mode=numerical_nan_mode)
+        SmartTreeClassifier(numerical_nan_mode=numerical_nan_mode)
 
 
 @pytest.mark.parametrize(
@@ -489,7 +489,7 @@ def test_init_params__numerical_nan_mode(numerical_nan_mode, expected):
 )
 def test_init_params__categorical_nan_mode(categorical_nan_mode, expected):
     with expected:
-        MultiSplitDecisionTreeClassifier(categorical_nan_mode=categorical_nan_mode)
+        SmartTreeClassifier(categorical_nan_mode=categorical_nan_mode)
 
 
 @pytest.mark.parametrize(
@@ -510,7 +510,7 @@ def test_init_params__categorical_nan_mode(categorical_nan_mode, expected):
 )
 def test_init_param__categorical_nan_filler(categorical_nan_filler, expected):
     with expected:
-        MultiSplitDecisionTreeClassifier(categorical_nan_filler=categorical_nan_filler)
+        SmartTreeClassifier(categorical_nan_filler=categorical_nan_filler)
 
 
 @pytest.mark.parametrize(
@@ -552,4 +552,4 @@ def test_init_param__categorical_nan_filler(categorical_nan_filler, expected):
 )
 def test_init_params__verbose(verbose, expected):
     with expected:
-        MultiSplitDecisionTreeClassifier(verbose=verbose)
+        SmartTreeClassifier(verbose=verbose)

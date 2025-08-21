@@ -1,10 +1,10 @@
 from pytest import raises
 
-from smarttree import MultiSplitDecisionTreeClassifier
+from smarttree import SmartTreeClassifier
 from smarttree._exceptions import NotFittedError
 
 
-NOT_FITTED_MSDT = MultiSplitDecisionTreeClassifier()
+NOT_FITTED_MSDT = SmartTreeClassifier()
 
 
 def test__tree():

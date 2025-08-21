@@ -1,8 +1,8 @@
-from ._tree import MultiSplitDecisionTreeClassifier
+from ._tree import SmartTreeClassifier
 from ._tree_node import TreeNode
 
 
 __all__ = [
-    'MultiSplitDecisionTreeClassifier',
+    'SmartTreeClassifier',
     'TreeNode',
 ]
