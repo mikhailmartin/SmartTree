@@ -535,7 +535,7 @@ class SmartTreeClassifier:
     def feature_importances(self) -> dict[str, float]:
         if not self.__is_fitted:
             raise NotFittedError(
-                "This MultiSplitDecisionTree instance is not fitted yet."
+                f"This {self.__class__.__name__} instance is not fitted yet."
                 " Call `fit` with appropriate arguments before using this estimator."
             )
 
