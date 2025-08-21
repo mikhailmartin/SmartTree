@@ -12,8 +12,8 @@ from smarttree import SmartTreeClassifier
     ],
 )
 def test_repr_tree__criterion(criterion, expected):
-    msdt = SmartTreeClassifier(criterion=criterion)
-    assert repr(msdt) == expected
+    tree_classifier = SmartTreeClassifier(criterion=criterion)
+    assert repr(tree_classifier) == expected
 
 
 @pytest.mark.parametrize(
@@ -24,8 +24,8 @@ def test_repr_tree__criterion(criterion, expected):
     ],
 )
 def test_repr_tree__max_depth(max_depth, expected):
-    msdt = SmartTreeClassifier(max_depth=max_depth)
-    assert repr(msdt) == expected
+    tree_classifier = SmartTreeClassifier(max_depth=max_depth)
+    assert repr(tree_classifier) == expected
 
 
 @pytest.mark.parametrize(
@@ -37,8 +37,8 @@ def test_repr_tree__max_depth(max_depth, expected):
     ],
 )
 def test_repr_tree__min_samples_split(min_samples_split, expected):
-    msdt = SmartTreeClassifier(min_samples_split=min_samples_split)
-    assert repr(msdt) == expected
+    tree_classifier = SmartTreeClassifier(min_samples_split=min_samples_split)
+    assert repr(tree_classifier) == expected
 
 
 @pytest.mark.parametrize(
@@ -50,8 +50,8 @@ def test_repr_tree__min_samples_split(min_samples_split, expected):
     ],
 )
 def test_repr_tree__min_samples_leaf(min_samples_leaf, expected):
-    msdt = SmartTreeClassifier(min_samples_leaf=min_samples_leaf)
-    assert repr(msdt) == expected
+    tree_classifier = SmartTreeClassifier(min_samples_leaf=min_samples_leaf)
+    assert repr(tree_classifier) == expected
 
 
 @pytest.mark.parametrize(
@@ -62,8 +62,8 @@ def test_repr_tree__min_samples_leaf(min_samples_leaf, expected):
     ],
 )
 def test_repr_tree__max_leaf_nodes(max_leaf_nodes, expected):
-    msdt = SmartTreeClassifier(max_leaf_nodes=max_leaf_nodes)
-    assert repr(msdt) == expected
+    tree_classifier = SmartTreeClassifier(max_leaf_nodes=max_leaf_nodes)
+    assert repr(tree_classifier) == expected
 
 
 @pytest.mark.parametrize(
@@ -74,8 +74,8 @@ def test_repr_tree__max_leaf_nodes(max_leaf_nodes, expected):
     ],
 )
 def test_repr_tree__min_impurity_decrease(min_impurity_decrease, expected):
-    msdt = SmartTreeClassifier(min_impurity_decrease=min_impurity_decrease)
-    assert repr(msdt) == expected
+    tree_classifier = SmartTreeClassifier(min_impurity_decrease=min_impurity_decrease)
+    assert repr(tree_classifier) == expected
 
 
 @pytest.mark.parametrize(
@@ -86,8 +86,8 @@ def test_repr_tree__min_impurity_decrease(min_impurity_decrease, expected):
     ],
 )
 def test_repr_tree__max_childs(max_childs, expected):
-    msdt = SmartTreeClassifier(max_childs=max_childs)
-    assert repr(msdt) == expected
+    tree_classifier = SmartTreeClassifier(max_childs=max_childs)
+    assert repr(tree_classifier) == expected
 
 
 @pytest.mark.parametrize(
@@ -99,9 +99,9 @@ def test_repr_tree__max_childs(max_childs, expected):
     ],
 )
 def test_repr_tree__numerical_feature_names(numerical_feature_names, expected):
-    msdt = SmartTreeClassifier(
+    tree_classifier = SmartTreeClassifier(
         numerical_feature_names=numerical_feature_names)
-    assert repr(msdt) == expected
+    assert repr(tree_classifier) == expected
 
 
 @pytest.mark.parametrize(
@@ -113,9 +113,9 @@ def test_repr_tree__numerical_feature_names(numerical_feature_names, expected):
     ],
 )
 def test_repr_tree__categorical_feature_names(categorical_feature_names, expected):
-    msdt = SmartTreeClassifier(
+    tree_classifier = SmartTreeClassifier(
         categorical_feature_names=categorical_feature_names)
-    assert repr(msdt) == expected
+    assert repr(tree_classifier) == expected
 
 
 @pytest.mark.parametrize(
@@ -126,8 +126,8 @@ def test_repr_tree__categorical_feature_names(categorical_feature_names, expecte
     ],
 )
 def test_repr_tree__rank_feature_names(rank_feature_names, expected):
-    msdt = SmartTreeClassifier(rank_feature_names=rank_feature_names)
-    assert repr(msdt) == expected
+    tree_classifier = SmartTreeClassifier(rank_feature_names=rank_feature_names)
+    assert repr(tree_classifier) == expected
 
 
 @pytest.mark.parametrize(
@@ -139,8 +139,8 @@ def test_repr_tree__rank_feature_names(rank_feature_names, expected):
     ],
 )
 def test_repr_tree__hierarchy(hierarchy, expected):
-    msdt = SmartTreeClassifier(hierarchy=hierarchy)
-    assert repr(msdt) == expected
+    tree_classifier = SmartTreeClassifier(hierarchy=hierarchy)
+    assert repr(tree_classifier) == expected
 
 
 @pytest.mark.parametrize(
@@ -152,8 +152,8 @@ def test_repr_tree__hierarchy(hierarchy, expected):
     ],
 )
 def test_repr_tree__numerical_nan_mode(numerical_nan_mode, expected):
-    msdt = SmartTreeClassifier(numerical_nan_mode=numerical_nan_mode)
-    assert repr(msdt) == expected
+    tree_classifier = SmartTreeClassifier(numerical_nan_mode=numerical_nan_mode)
+    assert repr(tree_classifier) == expected
 
 
 @pytest.mark.parametrize(
@@ -164,8 +164,8 @@ def test_repr_tree__numerical_nan_mode(numerical_nan_mode, expected):
     ],
 )
 def test_repr_tree__categorical_nan_mode(categorical_nan_mode, expected):
-    msdt = SmartTreeClassifier(categorical_nan_mode=categorical_nan_mode)
-    assert repr(msdt) == expected
+    tree_classifier = SmartTreeClassifier(categorical_nan_mode=categorical_nan_mode)
+    assert repr(tree_classifier) == expected
 
 
 @pytest.mark.parametrize(
@@ -176,6 +176,6 @@ def test_repr_tree__categorical_nan_mode(categorical_nan_mode, expected):
     ],
 )
 def test_repr_tree__categorical_nan_filler(categorical_nan_filler, expected):
-    msdt = SmartTreeClassifier(
+    tree_classifier = SmartTreeClassifier(
         categorical_nan_filler=categorical_nan_filler)
-    assert repr(msdt) == expected
+    assert repr(tree_classifier) == expected
