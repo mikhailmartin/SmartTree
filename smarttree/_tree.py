@@ -453,14 +453,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         feature_importances: The dict {feature name: feature importance}.
     """
     @staticmethod
-    def __check_init_params(min_impurity_decrease, verbose):
-        # TODO: could impurity_decrease be greater 1?
-        if not isinstance(min_impurity_decrease, float) or min_impurity_decrease < 0:
-            raise ValueError(
-                "`min_impurity_decrease` must be float and non-negative."
-                f" The current value of `min_impurity_decrease` is {min_impurity_decrease!r}."
-            )
-
+    def __check_init_params(verbose):
         # TODO: finish this part
         # if (
         #     (isinstance(min_samples_split, int) and isinstance(min_samples_leaf, int))
@@ -521,13 +514,13 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         )
 
         self.__criterion = criterion
+        self.__min_impurity_decrease = min_impurity_decrease
 
         self.__check__criterion()
+        self.__check__min_impurity_decrease()
 
-        self.__check_init_params(
-            min_impurity_decrease,
-            verbose,
-        )
+        self.__check_init_params(verbose)
+
         match verbose:
             case "critical":
                 logging_level = logging.CRITICAL
@@ -559,9 +552,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             case "entropy" | "log_loss":
                 self.__impurity = self.__entropy
 
-        # criteria for stopping branching
-        self.__min_impurity_decrease = min_impurity_decrease
-
         # attributes that are open for reading
         self.__root = None
         self.__graph = None
@@ -583,9 +573,24 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
                 f" The current value of `criterion` is {self.__criterion!r}."
             )
 
+    def __check__min_impurity_decrease(self) -> None:
+        # TODO: could impurity_decrease be greater 1?
+        if (
+            not isinstance(self.__min_impurity_decrease, float)
+            or self.__min_impurity_decrease < 0
+        ):
+            raise ValueError(
+                "`min_impurity_decrease` must be float and non-negative."
+                f" The current value of `min_impurity_decrease` is {self.__min_impurity_decrease!r}."
+            )
+
     @property
     def criterion(self) -> Literal["entropy", "log_loss", "gini"]:
         return self.__criterion
+
+    @property
+    def min_impurity_decrease(self) -> float:
+        return self.__min_impurity_decrease
 
     def __repr__(self):
         repr_ = []
@@ -601,8 +606,8 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             repr_.append(f"min_samples_leaf={self.min_samples_leaf}")
         if self.max_leaf_nodes != float("+inf"):
             repr_.append(f"max_leaf_nodes={self.max_leaf_nodes}")
-        if self.__min_impurity_decrease != .0:
-            repr_.append(f"min_impurity_decrease={self.__min_impurity_decrease}")
+        if self.min_impurity_decrease != .0:
+            repr_.append(f"min_impurity_decrease={self.min_impurity_decrease}")
         if self.max_childs != float("+inf"):
             repr_.append(f"max_childs={self.max_childs}")
         if self.numerical_feature_names:
@@ -849,7 +854,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
 
         best_split_results = self.__find_best_split(node._mask, node._available_feature_names)
         inf_gain = best_split_results[0]
-        if inf_gain < self.__min_impurity_decrease:
+        if inf_gain < self.min_impurity_decrease:
             return False
         else:
             node._best_split = best_split_results
@@ -1472,7 +1477,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             "min_samples_split": self.min_samples_split,
             "min_samples_leaf": self.min_samples_leaf,
             "max_leaf_nodes": self.max_leaf_nodes,
-            "min_impurity_decrease": self.__min_impurity_decrease,
+            "min_impurity_decrease": self.min_impurity_decrease,
             "max_childs": self.max_childs,
             "numerical_feature_names": self.numerical_feature_names,
             "categorical_feature_names": self.categorical_feature_names,
