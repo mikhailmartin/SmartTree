@@ -453,17 +453,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         feature_importances: The dict {feature name: feature importance}.
     """
     @staticmethod
-    def __check_init_params(
-        criterion,
-        min_impurity_decrease,
-        verbose,
-    ):
-        if criterion not in ["entropy", "gini", "log_loss"]:
-            raise ValueError(
-                "`criterion` mist be Literal['entropy', 'log_loss', 'gini']."
-                f" The current value of `criterion` is {criterion!r}."
-            )
-
+    def __check_init_params(min_impurity_decrease, verbose):
         # TODO: could impurity_decrease be greater 1?
         if not isinstance(min_impurity_decrease, float) or min_impurity_decrease < 0:
             raise ValueError(
@@ -530,8 +520,11 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             categorical_nan_filler,
         )
 
+        self.__criterion = criterion
+
+        self.__check__criterion()
+
         self.__check_init_params(
-            criterion,
             min_impurity_decrease,
             verbose,
         )
@@ -560,9 +553,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
 
         logging.basicConfig(level=logging_level)
 
-        self.__criterion = criterion
-
-        match criterion:
+        match self.criterion:
             case "gini":
                 self.__impurity = self.__gini_index
             case "entropy" | "log_loss":
@@ -585,12 +576,23 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         self.__node_counter = 0
         self.__leaf_counter = 0
 
+    def __check__criterion(self) -> None:
+        if self.__criterion not in ["entropy", "gini", "log_loss"]:
+            raise ValueError(
+                "`criterion` mist be Literal['entropy', 'log_loss', 'gini']."
+                f" The current value of `criterion` is {self.__criterion!r}."
+            )
+
+    @property
+    def criterion(self) -> Literal["entropy", "log_loss", "gini"]:
+        return self.__criterion
+
     def __repr__(self):
         repr_ = []
 
         # if a parameter value differs from default, then it added to the representation
-        if self.__criterion != "gini":
-            repr_.append(f"criterion={self.__criterion!r}")
+        if self.criterion != "gini":
+            repr_.append(f"criterion={self.criterion!r}")
         if self.max_depth:
             repr_.append(f"max_depth={self.max_depth}")
         if self.min_samples_split != 2:
@@ -1465,7 +1467,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
     ) -> dict:
         """Возвращает параметры этого классификатора."""
         return {
-            "criterion": self.__criterion,
+            "criterion": self.criterion,
             "max_depth": self.__max_depth,
             "min_samples_split": self.min_samples_split,
             "min_samples_leaf": self.min_samples_leaf,
@@ -1586,7 +1588,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         if node.split_feature_name:
             node_content.append(f"{node.split_feature_name}")
         if show_impurity:
-            node_content.append(f"{self.__criterion} = {node.impurity:.2f}")
+            node_content.append(f"{self.criterion} = {node.impurity:.2f}")
         if show_num_samples:
             node_content.append(f"samples = {node.samples}")
         if show_distribution:
