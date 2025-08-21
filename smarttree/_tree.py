@@ -35,7 +35,11 @@ class BaseSmartDecisionTree:
         numerical_nan_mode: Literal["include", "min", "max"] = "min",
         categorical_nan_mode: Literal["include", "as_category"] = "include",
         categorical_nan_filler: str = "missing_value",
+        verbose=None,
     ) -> None:
+
+        self.logger = logging.getLogger()
+        self.logger.setLevel(verbose)
 
         # criteria for limiting branching
         self.__max_depth = max_depth
@@ -72,26 +76,26 @@ class BaseSmartDecisionTree:
         # mutate
         if self.__numerical_feature_names is None:
             self.__numerical_feature_names = []
-            logging.debug(
+            self.logger.debug(
                 f"[{self.__class__.__name__}] [Debug] `numerical_feature_names`"
                 f" is set to {self.__numerical_feature_names}."
             )
         elif isinstance(numerical_feature_names, str):
             self.__numerical_feature_names = [self.__numerical_feature_names]
-            logging.debug(
+            self.logger.debug(
                 f"[{self.__class__.__name__}] [Debug] `numerical_feature_names`"
                 f" is set to {self.__numerical_feature_names}."
             )
 
         if self.__categorical_feature_names is None:
             self.__categorical_feature_names = []
-            logging.debug(
+            self.logger.debug(
                 f"[{self.__class__.__name__}] [Debug] `categorical_feature_names`"
                 f" is set to {self.__categorical_feature_names}."
             )
         elif isinstance(self.__categorical_feature_names, str):
             self.__categorical_feature_names = [self.__categorical_feature_names]
-            logging.debug(
+            self.logger.debug(
                 f"[{self.__class__.__name__}] [Debug] `categorical_feature_names`"
                 f" is set to {self.__categorical_feature_names}."
             )
@@ -482,40 +486,14 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             numerical_nan_mode,
             categorical_nan_mode,
             categorical_nan_filler,
+            verbose,
         )
 
         self.__criterion = criterion
         self.__min_impurity_decrease = min_impurity_decrease
-        self.__verbose = verbose
 
         self.__check__criterion()
         self.__check__min_impurity_decrease()
-        self.__check__verbose()
-
-        match verbose:
-            case "critical":
-                logging_level = logging.CRITICAL
-            case "error":
-                logging_level = logging.ERROR
-            case "warning":
-                logging_level = logging.WARNING
-            case "info":
-                logging_level = logging.INFO
-            case "debug":
-                logging_level = logging.DEBUG
-            case _:
-                if verbose < 0:
-                    logging_level = logging.CRITICAL
-                elif verbose == 0:
-                    logging_level = logging.ERROR
-                elif verbose == 1:
-                    logging_level = logging.WARNING
-                elif verbose == 2:
-                    logging_level = logging.INFO
-                elif verbose > 2:
-                    logging_level = logging.DEBUG
-
-        logging.basicConfig(level=logging_level)
 
         match self.criterion:
             case "gini":
@@ -553,20 +531,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             raise ValueError(
                 "`min_impurity_decrease` must be float and non-negative."
                 f" The current value of `min_impurity_decrease` is {self.__min_impurity_decrease!r}."
-            )
-
-    def __check__verbose(self) -> None:
-        if (
-            not isinstance(self.__verbose, (str, int))
-            or (
-                isinstance(self.__verbose, str)
-                and self.__verbose not in ["critical", "error", "warning", "info", "debug"]
-            )
-        ):
-            raise ValueError(
-                "`verbose` must be an integer or"
-                " Literal['critical', 'error', 'warning', 'info', 'debug']."
-                f" The current value of `verbose` is {self.__verbose!r}."
             )
 
     def __check_init_params(self) -> None:
@@ -730,7 +694,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             )
             if unsetted_num_features:
                 self.numerical_feature_names.extend(unsetted_num_features)
-                logging.info(
+                self.logger.info(
                     f"[{self.__class__.__name__}] [Info] {unsetted_num_features} are"
                     " added to `numerical_feature_names`."
                 )
@@ -740,7 +704,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             )
             if unsetted_cat_features:
                 self.categorical_feature_names.extend(unsetted_cat_features)
-                logging.info(
+                self.logger.info(
                     f"[{self.__class__.__name__}] [Info] {unsetted_cat_features} are"
                     " added to `categorical_feature_names`."
                 )
