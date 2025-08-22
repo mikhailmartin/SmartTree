@@ -511,19 +511,19 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
     ) -> None:
 
         super().__init__(
-            max_depth,
-            min_samples_split,
-            min_samples_leaf,
-            max_leaf_nodes,
-            max_childs,
-            numerical_feature_names,
-            categorical_feature_names,
-            rank_feature_names,
-            hierarchy,
-            numerical_nan_mode,
-            categorical_nan_mode,
-            categorical_nan_filler,
-            verbose,
+            max_depth=max_depth,
+            min_samples_split=min_samples_split,
+            min_samples_leaf=min_samples_leaf,
+            max_leaf_nodes=max_leaf_nodes,
+            max_childs=max_childs,
+            numerical_feature_names=numerical_feature_names,
+            categorical_feature_names=categorical_feature_names,
+            rank_feature_names=rank_feature_names,
+            hierarchy=hierarchy,
+            numerical_nan_mode=numerical_nan_mode,
+            categorical_nan_mode=categorical_nan_mode,
+            categorical_nan_filler=categorical_nan_filler,
+            verbose=verbose,
         )
 
         self.__criterion = criterion
@@ -658,37 +658,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
 
         return self.__feature_importances
 
-    def __check_fit_data(self, X, y):
-        if not isinstance(X, pd.DataFrame):
-            raise ValueError("X must be a pandas.DataFrame.")
-
-        if not isinstance(y, pd.Series):
-            raise ValueError("y must be a pandas.Series.")
-
-        if X.shape[0] != y.shape[0]:
-            raise ValueError("X and y must be the equal length.")
-
-        for num_feature_name in self.numerical_feature_names:
-            if num_feature_name not in X.columns:
-                raise ValueError(
-                    f"`numerical_feature_names` contain feature {num_feature_name},"
-                    " which isnt present in the training data."
-                )
-
-        for cat_feature_name in self.categorical_feature_names:
-            if cat_feature_name not in X.columns:
-                raise ValueError(
-                    f"`categorical_feature_names` contain feature {cat_feature_name},"
-                    " which isnt present in the training data."
-                )
-
-        for rank_feature_name in self.rank_feature_names.keys():
-            if rank_feature_name not in X.columns:
-                raise ValueError(
-                    f"`rank_feature_names` contain feature {rank_feature_name},"
-                    " which isnt present in the training data."
-                )
-
     def fit(self, X: pd.DataFrame, y: pd.Series) -> None:
         """
         Build a decision tree classifier from the training set (X, y).
@@ -717,11 +686,11 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         for feature_name in self.__feature_names:
             self.__feature_importances[feature_name] = 0
 
-        # numerical_feature_names and categorical_feature_names extensions ##############
+        # numerical_feature_names and categorical_feature_names extensions #############
         unsetted_features_set = set(self.X.columns) - (
-            set(self.numerical_feature_names) |
-            set(self.categorical_feature_names) |
-            set(self.rank_feature_names)
+            set(self.numerical_feature_names)
+            | set(self.categorical_feature_names)
+            | set(self.rank_feature_names)
         )
 
         if unsetted_features_set:
@@ -839,6 +808,37 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         del self.splittable_leaf_nodes
 
         self.__is_fitted = True
+
+    def __check_fit_data(self, X, y):
+        if not isinstance(X, pd.DataFrame):
+            raise ValueError("X must be a pandas.DataFrame.")
+
+        if not isinstance(y, pd.Series):
+            raise ValueError("y must be a pandas.Series.")
+
+        if X.shape[0] != y.shape[0]:
+            raise ValueError("X and y must be the equal length.")
+
+        for num_feature_name in self.numerical_feature_names:
+            if num_feature_name not in X.columns:
+                raise ValueError(
+                    f"`numerical_feature_names` contain feature {num_feature_name},"
+                    " which isnt present in the training data."
+                )
+
+        for cat_feature_name in self.categorical_feature_names:
+            if cat_feature_name not in X.columns:
+                raise ValueError(
+                    f"`categorical_feature_names` contain feature {cat_feature_name},"
+                    " which isnt present in the training data."
+                )
+
+        for rank_feature_name in self.rank_feature_names.keys():
+            if rank_feature_name not in X.columns:
+                raise ValueError(
+                    f"`rank_feature_names` contain feature {rank_feature_name},"
+                    " which isnt present in the training data."
+                )
 
     def __is_splittable(self, node: TreeNode) -> bool:
         """Checks whether a tree node can be split."""
