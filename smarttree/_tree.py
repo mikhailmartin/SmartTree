@@ -1400,15 +1400,15 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             unexpected_names = sorted(X_features_set - fitted_features_set)
             missing_names = sorted(fitted_features_set - X_features_set)
 
-            def add_names(names):
-                output = ''
+            def add_names(names: list[str]) -> str:
+                output = []
                 max_n_names = 5
                 for i, name in enumerate(names):
                     if i >= max_n_names:
-                        output += "- ...\n"
+                        output.append("- ...")
                         break
-                    output += f"- {name}\n"
-                return output
+                    output.append(f"- {name}")
+                return "\n".join(output)
 
             if unexpected_names:
                 message += "Feature names unseen at fit time:\n"
