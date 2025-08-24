@@ -56,6 +56,7 @@ class BaseSmartDecisionTree:
         self.__categorical_nan_filler = categorical_nan_filler
 
         self._is_fitted = False
+        self._root = None
 
         # check
         self.__check__max_depth()
@@ -347,6 +348,11 @@ class BaseSmartDecisionTree:
     def categorical_nan_filler(self) -> str:
         return self.__categorical_nan_filler
 
+    @property
+    def tree(self) -> TreeNode:
+        self._check_is_fitted()
+        return self._root
+
     @abstractmethod
     def fit(self, X: pd.DataFrame, y: pd.Series) -> None:
         raise NotImplementedError
@@ -544,7 +550,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
                 self.__impurity = self.__entropy
 
         # attributes that are open for reading
-        self.__root = None
         self.__graph = None
         self.__class_names = None
         self.__feature_names = None
@@ -630,11 +635,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         return (
             f"{self.__class__.__name__}({', '.join(repr_)})"
         )
-
-    @property
-    def tree(self) -> TreeNode:
-        self._check_is_fitted()
-        return self.__root
 
     @property
     def class_names(self) -> list[str]:
@@ -733,15 +733,15 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
                 assert False
 
         root_mask = y.apply(lambda x: True)
-        self.__root = self.__create_node(
+        self._root = self.__create_node(
             mask=root_mask,
             hierarchy=hierarchy,
             available_feature_names=available_feature_names,
             depth=0,
         )
 
-        if self.__is_splittable(self.__root):
-            self.splittable_leaf_nodes.append(self.__root)
+        if self.__is_splittable(self._root):
+            self.splittable_leaf_nodes.append(self._root)
 
         while (
             len(self.splittable_leaf_nodes) > 0
@@ -1297,7 +1297,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         X = self.__preprocess(X)
 
         y_pred_proba = np.array([
-            self.__predict_proba(self.__root, point)[0]
+            self.__predict_proba(self._root, point)[0]
             for _, point in X.iterrows()
         ])
 
@@ -1539,7 +1539,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
 
         self.__graph = Digraph(name="decision tree", node_attr=node_attr)
         self.__add_node(
-            node=self.__root,
+            node=self._root,
             parent_name=None,
             show_impurity=show_impurity,
             show_num_samples=show_num_samples,
