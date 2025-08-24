@@ -552,7 +552,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
 
         # attributes that are open for reading
         self.__graph = None
-        self.__class_names = None
+        self.__class_names: list[str] = []
 
         self.__fill_numerical_nan_values = {}
 
