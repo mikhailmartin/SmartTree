@@ -1,5 +1,3 @@
-import sys
-sys.path.append(sys.path[0] + "/../")
 from contextlib import nullcontext as does_not_raise
 import re
 

@@ -1,7 +1,5 @@
 from contextlib import nullcontext as does_not_raise
 import os
-import sys
-sys.path.append(sys.path[0] + "/../")
 
 import pandas as pd
 import pytest
