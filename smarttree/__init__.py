@@ -3,6 +3,6 @@ from ._tree_node import TreeNode
 
 
 __all__ = [
-    'SmartDecisionTreeClassifier',
-    'TreeNode',
+    "SmartDecisionTreeClassifier",
+    "TreeNode",
 ]
