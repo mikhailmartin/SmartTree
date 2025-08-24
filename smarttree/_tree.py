@@ -57,6 +57,7 @@ class BaseSmartDecisionTree:
 
         self._is_fitted = False
         self._root = None
+        self._feature_importances = dict()
 
         # check
         self.__check__max_depth()
@@ -353,6 +354,11 @@ class BaseSmartDecisionTree:
         self._check_is_fitted()
         return self._root
 
+    @property
+    def feature_importances(self) -> dict[str, float]:
+        self._check_is_fitted()
+        return self._feature_importances
+
     @abstractmethod
     def fit(self, X: pd.DataFrame, y: pd.Series) -> None:
         raise NotImplementedError
@@ -553,7 +559,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         self.__graph = None
         self.__class_names = None
         self.__feature_names = None
-        self.__feature_importances = {}
 
         self.__fill_numerical_nan_values = {}
 
@@ -641,11 +646,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         self._check_is_fitted()
         return self.__class_names
 
-    @property
-    def feature_importances(self) -> dict[str, float]:
-        self._check_is_fitted()
-        return self.__feature_importances
-
     def fit(self, X: pd.DataFrame, y: pd.Series) -> None:
         """
         Build a decision tree classifier from the training set (X, y).
@@ -672,7 +672,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
 
         # initialize feature_importances with all the features and the default value of 0
         for feature_name in self.__feature_names:
-            self.__feature_importances[feature_name] = 0
+            self._feature_importances[feature_name] = 0
 
         # numerical_feature_names and categorical_feature_names extensions #############
         unsetted_features_set = set(self.X.columns) - (
@@ -756,7 +756,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
                 child_masks,
             ) = best_node._best_split
 
-            self.__feature_importances[split_feature_name] += inf_gain
+            self._feature_importances[split_feature_name] += inf_gain
 
             for child_mask, feature_value in zip(child_masks, feature_values):
                 # add opened features
