@@ -8,7 +8,7 @@ from pytest import param, raises
 
 from smarttree import SmartDecisionTreeClassifier
 
-data_ = pd.read_csv(os.path.join("tests", "test_dataset.csv"), index_col=0)
+data_ = pd.read_parquet(os.path.join("tests", "test_dataset.parquet"))
 X_ = data_[["2. Возраст", "3. Семейное положение", "5. В какой семье Вы выросли?"]]
 y_ = data_["Метка"]
 

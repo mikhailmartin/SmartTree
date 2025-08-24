@@ -5,8 +5,8 @@ import pytest
 
 @pytest.fixture(scope="session")
 def data() -> pd.DataFrame:
-    path = os.path.join("tests", "test_dataset.csv")
-    return pd.read_csv(path, index_col=0)
+    path = os.path.join("tests", "test_dataset.parquet")
+    return pd.read_parquet(path)
 
 
 @pytest.fixture(scope="session")
