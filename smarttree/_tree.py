@@ -33,7 +33,7 @@ class BaseSmartDecisionTree:
         numerical_nan_mode: Literal["include", "min", "max"] = "min",
         categorical_nan_mode: Literal["include", "as_category"] = "include",
         categorical_nan_filler: str = "missing_value",
-        verbose="WARNING",
+        verbose=2,
     ) -> None:
 
         self.logger = logging.getLogger()
@@ -55,7 +55,7 @@ class BaseSmartDecisionTree:
         self.__categorical_nan_mode = categorical_nan_mode
         self.__categorical_nan_filler = categorical_nan_filler
 
-        self.__is_fitted = False
+        self._is_fitted = False
 
         # check
         self.__check__max_depth()
@@ -323,7 +323,7 @@ class BaseSmartDecisionTree:
 
     @property
     def feature_names(self) -> list[str]:
-        if not self.__is_fitted:
+        if not self._is_fitted:
             raise NotFittedError(
                 f"This {self.__class__.__name__} instance is not fitted yet."
                 " Call `fit` with appropriate arguments before using this estimator."
@@ -350,6 +350,13 @@ class BaseSmartDecisionTree:
     @abstractmethod
     def fit(self, X: pd.DataFrame, y: pd.Series) -> None:
         raise NotImplementedError
+
+    def _check_is_fitted(self) -> None:
+        if not self._is_fitted:
+            raise NotFittedError(
+                f"This {self.__class__.__name__} instance is not fitted yet."
+                " Call `fit` with appropriate arguments before using this estimator."
+            )
 
     @abstractmethod
     def predict(self, X: pd.DataFrame | pd.Series) -> list[str] | str:  # TODO
@@ -545,8 +552,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
 
         self.__fill_numerical_nan_values = {}
 
-        self.__is_fitted = False
-
         self.__node_counter = 0
         self.__leaf_counter = 0
 
@@ -628,32 +633,17 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
 
     @property
     def tree(self) -> TreeNode:
-        if not self.__is_fitted:
-            raise NotFittedError(
-                f"This {self.__class__.__name__} instance is not fitted yet."
-                " Call `fit` with appropriate arguments before using this estimator."
-            )
-
+        self._check_is_fitted()
         return self.__root
 
     @property
     def class_names(self) -> list[str]:
-        if not self.__is_fitted:
-            raise NotFittedError(
-                f"This {self.__class__.__name__} instance is not fitted yet."
-                " Call `fit` with appropriate arguments before using this estimator."
-            )
-
+        self._check_is_fitted()
         return self.__class_names
 
     @property
     def feature_importances(self) -> dict[str, float]:
-        if not self.__is_fitted:
-            raise NotFittedError(
-                f"This {self.__class__.__name__} instance is not fitted yet."
-                " Call `fit` with appropriate arguments before using this estimator."
-            )
-
+        self._check_is_fitted()
         return self.__feature_importances
 
     def fit(self, X: pd.DataFrame, y: pd.Series) -> None:
@@ -805,7 +795,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         del self.y
         del self.splittable_leaf_nodes
 
-        self.__is_fitted = True
+        self._is_fitted = True
 
     def __check_fit_data(self, X, y):
         if not isinstance(X, pd.DataFrame):
@@ -1277,11 +1267,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         Returns:
             The predicted classes.
         """
-        if not self.__is_fitted:
-            raise NotFittedError(
-                f"This {self.__class__.__name__} instance is not fitted yet."
-                " Call `fit` with appropriate arguments before using this estimator."
-            )
+        self._check_is_fitted()
 
         y_pred_proba_s = self.predict_proba(X)
         y_pred = [
@@ -1304,11 +1290,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             The class probabilities of the input samples. The order of the
             classes corresponds to that in the attribute :term:`class_names`.
         """
-        if not self.__is_fitted:
-            raise NotFittedError(
-                f"This {self.__class__.__name__} instance is not fitted yet."
-                " Call `fit` with appropriate arguments before using this estimator."
-            )
+        self._check_is_fitted()
 
         # TODO: write __check_predict_proba_data()
 
@@ -1453,11 +1435,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         sample_weight: pd.Series | None = None,
     ) -> float:
         """Returns the accuracy metric."""
-        if not self.__is_fitted:
-            raise NotFittedError(
-                f"This {self.__class__.__name__} instance is not fitted yet."
-                " Call `fit` with appropriate arguments before using this estimator."
-            )
+        self._check_is_fitted()
 
         self.__check_score_data(X, y, sample_weight)
 
@@ -1533,11 +1511,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             An object of the Digraph class containing a description of the graph
             structure of the tree for visualization.
         """
-        if not self.__is_fitted:
-            raise NotFittedError(
-                f"This {self.__class__.__name__} instance is not fitted yet."
-                " Call `fit` with appropriate arguments before using this estimator."
-            )
+        self._check_is_fitted()
 
         if self.__graph is None:
             self.__create_graph(
