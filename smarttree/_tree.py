@@ -50,14 +50,14 @@ class BaseSmartDecisionTree:
         self.__numerical_feature_names = numerical_feature_names
         self.__categorical_feature_names = categorical_feature_names
         self.__rank_feature_names = rank_feature_names
-        self.__feature_names = None
+        self._feature_names: list[str] = []
         self.__numerical_nan_mode = numerical_nan_mode
         self.__categorical_nan_mode = categorical_nan_mode
         self.__categorical_nan_filler = categorical_nan_filler
 
-        self._is_fitted = False
-        self._root = None
-        self._feature_importances = dict()
+        self._is_fitted: bool = False
+        self._root: TreeNode | None = None
+        self._feature_importances: dict = dict()
 
         # check
         self.__check__max_depth()
@@ -325,13 +325,8 @@ class BaseSmartDecisionTree:
 
     @property
     def feature_names(self) -> list[str]:
-        if not self._is_fitted:
-            raise NotFittedError(
-                f"This {self.__class__.__name__} instance is not fitted yet."
-                " Call `fit` with appropriate arguments before using this estimator."
-            )
-
-        return self.__feature_names
+        self._check_is_fitted()
+        return self._feature_names
 
     @property
     def hierarchy(self) -> dict[str, str | list[str]]:
@@ -558,7 +553,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         # attributes that are open for reading
         self.__graph = None
         self.__class_names = None
-        self.__feature_names = None
 
         self.__fill_numerical_nan_values = {}
 
@@ -662,7 +656,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         # technical attribute
         self.splittable_leaf_nodes = []
 
-        self.__feature_names = X.columns.tolist()
+        self._feature_names = X.columns.tolist()
         self.__class_names = sorted(y.unique())
 
         if isinstance(self.min_samples_split, float):
@@ -671,7 +665,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             self.min_samples_leaf = math.ceil(self.min_samples_leaf * X.shape[0])
 
         # initialize feature_importances with all the features and the default value of 0
-        for feature_name in self.__feature_names:
+        for feature_name in self._feature_names:
             self._feature_importances[feature_name] = 0
 
         # numerical_feature_names and categorical_feature_names extensions #############
@@ -1396,7 +1390,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         if X.shape[0] != y.shape[0]:
             raise ValueError("X and y must be the equal length.")
 
-        fitted_features_set = set(self.__feature_names)
+        fitted_features_set = set(self._feature_names)
         X_features_set = set(X.columns)
         if fitted_features_set != X_features_set:
             message = (

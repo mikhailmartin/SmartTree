@@ -68,3 +68,12 @@ def test__check_fit_data(X_, y_, expected):
             },
         )
         tree.fit(X_, y_)
+
+
+def test__fit(X, y):
+    tree = SmartDecisionTreeClassifier()
+    tree.fit(X, y)
+
+    assert tree.feature_names == [
+        "2. Возраст", "3. Семейное положение", "5. В какой семье Вы выросли?"
+    ]
