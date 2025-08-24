@@ -11,9 +11,7 @@ import pandas as pd
 from sklearn.metrics import accuracy_score
 
 from smarttree._tree_node import TreeNode
-from smarttree._utils import (
-    cat_partitions, get_thresholds, rank_partitions
-)
+from smarttree._utils import cat_partitions, get_thresholds, rank_partitions
 from smarttree._exceptions import NotFittedError
 
 
@@ -35,7 +33,7 @@ class BaseSmartDecisionTree:
         numerical_nan_mode: Literal["include", "min", "max"] = "min",
         categorical_nan_mode: Literal["include", "as_category"] = "include",
         categorical_nan_filler: str = "missing_value",
-        verbose=None,
+        verbose="WARNING",
     ) -> None:
 
         self.logger = logging.getLogger()
@@ -351,15 +349,15 @@ class BaseSmartDecisionTree:
 
     @abstractmethod
     def fit(self, X: pd.DataFrame, y: pd.Series) -> None:
-        raise NotImplemented
+        raise NotImplementedError
 
     @abstractmethod
     def predict(self, X: pd.DataFrame | pd.Series) -> list[str] | str:  # TODO
-        raise NotImplemented
+        raise NotImplementedError
 
     @abstractmethod
     def predict_proba(self, X: pd.DataFrame) -> np.array:
-        raise NotImplemented
+        raise NotImplementedError
 
     @abstractmethod
     def score(self,
@@ -367,15 +365,15 @@ class BaseSmartDecisionTree:
         y: pd.Series,
         sample_weight: pd.Series | None = None,
     ) -> float:
-        raise NotImplemented
+        raise NotImplementedError
 
     @abstractmethod
-    def get_params(self, deep: bool) -> dict:
-        raise NotImplemented
+    def get_params(self, deep: bool = True) -> dict:
+        raise NotImplementedError
 
     @abstractmethod
     def set_params(self, **params):
-        raise NotImplemented
+        raise NotImplementedError
 
     @abstractmethod
     def render(
@@ -388,7 +386,7 @@ class BaseSmartDecisionTree:
         show_label: bool = False,
         **kwargs,
     ):
-        raise NotImplemented
+        raise NotImplementedError
 
 
 class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
@@ -1286,7 +1284,9 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             )
 
         y_pred_proba_s = self.predict_proba(X)
-        y_pred = [self.__class_names[y_pred_proba.argmax()] for y_pred_proba in y_pred_proba_s]
+        y_pred = [
+            self.__class_names[y_pred_proba.argmax()] for y_pred_proba in y_pred_proba_s
+        ]
 
         return y_pred
 
