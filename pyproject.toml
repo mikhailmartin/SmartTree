@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "smart-tree"
+name = "smarttree"
 version = "0.1.0"
 description = ""
 authors = ["Mikhail Martin <mikhailmartin95@yandex.ru>"]

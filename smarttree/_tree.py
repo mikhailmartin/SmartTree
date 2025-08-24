@@ -138,13 +138,13 @@ class BaseSmartDecisionTree:
         if (
             not isinstance(self.__min_samples_leaf, (int, float))
             or (
-            isinstance(self.__min_samples_leaf, int)
-            and self.__min_samples_leaf < 1
-        )
+                isinstance(self.__min_samples_leaf, int)
+                and self.__min_samples_leaf < 1
+            )
             or (
-            isinstance(self.__min_samples_leaf, float)
-            and (self.__min_samples_leaf <= 0 or self.__min_samples_leaf >= 1)
-        )
+                isinstance(self.__min_samples_leaf, float)
+                and (self.__min_samples_leaf <= 0 or self.__min_samples_leaf >= 1)
+            )
         ):
             raise ValueError(
                 "`min_samples_leaf` must be an integer and lie in the range"
