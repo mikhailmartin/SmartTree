@@ -252,9 +252,9 @@ class CategoricalColumnSplitter(BaseColumnSplitter):
         max_depth,
         min_samples_split,
         min_samples_leaf,
-        categorical_nan_mode,
-        max_childs,
         max_leaf_nodes,
+        max_childs,
+        categorical_nan_mode,
     ) -> None:
         super().__init__(
             X=X,
@@ -264,9 +264,9 @@ class CategoricalColumnSplitter(BaseColumnSplitter):
             min_samples_split=min_samples_split,
             min_samples_leaf=min_samples_leaf,
         )
-        self.categorical_nan_mode = categorical_nan_mode
-        self.max_childs = max_childs
         self.max_leaf_nodes = max_leaf_nodes
+        self.max_childs = max_childs
+        self.categorical_nan_mode = categorical_nan_mode
 
     def split(
         self,
