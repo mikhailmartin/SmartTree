@@ -2,6 +2,11 @@ import os
 import pandas as pd
 import pytest
 
+TARGET_COL = "Метка"
+# num_col = "2. Возраст"
+# cat_col = "3. Семейное положение"
+# rank_col = "5. В какой семье Вы выросли?"
+
 
 @pytest.fixture(scope="session")
 def data() -> pd.DataFrame:
@@ -11,13 +16,9 @@ def data() -> pd.DataFrame:
 
 @pytest.fixture(scope="session")
 def X(data) -> pd.DataFrame:
-    num_col = "2. Возраст"
-    cat_col = "3. Семейное положение"
-    rank_col = "5. В какой семье Вы выросли?"
-    return data[[num_col, cat_col, rank_col]]
+    return data.drop(columns=TARGET_COL)
 
 
 @pytest.fixture(scope="session")
 def y(data) -> pd.Series:
-    target_col = "Метка"
-    return data[target_col]
+    return data[TARGET_COL]
