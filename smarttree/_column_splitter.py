@@ -4,7 +4,7 @@ import math
 import numpy as np
 import pandas as pd
 
-# from smarttree._utils import cat_partitions, rank_partitions
+# from smarttree._utils import rank_partitions
 
 
 class BaseColumnSplitter:
@@ -244,3 +244,139 @@ class NumericalColumnSplitter(BaseColumnSplitter):
     @staticmethod
     def moving_average(array: np.ndarray, window: int) -> np.ndarray:
         return np.convolve(array, np.ones(window), mode="valid") / window
+
+
+class CategoricalColumnSplitter(BaseColumnSplitter):
+
+    def __init__(
+        self,
+        X: pd.DataFrame,
+        y: pd.Series,
+        criterion,
+        max_depth,
+        min_samples_split,
+        min_samples_leaf,
+        categorical_nan_mode,
+        max_childs,
+        max_leaf_nodes,
+    ) -> None:
+        super().__init__(
+            X=X,
+            y=y,
+            criterion=criterion,
+            max_depth=max_depth,
+            min_samples_split=min_samples_split,
+            min_samples_leaf=min_samples_leaf,
+        )
+        self.categorical_nan_mode = categorical_nan_mode
+        self.max_childs = max_childs
+        self.max_leaf_nodes = max_leaf_nodes
+
+    def split(
+        self,
+        parent_mask: pd.Series,
+        split_feature_name: str,
+    ) -> tuple[float, list[list[str]] | None, list[pd.Series] | None]:
+        """
+        Split a node according to a categorical feature in the best way.
+
+        Parameters:
+            parent_mask: boolean mask of split node.
+            split_feature_name: feature according to which node should be split.
+
+        Returns:
+            Tuple `(inf_gain, feature_values, child_masks)`.
+              inf_gain: information gain of the split.
+              feature_values: feature values corresponding to child nodes.
+              child_masks: boolean masks of child nodes.
+        """
+        available_feature_values = self.X.loc[parent_mask, split_feature_name].unique()
+        if (
+            self.categorical_nan_mode == "include"
+            and pd.isna(available_feature_values).any()  # if contains missing values
+        ):
+            available_feature_values = available_feature_values[
+                ~pd.isna(available_feature_values)]
+        if len(available_feature_values) <= 1:
+            return float("-inf"), None, None
+        available_feature_values = sorted(available_feature_values)
+
+        # get list of all possible partitions
+        partitions = []
+        for partition in self.cat_partitions(available_feature_values):
+            # if partitions is not really partitions
+            if len(partition) < 2:
+                continue
+            # limitation of branching
+            if len(partition) > self.max_childs:
+                continue
+            # if the number of leaves exceeds the limit after splitting
+            if self.__leaf_counter + len(partition) > self.max_leaf_nodes:
+                continue
+
+            partitions.append(partition)
+
+        best_inf_gain = float("-inf")
+        best_feature_values = None
+        best_child_masks = None
+        for feature_values in partitions:
+            inf_gain, child_masks = \
+                self.__cat_split(parent_mask, split_feature_name, feature_values)
+            if best_inf_gain < inf_gain:
+                best_inf_gain = inf_gain
+                best_child_masks = child_masks
+                best_feature_values = feature_values
+
+        return best_inf_gain, best_feature_values, best_child_masks
+
+    def __cat_split(
+        self,
+        parent_mask: pd.Series,
+        split_feature_name: str,
+        feature_values: list[list],
+    ) -> tuple[float, list[pd.Series] | None]:
+        """
+        Split a node according to a categorical feature according to the
+        defined feature values.
+
+        Parameters:
+            parent_mask: boolean mask of split node.
+            split_feature_name: feature according to which node should be split.
+            feature_values: feature values corresponding to child nodes.
+
+        Returns:
+            Tuple `(inf_gain, child_masks)`.
+              inf_gain: information gain of the split.
+              child_masks: boolean masks of child nodes.
+        """
+        mask_na = parent_mask & self.X[split_feature_name].isna()
+
+        child_masks = []
+        for list_ in feature_values:
+            child_mask = parent_mask & (self.X[split_feature_name].isin(list_) | mask_na)
+            if child_mask.sum() < self.min_samples_leaf:
+                return float("-inf"), None
+            child_masks.append(child_mask)
+
+        inf_gain = self.information_gain(
+            parent_mask, child_masks, nan_mode=self.categorical_nan_mode
+        )
+
+        return inf_gain, child_masks
+
+    def cat_partitions(self, collection: list) -> list[list]:
+        """
+        References:
+            https://en.wikipedia.org/wiki/Partition_of_a_set
+        """
+        if len(collection) == 1:
+            yield [collection]
+            return
+
+        first = collection[0]
+        for smaller in self.cat_partitions(collection[1:]):
+            # insert `first` in each of the subpartition's subsets
+            for n, subset in enumerate(smaller):
+                yield smaller[:n] + [[first] + subset] + smaller[n + 1:]
+            # put `first` in its own subset
+            yield [[first]] + smaller
