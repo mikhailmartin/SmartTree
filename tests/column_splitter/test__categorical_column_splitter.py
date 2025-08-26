@@ -4,7 +4,7 @@ from smarttree._column_splitter import CategoricalColumnSplitter
 
 
 @pytest.fixture(scope="module")
-def categorical_column_splitter(X, y):
+def categorical_column_splitter(X, y) -> CategoricalColumnSplitter:
     return CategoricalColumnSplitter(
         X=X,
         y=y,

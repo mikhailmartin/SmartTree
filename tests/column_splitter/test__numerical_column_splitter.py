@@ -4,7 +4,7 @@ from smarttree._column_splitter import NumericalColumnSplitter
 
 
 @pytest.fixture(scope="module")
-def numerical_column_splitter(X, y):
+def numerical_column_splitter(X, y) -> NumericalColumnSplitter:
     return NumericalColumnSplitter(
         X=X,
         y=y,

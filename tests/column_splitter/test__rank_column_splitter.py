@@ -4,7 +4,7 @@ from smarttree._column_splitter import RankColumnSplitter
 
 
 @pytest.fixture(scope="module")
-def rank_column_splitter(X, y):
+def rank_column_splitter(X, y) -> RankColumnSplitter:
     return RankColumnSplitter(
         X=X,
         y=y,

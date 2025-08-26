@@ -5,7 +5,7 @@ from smarttree._column_splitter import BaseColumnSplitter
 
 
 @pytest.fixture(scope="module")
-def concrete_column_splitter(X, y):
+def concrete_column_splitter(X, y) -> BaseColumnSplitter:
     class ConcreteColumnSplitter(BaseColumnSplitter):
         def split(
             self,

@@ -30,7 +30,7 @@ class BaseColumnSplitter(ABC):
                 self.impurity = self.entropy
 
         if self.criterion in ("gini", "entropy", "log_loss"):
-            self.class_names = sorted(y.unique())
+            self.class_names = sorted(self.y.unique())
 
     @abstractmethod
     def split(
