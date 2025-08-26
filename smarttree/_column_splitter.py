@@ -46,7 +46,7 @@ class BaseColumnSplitter:
         child_masks: list[pd.Series],
         nan_mode: str | None = None,
     ) -> float:
-        """
+        r"""
         Calculates information gain of the split.
 
         Parameters:
@@ -96,7 +96,7 @@ class BaseColumnSplitter:
         return information_gain
 
     def gini_index(self, mask: pd.Series) -> float:
-        """
+        r"""
         Calculates Gini index in a tree node.
 
         Gini index formula in LaTeX:
@@ -118,7 +118,7 @@ class BaseColumnSplitter:
 
     def entropy(self, mask: pd.Series) -> float:
         # TODO: посмотреть разницу между Джини индексом и проч
-        """
+        r"""
         Calculates entropy in a tree node.
 
         Entropy formula in LaTeX:
