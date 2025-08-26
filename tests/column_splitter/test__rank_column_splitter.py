@@ -9,7 +9,6 @@ def rank_column_splitter(X, y) -> RankColumnSplitter:
         X=X,
         y=y,
         criterion="gini",
-        max_depth=None,
         min_samples_split=2,
         min_samples_leaf=1,
         rank_feature_names={

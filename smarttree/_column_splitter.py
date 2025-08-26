@@ -4,6 +4,8 @@ import math
 import numpy as np
 import pandas as pd
 
+from ._constants import ClassificationCriterionOption
+
 
 class BaseColumnSplitter(ABC):
 
@@ -11,15 +13,13 @@ class BaseColumnSplitter(ABC):
         self,
         X: pd.DataFrame,
         y: pd.Series,
-        criterion,
-        max_depth,
-        min_samples_split,
-        min_samples_leaf,
+        criterion: ClassificationCriterionOption,
+        min_samples_split: int,
+        min_samples_leaf: int,
     ) -> None:
         self.X = X
         self.y = y
         self.criterion = criterion
-        self.max_depth = max_depth
         self.min_samples_split = min_samples_split
         self.min_samples_leaf = min_samples_leaf
 
@@ -145,16 +145,14 @@ class NumericalColumnSplitter(BaseColumnSplitter):
         X: pd.DataFrame,
         y: pd.Series,
         criterion,
-        max_depth,
-        min_samples_split,
-        min_samples_leaf,
+        min_samples_split: int,
+        min_samples_leaf: int,
         numerical_nan_mode,  # TODO: annotation
     ) -> None:
         super().__init__(
             X=X,
             y=y,
             criterion=criterion,
-            max_depth=max_depth,
             min_samples_split=min_samples_split,
             min_samples_leaf=min_samples_leaf,
         )
@@ -248,10 +246,9 @@ class CategoricalColumnSplitter(BaseColumnSplitter):
         self,
         X: pd.DataFrame,
         y: pd.Series,
-        criterion,
-        max_depth,
-        min_samples_split,
-        min_samples_leaf,
+        criterion: ClassificationCriterionOption,
+        min_samples_split: int,
+        min_samples_leaf: int,
         max_leaf_nodes,
         max_childs,
         categorical_nan_mode,
@@ -260,7 +257,6 @@ class CategoricalColumnSplitter(BaseColumnSplitter):
             X=X,
             y=y,
             criterion=criterion,
-            max_depth=max_depth,
             min_samples_split=min_samples_split,
             min_samples_leaf=min_samples_leaf,
         )
@@ -385,16 +381,14 @@ class RankColumnSplitter(BaseColumnSplitter):
         X: pd.DataFrame,
         y: pd.Series,
         criterion,
-        max_depth,
-        min_samples_split,
-        min_samples_leaf,
+        min_samples_split: int,
+        min_samples_leaf: int,
         rank_feature_names,
     ) -> None:
         super().__init__(
             X=X,
             y=y,
             criterion=criterion,
-            max_depth=max_depth,
             min_samples_split=min_samples_split,
             min_samples_leaf=min_samples_leaf,
         )

@@ -1,11 +1,13 @@
 from abc import ABC
-from typing import Literal
 
 import pandas as pd
 
 from smarttree._tree_node import TreeNode
 from ._column_splitter import (
     NumericalColumnSplitter, CategoricalColumnSplitter, RankColumnSplitter
+)
+from ._constants import (
+    ClassificationCriterionOption, NumericalNanModeOption, CategoricalNanModeOption
 )
 
 
@@ -16,17 +18,17 @@ class BaseNodeSplitter(ABC):
         self,
         X: pd.DataFrame,
         y: pd.Series,
-        criterion: Literal["gini", "entropy", "log_loss"],
-        max_depth: int | None,
-        min_samples_split: int | float,
-        min_samples_leaf: int | float,
+        criterion: ClassificationCriterionOption,
+        max_depth: int | float,
+        min_samples_split: int,
+        min_samples_leaf: int,
         max_leaf_nodes: int | float,
         max_childs: int | float,
         numerical_feature_names: list[str] | str | None,
         categorical_feature_names: list[str] | str | None,
         rank_feature_names: dict[str, list] | None,
-        numerical_nan_mode: Literal["include", "min", "max"],
-        categorical_nan_mode: Literal["include", "as_category"],
+        numerical_nan_mode: NumericalNanModeOption,
+        categorical_nan_mode: CategoricalNanModeOption,
     ) -> None:
         self.X = X
         self.y = y
@@ -57,7 +59,6 @@ class BaseNodeSplitter(ABC):
             X=self.X,
             y=self.y,
             criterion=self.criterion,
-            max_depth=self.max_depth,
             min_samples_split=self.min_samples_split,
             min_samples_leaf=self.min_samples_leaf,
             numerical_nan_mode=self.numerical_nan_mode,
@@ -66,7 +67,6 @@ class BaseNodeSplitter(ABC):
             X=self.X,
             y=self.y,
             criterion=self.criterion,
-            max_depth=self.max_depth,
             min_samples_split=self.min_samples_split,
             min_samples_leaf=self.min_samples_leaf,
             max_leaf_nodes=self.max_leaf_nodes,
@@ -77,7 +77,6 @@ class BaseNodeSplitter(ABC):
             X=self.X,
             y=self.y,
             criterion=self.criterion,
-            max_depth=self.max_depth,
             min_samples_split=self.min_samples_split,
             min_samples_leaf=self.min_samples_leaf,
             rank_feature_names=self.rank_feature_names,
@@ -85,7 +84,7 @@ class BaseNodeSplitter(ABC):
 
     def is_splittable(self, node: TreeNode) -> bool:
         """Checks whether a tree node can be split."""
-        if self.max_depth and node.depth >= self.max_depth:
+        if node.depth >= self.max_depth:
             return False
 
         if node.samples < self.min_samples_split:
