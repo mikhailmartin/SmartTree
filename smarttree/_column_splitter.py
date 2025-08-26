@@ -381,6 +381,25 @@ class CategoricalColumnSplitter(BaseColumnSplitter):
 
 
 class RankColumnSplitter(BaseColumnSplitter):
+    def __init__(
+        self,
+        X: pd.DataFrame,
+        y: pd.Series,
+        criterion,
+        max_depth,
+        min_samples_split,
+        min_samples_leaf,
+        rank_feature_names,
+    ) -> None:
+        super().__init__(
+            X=X,
+            y=y,
+            criterion=criterion,
+            max_depth=max_depth,
+            min_samples_split=min_samples_split,
+            min_samples_leaf=min_samples_leaf,
+        )
+        self.rank_feature_names = rank_feature_names
 
     def split(
         self,
