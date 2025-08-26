@@ -1,11 +1,11 @@
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 import math
 
 import numpy as np
 import pandas as pd
 
 
-class BaseColumnSplitter:
+class BaseColumnSplitter(ABC):
 
     def __init__(
         self,
@@ -34,11 +34,9 @@ class BaseColumnSplitter:
 
     @abstractmethod
     def split(
-        self,
-        parent_mask: pd.Series,
-        split_feature_name: str,
+        self, *args, **kwargs
     ) -> tuple[float, list[list[str]] | None, list[pd.Series] | None]:
-        raise NotImplementedError
+        pass
 
     def information_gain(
         self,
@@ -274,6 +272,7 @@ class CategoricalColumnSplitter(BaseColumnSplitter):
         self,
         parent_mask: pd.Series,
         split_feature_name: str,
+        leaf_counter: int,
     ) -> tuple[float, list[list[str]] | None, list[pd.Series] | None]:
         """
         Split a node according to a categorical feature in the best way.
@@ -309,7 +308,7 @@ class CategoricalColumnSplitter(BaseColumnSplitter):
             if len(partition) > self.max_childs:
                 continue
             # if the number of leaves exceeds the limit after splitting
-            if self.__leaf_counter + len(partition) > self.max_leaf_nodes:
+            if leaf_counter + len(partition) > self.max_leaf_nodes:
                 continue
 
             partitions.append(partition)

@@ -22,6 +22,7 @@ def test__split(categorical_column_splitter, y):
 
     parent_mask = y.apply(lambda x: True)
     split_feature_name = "3. Семейное положение"
+    leaf_counter = 0
     inf_gain, feature_values, child_masks = categorical_column_splitter.split(
-        parent_mask, split_feature_name
+        parent_mask, split_feature_name, leaf_counter
     )
