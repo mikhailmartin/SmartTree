@@ -1,23 +1,21 @@
 import pytest
 
-from smarttree._node_splitter import BaseNodeSplitter
+from smarttree._node_splitter import NodeSplitter
 from smarttree._tree_node import TreeNode
 
 
 @pytest.fixture(scope="module")
 def concrete_node_splitter(
     X, y, numerical_feature_names, categorical_feature_names, rank_feature_names
-) -> BaseNodeSplitter:
-    class ConcreteNodeSplitter(BaseNodeSplitter):
-        pass
-
-    return ConcreteNodeSplitter(
+) -> NodeSplitter:
+    return NodeSplitter(
         X=X,
         y=y,
         criterion="gini",
-        max_depth=None,
+        max_depth=float("+inf"),
         min_samples_split=2,
         min_samples_leaf=1,
+        min_impurity_decrease=.0,
         max_leaf_nodes=float("+inf"),
         max_childs=float("+inf"),
         numerical_feature_names=numerical_feature_names,

@@ -1,5 +1,3 @@
-from abc import ABC
-
 import pandas as pd
 
 from smarttree._tree_node import TreeNode
@@ -11,7 +9,7 @@ from ._constants import (
 )
 
 
-class BaseNodeSplitter(ABC):
+class NodeSplitter:
     """TODO."""
 
     def __init__(
@@ -23,6 +21,7 @@ class BaseNodeSplitter(ABC):
         min_samples_split: int,
         min_samples_leaf: int,
         max_leaf_nodes: int | float,
+        min_impurity_decrease: float,
         max_childs: int | float,
         numerical_feature_names: list[str] | str | None,
         categorical_feature_names: list[str] | str | None,
@@ -37,6 +36,7 @@ class BaseNodeSplitter(ABC):
         self.min_samples_split = min_samples_split
         self.min_samples_leaf = min_samples_leaf
         self.max_leaf_nodes = max_leaf_nodes
+        self.min_impurity_decrease = min_impurity_decrease
         self.max_childs = max_childs
         self.numerical_feature_names = numerical_feature_names
         self.categorical_feature_names = categorical_feature_names
@@ -90,7 +90,15 @@ class BaseNodeSplitter(ABC):
         if node.samples < self.min_samples_split:
             return False
 
-        return True
+        best_split_results = self.find_best_split(
+            node.mask, node.available_feature_names,
+        )
+        inf_gain = best_split_results[0]
+        if inf_gain < self.min_impurity_decrease:
+            return False
+        else:
+            node._best_split = best_split_results
+            return True
 
     def find_best_split(
         self,
@@ -146,16 +154,3 @@ class BaseNodeSplitter(ABC):
             best_feature_values,
             best_child_masks,
         )
-
-
-class ClassificationNodeSplitter(BaseNodeSplitter):
-    """TODO."""
-
-    def is_splittable(self, node: TreeNode) -> bool:
-        if not super().is_splittable(node):
-            return False
-
-        if node.impurity == 0:
-            return False
-
-        return True
