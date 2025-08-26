@@ -4,8 +4,6 @@ import math
 import numpy as np
 import pandas as pd
 
-# from smarttree._utils import rank_partitions
-
 
 class BaseColumnSplitter:
 
@@ -380,3 +378,59 @@ class CategoricalColumnSplitter(BaseColumnSplitter):
                 yield smaller[:n] + [[first] + subset] + smaller[n + 1:]
             # put `first` in its own subset
             yield [[first]] + smaller
+
+
+class RankColumnSplitter(BaseColumnSplitter):
+
+    def split(
+        self,
+        parent_mask: pd.Series,
+        split_feature_name: str,
+    ) -> tuple[float, list[list[str]] | None, list[pd.Series] | None]:
+        """Split a node according to a rank feature in the best way."""
+        available_feature_values = self.rank_feature_names[split_feature_name]
+
+        best_inf_gain = float("-inf")
+        best_child_masks = None
+        best_feature_values = None
+        for feature_values in self.rank_partitions(available_feature_values):
+            inf_gain, child_masks = \
+                self.__rank_split(parent_mask, split_feature_name, feature_values)
+            if best_inf_gain < inf_gain:
+                best_inf_gain = inf_gain
+                best_child_masks = child_masks
+                best_feature_values = feature_values
+
+        return best_inf_gain, best_feature_values, best_child_masks
+
+    def __rank_split(
+        self,
+        parent_mask: pd.Series,
+        split_feature_name: str,
+        feature_values: list[list[str]],
+    ) -> tuple[float, list[pd.Series] | None]:
+        """
+        Splits a node according to a rank feature according to the defined feature
+        values.
+        """
+        left_list_, right_list_ = feature_values
+
+        mask_left = parent_mask & self.X[split_feature_name].isin(left_list_)
+        mask_right = parent_mask & self.X[split_feature_name].isin(right_list_)
+
+        if (
+            mask_left.sum() < self.min_samples_leaf
+            or mask_right.sum() < self.min_samples_leaf
+        ):
+            return float("-inf"), None
+
+        child_masks = [mask_left, mask_right]
+
+        inf_gain = self.information_gain(parent_mask, child_masks)
+
+        return inf_gain, child_masks
+
+    @staticmethod
+    def rank_partitions(collection: list) -> list[list]:
+        for i in range(1, len(collection)):
+            yield collection[:i], collection[i:]
