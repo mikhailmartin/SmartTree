@@ -188,7 +188,16 @@ def test_init_params__min_samples_leaf(min_samples_leaf, expected):
 @pytest.mark.parametrize(
     ("max_leaf_nodes", "expected"),
     [
-        param(float("+inf"), does_not_raise()),
+        param(
+            .0,
+            raises(
+                ValueError,
+                match=re.escape(
+                    "`max_leaf_nodes` must be an integer and strictly greater than 2."
+                    " The current value of `max_leaf_nodes` is 0.0."
+                ),
+            ),
+        ),
         param(2, does_not_raise()),
         param(
             1,

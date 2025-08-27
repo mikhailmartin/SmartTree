@@ -23,9 +23,9 @@ class NodeSplitter:
         max_leaf_nodes: int | float,
         min_impurity_decrease: float,
         max_childs: int | float,
-        numerical_feature_names: list[str] | str | None,
-        categorical_feature_names: list[str] | str | None,
-        rank_feature_names: dict[str, list] | None,
+        numerical_feature_names: list[str],
+        categorical_feature_names: list[str],
+        rank_feature_names: dict[str, list],
         numerical_nan_mode: NumericalNanModeOption,
         categorical_nan_mode: CategoricalNanModeOption,
     ) -> None:
@@ -44,7 +44,9 @@ class NodeSplitter:
         self.numerical_nan_mode = numerical_nan_mode
         self.categorical_nan_mode = categorical_nan_mode
 
-        self.feature_split_type = dict()
+        self.leaf_counter: int = 0
+
+        self.feature_split_type: dict = dict()
         for feature in self.numerical_feature_names:
             self.feature_split_type[feature] = "numerical"
         for feature in self.categorical_feature_names:
@@ -90,9 +92,7 @@ class NodeSplitter:
         if node.samples < self.min_samples_split:
             return False
 
-        best_split_results = self.find_best_split(
-            node.mask, node.available_feature_names,
-        )
+        best_split_results = self.find_best_split(node.mask, node.available_feature_names)
         inf_gain = best_split_results[0]
         if inf_gain < self.min_impurity_decrease:
             return False
@@ -104,7 +104,6 @@ class NodeSplitter:
         self,
         parent_mask: pd.Series,
         available_feature_names: list[str],
-        leaf_counter: int,
     ) -> tuple[float, str | None, str | None, list[list[str]] | None, list[pd.Series] | None]:
         """
         Finds the best tree node split, if it exists.
@@ -135,7 +134,7 @@ class NodeSplitter:
                         self.numerical_column_splitter.split(parent_mask, split_feature_name)
                 case "categorical":
                     inf_gain, feature_values, child_masks = \
-                        self.categorical_column_splitter.split(parent_mask, split_feature_name, leaf_counter)
+                        self.categorical_column_splitter.split(parent_mask, split_feature_name, self.leaf_counter)
                 case "rank":
                     inf_gain, feature_values, child_masks = \
                         self.rank_column_splitter.split(parent_mask, split_feature_name)

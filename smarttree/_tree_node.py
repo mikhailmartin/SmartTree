@@ -4,14 +4,14 @@ class TreeNode:
         self,
         number: int,
         samples: int,
-        distribution: list[int],
-        impurity: float,
-        label: str,
+        distribution: list[int] = None,
+        impurity: float = None,
+        label: str = None,
         # technical attributes
-        _depth,
-        _mask,
-        _hierarchy,
-        _available_feature_names,
+        depth=None,
+        mask=None,
+        hierarchy=None,
+        available_feature_names=None,
 
         is_leaf: bool = True,
         split_type: str | None = None,
@@ -33,18 +33,18 @@ class TreeNode:
         self.impurity = impurity
         self.label = label
         # technical attributes
-        self._depth = _depth
-        self._mask = _mask
-        self._hierarchy = _hierarchy
-        self._available_feature_names = _available_feature_names
+        self.depth = depth
+        self.mask = mask
+        self.hierarchy = hierarchy
+        self.available_feature_names = available_feature_names
 
     def __repr__(self) -> str:
         representation = [
-            f'node_number={self.number}',
-            f'samples={self.samples}',
-            f'distribution={self.distribution}',
-            f'impurity={self.impurity}',
-            f'label={self.label!r}',
+            f"node_number={self.number}",
+            f"samples={self.samples}",
+            f"distribution={self.distribution}",
+            f"impurity={self.impurity}",
+            f"label={self.label!r}",
         ]
 
-        return f'{self.__class__.__name__}({", ".join(representation)})'
+        return f"{self.__class__.__name__}({', '.join(representation)})"

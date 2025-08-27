@@ -4,7 +4,9 @@ import math
 import numpy as np
 import pandas as pd
 
-from ._constants import ClassificationCriterionOption
+from ._constants import (
+    ClassificationCriterionOption, NumericalNanModeOption, CategoricalNanModeOption
+)
 
 
 class BaseColumnSplitter(ABC):
@@ -147,7 +149,7 @@ class NumericalColumnSplitter(BaseColumnSplitter):
         criterion,
         min_samples_split: int,
         min_samples_leaf: int,
-        numerical_nan_mode,  # TODO: annotation
+        numerical_nan_mode: NumericalNanModeOption,
     ) -> None:
         super().__init__(
             X=X,
@@ -249,9 +251,9 @@ class CategoricalColumnSplitter(BaseColumnSplitter):
         criterion: ClassificationCriterionOption,
         min_samples_split: int,
         min_samples_leaf: int,
-        max_leaf_nodes,
-        max_childs,
-        categorical_nan_mode,
+        max_leaf_nodes: int | float,
+        max_childs: int | float,
+        categorical_nan_mode: CategoricalNanModeOption,
     ) -> None:
         super().__init__(
             X=X,
@@ -383,7 +385,7 @@ class RankColumnSplitter(BaseColumnSplitter):
         criterion,
         min_samples_split: int,
         min_samples_leaf: int,
-        rank_feature_names,
+        rank_feature_names: dict[str, list],
     ) -> None:
         super().__init__(
             X=X,

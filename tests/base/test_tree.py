@@ -4,7 +4,7 @@ from smarttree import BaseSmartDecisionTree
 
 
 @pytest.fixture(scope="module")
-def not_implemented_smart_tree():
+def not_implemented_smart_tree() -> BaseSmartDecisionTree:
     class NotImplementedSmartTree(BaseSmartDecisionTree):
         ...
     return NotImplementedSmartTree()
@@ -46,7 +46,7 @@ def test__render(not_implemented_smart_tree):
 
 
 @pytest.fixture(scope="module")
-def implemented_smart_tree():
+def implemented_smart_tree() -> BaseSmartDecisionTree:
     class ImplementedSmartTree(BaseSmartDecisionTree):
         def fit(self, X, y):
             return "Implemented"

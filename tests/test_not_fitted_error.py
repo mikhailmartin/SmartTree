@@ -24,7 +24,7 @@ def test__feature_names():
 
 def test__feature_importances():
     with raises(NotFittedError):
-        _ = NOT_FITTED_MSDT.feature_importances
+        _ = NOT_FITTED_MSDT.feature_importances_
 
 
 def test__predict():
