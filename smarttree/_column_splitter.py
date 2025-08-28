@@ -100,19 +100,18 @@ class BaseColumnSplitter(ABC):
         Calculates Gini index in a tree node.
 
         Gini index formula in LaTeX:
-            \text{Gini Index} = \sum^C_{i=1} p_i \times (1 - p_i)
+            \text{Gini Index} = 1 - \sum^C_{i=1} p_i^2
             where
-            \text{Gini Index} - Gini index;
             C - total number of classes;
             p_i - the probability of choosing a sample with class i.
         """
         N = mask.sum()
 
-        gini_index = 0
+        gini_index = 1
         for label in self.class_names:
             N_i = (mask & (self.y == label)).sum()
             p_i = N_i / N
-            gini_index += p_i * (1 - p_i)
+            gini_index -= pow(p_i, 2)
 
         return gini_index
 
