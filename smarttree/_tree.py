@@ -338,17 +338,9 @@ class BaseSmartDecisionTree:
     def min_samples_split(self) -> int | float:
         return self.__min_samples_split
 
-    @min_samples_split.setter
-    def min_samples_split(self, value: int):
-        self.__min_samples_split = value
-
     @property
     def min_samples_leaf(self) -> int | float:
         return self.__min_samples_leaf
-
-    @min_samples_leaf.setter
-    def min_samples_leaf(self, value: int):
-        self.__min_samples_leaf = value
 
     @property
     def max_leaf_nodes(self) -> int | None:
