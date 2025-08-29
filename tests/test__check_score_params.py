@@ -8,51 +8,50 @@ from pytest import param, raises
 from smarttree import SmartDecisionTreeClassifier
 
 
-data = pd.read_parquet(os.path.join("tests", "test_dataset.parquet"))
-X = data[["2. Возраст", "3. Семейное положение", "5. В какой семье Вы выросли?"]]
-y = data["Метка"]
+data_ = pd.read_parquet(os.path.join("tests", "test_dataset.parquet"))
+X_ = data_[["2. Возраст", "3. Семейное положение", "5. В какой семье Вы выросли?"]]
+y_ = data_["Метка"]
 
 
 @pytest.mark.parametrize(
-    ("X", "y", "expected"),
+    ("X_", "y_", "expected"),
     [
-        param(X, y, does_not_raise()),
+        param(X_, y_, does_not_raise()),
         param(
-            "X", y,
+            "X", y_,
             raises(ValueError, match="X must be a pandas.DataFrame."),
         ),
         param(
-            X, "y",
+            X_, "y",
             raises(
                 ValueError,
                 match="y must be a pandas.Series.",
             ),
         ),
         param(
-            X, y[:-1],
+            X_, y_[:-1],
             raises(ValueError, match="X and y must be the equal length."),
         ),
         param(
-            X.rename(columns={"2. Возраст": "2. Age"}), y,
+            X_.rename(columns={"2. Возраст": "2. Age"}), y_,
             raises(
                 ValueError,
                 match=(
                     "Feature names unseen at fit time:\n"
                     "- 2. Age\n"
                     "Feature names seen at fit time, yet now missing:\n"
-                    "- 2. Возраст\n"
+                    "- 2. Возраст"
                 ),
             ),
         ),
     ],
 )
-def test_check_score_params(X, y, expected):
+def test_check_score_params(X_, y_, expected, X, y):
     with expected:
-        data = pd.read_parquet(os.path.join("tests", "test_dataset.parquet"))
-        X_fit = data[["2. Возраст", "3. Семейное положение", "5. В какой семье Вы выросли?"]]
-        y_fit = data["Метка"]
+        X_fit = X[["2. Возраст", "3. Семейное положение", "5. В какой семье Вы выросли?"]]
+        y_fit = y
 
-        msdt = SmartDecisionTreeClassifier(
+        tree = SmartDecisionTreeClassifier(
             max_depth=1,
             numerical_feature_names=["2. Возраст"],
             categorical_feature_names=["3. Семейное положение"],
@@ -66,5 +65,5 @@ def test_check_score_params(X, y, expected):
                 ],
             },
         )
-        msdt.fit(X_fit, y_fit)
-        msdt.score(X, y)
+        tree.fit(X_fit, y_fit)
+        tree.score(X_, y_)

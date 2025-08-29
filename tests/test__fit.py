@@ -8,6 +8,7 @@ from pytest import param, raises
 
 from smarttree import SmartDecisionTreeClassifier
 
+# TODO: избавиться от _
 data_ = pd.read_parquet(os.path.join("tests", "test_dataset.parquet"))
 X_ = data_[["2. Возраст", "3. Семейное положение", "5. В какой семье Вы выросли?"]]
 y_ = data_["Метка"]
@@ -70,9 +71,9 @@ def test__check_fit_data(X_, y_, expected):
         tree.fit(X_, y_)
 
 
-def test__fit(X, y):
+def test__fit():
     tree = SmartDecisionTreeClassifier()
-    tree.fit(X, y)
+    tree.fit(X_, y_)
 
     assert tree.feature_names == [
         "2. Возраст", "3. Семейное положение", "5. В какой семье Вы выросли?"

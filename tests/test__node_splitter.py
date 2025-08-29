@@ -26,11 +26,13 @@ def concrete_node_splitter(
     )
 
 
-def test__is_splittable(concrete_node_splitter, X):
+def test__is_splittable(concrete_node_splitter, X, y):
     node = TreeNode(
         number=0,
         samples=X.shape[0],
         depth=0,
+        mask=y.apply(lambda x: True),
+        available_feature_names=X.columns.tolist(),
     )
     concrete_node_splitter.is_splittable(node)
 

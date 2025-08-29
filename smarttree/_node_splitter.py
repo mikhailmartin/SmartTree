@@ -1,3 +1,5 @@
+from collections import namedtuple
+
 import pandas as pd
 
 from smarttree._tree_node import TreeNode
@@ -6,6 +8,14 @@ from ._column_splitter import (
 )
 from ._constants import (
     ClassificationCriterionOption, NumericalNanModeOption, CategoricalNanModeOption
+)
+
+
+SplitResult = namedtuple(
+    typename="SplitResult",
+    field_names=[
+        "inf_gain", "split_type", "split_feature_name", "feature_values", "child_masks"
+    ],
 )
 
 
@@ -84,6 +94,7 @@ class NodeSplitter:
             rank_feature_names=self.rank_feature_names,
         )
 
+    # TODO: не только проверяет, но и мутирует узел
     def is_splittable(self, node: TreeNode) -> bool:
         """Checks whether a tree node can be split."""
         if node.depth >= self.max_depth:
@@ -92,19 +103,18 @@ class NodeSplitter:
         if node.samples < self.min_samples_split:
             return False
 
-        best_split_results = self.find_best_split(node.mask, node.available_feature_names)
-        inf_gain = best_split_results[0]
-        if inf_gain < self.min_impurity_decrease:
+        split_result = self.find_best_split(node.mask, node.available_feature_names)
+        if split_result.inf_gain < self.min_impurity_decrease:
             return False
         else:
-            node._best_split = best_split_results
+            node.split_result = split_result
             return True
 
     def find_best_split(
         self,
         parent_mask: pd.Series,
         available_feature_names: list[str],
-    ) -> tuple[float, str | None, str | None, list[list[str]] | None, list[pd.Series] | None]:
+    ) -> SplitResult:
         """
         Finds the best tree node split, if it exists.
 
@@ -146,10 +156,10 @@ class NodeSplitter:
                 best_feature_values = feature_values
                 best_child_masks = child_masks
 
-        return (
-            best_inf_gain,
-            best_split_type,
-            best_split_feature_name,
-            best_feature_values,
-            best_child_masks,
+        return SplitResult(
+            inf_gain=best_inf_gain,
+            split_type=best_split_type,
+            split_feature_name=best_split_feature_name,
+            feature_values=best_feature_values,
+            child_masks=best_child_masks,
         )

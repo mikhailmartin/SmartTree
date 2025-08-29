@@ -57,7 +57,7 @@ def test_repr_tree__min_samples_leaf(min_samples_leaf, expected):
 @pytest.mark.parametrize(
     ("max_leaf_nodes", "expected"),
     [
-        param(float("+inf"), f"{SmartDecisionTreeClassifier.__name__}()"),
+        param(None, f"{SmartDecisionTreeClassifier.__name__}()"),
         param(2, f"{SmartDecisionTreeClassifier.__name__}(max_leaf_nodes=2)"),
     ],
 )
@@ -81,7 +81,7 @@ def test_repr_tree__min_impurity_decrease(min_impurity_decrease, expected):
 @pytest.mark.parametrize(
     ("max_childs", "expected"),
     [
-        param(float("+inf"), f"{SmartDecisionTreeClassifier.__name__}()"),
+        param(None, f"{SmartDecisionTreeClassifier.__name__}()"),
         param(2, f"{SmartDecisionTreeClassifier.__name__}(max_childs=2)"),
     ],
 )

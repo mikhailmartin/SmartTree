@@ -260,7 +260,18 @@ def test_init_params__min_impurity_decrease(min_impurity_decrease, expected):
 @pytest.mark.parametrize(
     ("max_childs", "expected"),
     [
-        param(float("+inf"), does_not_raise()),
+        param(None, does_not_raise()),
+        param(2, does_not_raise()),
+        param(
+            float("+inf"),
+            raises(
+                ValueError,
+                match=re.escape(
+                    "`max_childs` must be integer and strictly greater than 2."
+                    " The current value of `max_childs` is inf."
+                ),
+            ),
+        ),
         param(
             1,
             raises(

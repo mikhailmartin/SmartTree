@@ -1,18 +1,23 @@
 """Custom realization of Decision Tree which can handle categorical features."""
 from abc import abstractmethod
-import bisect
 import logging
 import math
-from typing import Literal
 
 from graphviz import Digraph
 import numpy as np
 import pandas as pd
 from sklearn.metrics import accuracy_score
 
+from smarttree._builder import Builder
+from smarttree._node_splitter import NodeSplitter
 from smarttree._tree_node import TreeNode
-from smarttree._utils import cat_partitions, get_thresholds, rank_partitions
 from smarttree._exceptions import NotFittedError
+from smarttree._constants import (
+    ClassificationCriterionOption,
+    NumericalNanModeOption,
+    CategoricalNanModeOption,
+    VerboseOption,
+)
 
 
 class BaseSmartDecisionTree:
@@ -21,29 +26,40 @@ class BaseSmartDecisionTree:
     @abstractmethod
     def __init__(
         self,
+        *,
+        criterion: ClassificationCriterionOption = "gini",
+        # TODO: splitter: Literal["best", "random"],
         max_depth: int | None = None,
         min_samples_split: int | float = 2,
         min_samples_leaf: int | float = 1,
-        max_leaf_nodes: int | float = float("+inf"),
-        max_childs: int | float = float("+inf"),
+        # TODO: min_weight_fraction_leaf: float,
+        # TODO: max_features:int | float| Literal["sqrt", "log2"],
+        # TODO: random_state: int | RandomState instance | None,
+        max_leaf_nodes: int | None = None,
+        min_impurity_decrease: float = .0,
+        # TODO: ccp_alpha: float,
+        # TODO: monotonic_cst,
+        max_childs: int | None = None,
         numerical_feature_names: list[str] | str | None = None,
         categorical_feature_names: list[str] | str | None = None,
         rank_feature_names: dict[str, list] | None = None,
         hierarchy: dict[str, str | list[str]] | None = None,
-        numerical_nan_mode: Literal["include", "min", "max"] = "min",
-        categorical_nan_mode: Literal["include", "as_category"] = "include",
+        numerical_nan_mode: NumericalNanModeOption = "min",
+        categorical_nan_mode: CategoricalNanModeOption = "as_category",
         categorical_nan_filler: str = "missing_value",
-        verbose=2,
+        verbose: VerboseOption = "WARNING",
     ) -> None:
 
         self.logger = logging.getLogger()
         self.logger.setLevel(verbose)
 
         # criteria for limiting branching
+        self.__criterion = criterion
         self.__max_depth = max_depth
         self.__min_samples_split = min_samples_split
         self.__min_samples_leaf = min_samples_leaf
         self.__max_leaf_nodes = max_leaf_nodes
+        self.__min_impurity_decrease = min_impurity_decrease
         self.__max_childs = max_childs
         self.__hierarchy = hierarchy
 
@@ -58,12 +74,15 @@ class BaseSmartDecisionTree:
         self._is_fitted: bool = False
         self._root: TreeNode | None = None
         self._feature_importances: dict = dict()
+        self._fill_numerical_nan_values: dict = dict()
 
         # check
+        self.__check__criterion()
         self.__check__max_depth()
         self.__check__min_samples_split()
         self.__check__min_samples_leaf()
         self.__check__max_leaf_nodes()
+        self.__check__min_impurity_decrease()
         self.__check__max_childs()
         self.__check__numerical_feature_names()
         self.__check__categorical_feature_names()
@@ -103,7 +122,14 @@ class BaseSmartDecisionTree:
         if self.__rank_feature_names is None:
             self.__rank_feature_names = dict()
 
-        self.__hierarchy = hierarchy if hierarchy else {}
+        self.__hierarchy = hierarchy if hierarchy else dict()
+
+    def __check__criterion(self) -> None:
+        if self.__criterion not in ("entropy", "gini", "log_loss"):
+            raise ValueError(
+                "`criterion` mist be Literal['entropy', 'log_loss', 'gini']."
+                f" The current value of `criterion` is {self.__criterion!r}."
+            )
 
     def __check__max_depth(self) -> None:
         if (
@@ -155,24 +181,33 @@ class BaseSmartDecisionTree:
 
     def __check__max_leaf_nodes(self) -> None:
         if (
-            not (
-                isinstance(self.__max_leaf_nodes, int)
-                or self.__max_leaf_nodes == float("+inf")
+            self.__max_leaf_nodes is not None
+            and (
+                not isinstance(self.__max_leaf_nodes, int) or self.__max_leaf_nodes < 2
             )
-            or self.__max_leaf_nodes < 2
         ):
             raise ValueError(
                 "`max_leaf_nodes` must be an integer and strictly greater than 2."
                 f" The current value of `max_leaf_nodes` is {self.__max_leaf_nodes!r}."
             )
 
+    def __check__min_impurity_decrease(self) -> None:
+        # TODO: could impurity_decrease be greater 1?
+        if (
+            not isinstance(self.__min_impurity_decrease, float)
+            or self.__min_impurity_decrease < 0
+        ):
+            raise ValueError(
+                "`min_impurity_decrease` must be float and non-negative."
+                f" The current value of `min_impurity_decrease` is {self.__min_impurity_decrease!r}."
+            )
+
     def __check__max_childs(self) -> None:
         if (
-            not (
-                isinstance(self.__max_childs, int)
-                or self.__max_childs == float("+inf")
+            self.__max_childs is not None
+            and (
+                not isinstance(self.__max_childs, int) or self.__max_childs < 2
             )
-            or self.__max_childs < 2
         ):
             raise ValueError(
                 "`max_childs` must be integer and strictly greater than 2."
@@ -292,6 +327,10 @@ class BaseSmartDecisionTree:
             )
 
     @property
+    def criterion(self) -> ClassificationCriterionOption:
+        return self.__criterion
+
+    @property
     def max_depth(self) -> int | None:
         return self.__max_depth
 
@@ -299,16 +338,28 @@ class BaseSmartDecisionTree:
     def min_samples_split(self) -> int | float:
         return self.__min_samples_split
 
+    @min_samples_split.setter
+    def min_samples_split(self, value: int):
+        self.__min_samples_split = value
+
     @property
     def min_samples_leaf(self) -> int | float:
         return self.__min_samples_leaf
 
+    @min_samples_leaf.setter
+    def min_samples_leaf(self, value: int):
+        self.__min_samples_leaf = value
+
     @property
-    def max_leaf_nodes(self) -> int | float:
+    def max_leaf_nodes(self) -> int | None:
         return self.__max_leaf_nodes
 
     @property
-    def max_childs(self) -> int | float:
+    def min_impurity_decrease(self) -> float:
+        return self.__min_impurity_decrease
+
+    @property
+    def max_childs(self) -> int | None:
         return self.__max_childs
 
     @property
@@ -333,11 +384,11 @@ class BaseSmartDecisionTree:
         return self.__hierarchy
 
     @property
-    def numerical_nan_mode(self) -> Literal["include", "min", "max"]:
+    def numerical_nan_mode(self) -> NumericalNanModeOption:
         return self.__numerical_nan_mode
 
     @property
-    def categorical_nan_mode(self) -> Literal["include", "as_category"]:
+    def categorical_nan_mode(self) -> CategoricalNanModeOption:
         return self.__categorical_nan_mode
 
     @property
@@ -350,7 +401,7 @@ class BaseSmartDecisionTree:
         return self._root
 
     @property
-    def feature_importances(self) -> dict[str, float]:
+    def feature_importances_(self) -> dict[str, float]:
         self._check_is_fitted()
         return self._feature_importances
 
@@ -492,7 +543,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
           training and predicting missing values will be filled with
           `categorical_nan_filler`.
 
-        verbose: Literal['critical', 'error', 'warning', 'info', 'debug'] or int, default=2
+        verbose: Literal['critical', 'error', 'warning', 'info', 'debug'] or int, default="warning"
           Controls the level of decision tree verbosity.
 
           - If 'critical'
@@ -505,28 +556,31 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
     def __init__(
         self,
         *,
-        criterion: Literal["gini", "entropy", "log_loss"] = "gini",
+        criterion: ClassificationCriterionOption = "gini",
         max_depth: int | None = None,
         min_samples_split: int | float = 2,
         min_samples_leaf: int | float = 1,
-        max_leaf_nodes: int | float = float("+inf"),
+        max_leaf_nodes: int | None = None,
         min_impurity_decrease: float = .0,
-        max_childs: int | float = float("+inf"),
+        # TODO: class_weight: dict | list[dict] | Literal["balanced"] | None,
+        max_childs: int | None = None,
         numerical_feature_names: list[str] | str | None = None,
         categorical_feature_names: list[str] | str | None = None,
         rank_feature_names: dict[str, list] | None = None,
         hierarchy: dict[str, str | list[str]] | None = None,
-        numerical_nan_mode: Literal["include", "min", "max"] = "min",
-        categorical_nan_mode: Literal["include", "as_category"] = "include",
+        numerical_nan_mode: NumericalNanModeOption = "min",
+        categorical_nan_mode: CategoricalNanModeOption = "include",
         categorical_nan_filler: str = "missing_value",
-        verbose: Literal["critical", "error", "warning", "info", "debug"] | int = 2,
+        verbose: VerboseOption = "WARNING",
     ) -> None:
 
         super().__init__(
+            criterion=criterion,
             max_depth=max_depth,
             min_samples_split=min_samples_split,
             min_samples_leaf=min_samples_leaf,
             max_leaf_nodes=max_leaf_nodes,
+            min_impurity_decrease=min_impurity_decrease,
             max_childs=max_childs,
             numerical_feature_names=numerical_feature_names,
             categorical_feature_names=categorical_feature_names,
@@ -538,44 +592,9 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             verbose=verbose,
         )
 
-        self.__criterion = criterion
-        self.__min_impurity_decrease = min_impurity_decrease
-
-        self.__check__criterion()
-        self.__check__min_impurity_decrease()
-
-        match self.criterion:
-            case "gini":
-                self.__impurity = self.__gini_index
-            case "entropy" | "log_loss":
-                self.__impurity = self.__entropy
-
         # attributes that are open for reading
         self.__graph = None
         self.__class_names: list[str] = []
-
-        self.__fill_numerical_nan_values = {}
-
-        self.__node_counter = 0
-        self.__leaf_counter = 0
-
-    def __check__criterion(self) -> None:
-        if self.__criterion not in ["entropy", "gini", "log_loss"]:
-            raise ValueError(
-                "`criterion` mist be Literal['entropy', 'log_loss', 'gini']."
-                f" The current value of `criterion` is {self.__criterion!r}."
-            )
-
-    def __check__min_impurity_decrease(self) -> None:
-        # TODO: could impurity_decrease be greater 1?
-        if (
-            not isinstance(self.__min_impurity_decrease, float)
-            or self.__min_impurity_decrease < 0
-        ):
-            raise ValueError(
-                "`min_impurity_decrease` must be float and non-negative."
-                f" The current value of `min_impurity_decrease` is {self.__min_impurity_decrease!r}."
-            )
 
     def __check_init_params(self) -> None:
         # TODO: finish this part
@@ -591,14 +610,11 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         ...
 
     @property
-    def criterion(self) -> Literal["entropy", "log_loss", "gini"]:
-        return self.__criterion
+    def class_names(self) -> list[str]:
+        self._check_is_fitted()
+        return self.__class_names
 
-    @property
-    def min_impurity_decrease(self) -> float:
-        return self.__min_impurity_decrease
-
-    def __repr__(self):
+    def __repr__(self) -> str:
         repr_ = []
 
         # if a parameter value differs from default, then it added to the representation
@@ -610,11 +626,11 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             repr_.append(f"min_samples_split={self.min_samples_split}")
         if self.min_samples_leaf != 1:
             repr_.append(f"min_samples_leaf={self.min_samples_leaf}")
-        if self.max_leaf_nodes != float("+inf"):
+        if self.max_leaf_nodes:
             repr_.append(f"max_leaf_nodes={self.max_leaf_nodes}")
         if self.min_impurity_decrease != .0:
             repr_.append(f"min_impurity_decrease={self.min_impurity_decrease}")
-        if self.max_childs != float("+inf"):
+        if self.max_childs:
             repr_.append(f"max_childs={self.max_childs}")
         if self.numerical_feature_names:
             repr_.append(f"numerical_feature_names={self.numerical_feature_names}")
@@ -635,11 +651,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             f"{self.__class__.__name__}({', '.join(repr_)})"
         )
 
-    @property
-    def class_names(self) -> list[str]:
-        self._check_is_fitted()
-        return self.__class_names
-
     def fit(self, X: pd.DataFrame, y: pd.Series) -> None:
         """
         Build a decision tree classifier from the training set (X, y).
@@ -650,26 +661,33 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         """
         self.__check_fit_data(X, y)
 
-        # until the end of the training, we encapsulate X and y
-        self.X = X.copy()
-        self.y = y.copy()
-        # technical attribute
-        self.splittable_leaf_nodes = []
-
-        self._feature_names = X.columns.tolist()
-        self.__class_names = sorted(y.unique())
+        ################################################################################
+        if self.max_depth is None:
+            max_depth = float("+inf")
+        else:
+            max_depth = self.max_depth
 
         if isinstance(self.min_samples_split, float):
-            self.min_samples_split = math.ceil(self.min_samples_split * X.shape[0])
+            min_samples_split = math.ceil(self.min_samples_split * X.shape[0])
+        else:
+            min_samples_split = self.min_samples_split
+
         if isinstance(self.min_samples_leaf, float):
-            self.min_samples_leaf = math.ceil(self.min_samples_leaf * X.shape[0])
+            min_samples_leaf = math.ceil(self.min_samples_leaf * X.shape[0])
+        else:
+            min_samples_leaf = self.min_samples_leaf
 
-        # initialize feature_importances with all the features and the default value of 0
-        for feature_name in self._feature_names:
-            self._feature_importances[feature_name] = 0
+        if self.max_leaf_nodes is None:
+            max_leaf_nodes = float("+inf")
+        else:
+            max_leaf_nodes = self.max_leaf_nodes
 
-        # numerical_feature_names and categorical_feature_names extensions #############
-        unsetted_features_set = set(self.X.columns) - (
+        if self.max_childs is None:
+            max_childs = float("+inf")
+        else:
+            max_childs = self.max_childs
+
+        unsetted_features_set = set(X.columns) - (
             set(self.numerical_feature_names)
             | set(self.categorical_feature_names)
             | set(self.rank_feature_names)
@@ -677,41 +695,67 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
 
         if unsetted_features_set:
             unsetted_num_features = (
-                self.X[list(unsetted_features_set)]
-                .select_dtypes("number").columns.tolist()
+                X[list(unsetted_features_set)].select_dtypes("number").columns.tolist()
             )
             if unsetted_num_features:
-                self.numerical_feature_names.extend(unsetted_num_features)
+                numerical_feature_names = self.numerical_feature_names + unsetted_num_features
                 self.logger.info(
                     f"[{self.__class__.__name__}] [Info] {unsetted_num_features} are"
                     " added to `numerical_feature_names`."
                 )
+            else:
+                numerical_feature_names = self.numerical_feature_names
             unsetted_cat_features = (
-                self.X[list(unsetted_features_set)]
+                X[list(unsetted_features_set)]
                 .select_dtypes(include=["category", "object"]).columns.tolist()
             )
             if unsetted_cat_features:
-                self.categorical_feature_names.extend(unsetted_cat_features)
+                categorical_feature_names = self.categorical_feature_names + unsetted_cat_features
                 self.logger.info(
                     f"[{self.__class__.__name__}] [Info] {unsetted_cat_features} are"
                     " added to `categorical_feature_names`."
                 )
+            else:
+                categorical_feature_names = self.categorical_feature_names
+        else:
+            numerical_feature_names = self.numerical_feature_names
+            categorical_feature_names = self.categorical_feature_names
         ################################################################################
+
+        splitter = NodeSplitter(
+            X=X,
+            y=y,
+            criterion=self.criterion,
+            max_depth=max_depth,
+            min_samples_split=min_samples_split,
+            min_samples_leaf=min_samples_leaf,
+            max_leaf_nodes=max_leaf_nodes,
+            min_impurity_decrease=self.min_impurity_decrease,
+            max_childs=max_childs,
+            numerical_feature_names=numerical_feature_names,
+            categorical_feature_names=categorical_feature_names,
+            rank_feature_names=self.rank_feature_names,
+            numerical_nan_mode=self.numerical_nan_mode,
+            categorical_nan_mode=self.categorical_nan_mode,
+        )
+
+        self._feature_names = X.columns.tolist()
+        self.__class_names = sorted(y.unique())
 
         match self.numerical_nan_mode:
             case "min":
-                for num_feature in self.numerical_feature_names:
+                for num_feature in numerical_feature_names:
                     fill_nan_value = X[num_feature].min()
-                    self.__fill_numerical_nan_values[num_feature] = fill_nan_value
+                    self._fill_numerical_nan_values[num_feature] = fill_nan_value
                     X[num_feature].fillna(fill_nan_value, inplace=True)
             case "max":
-                for num_feature_name in self.numerical_feature_names:
+                for num_feature_name in numerical_feature_names:
                     fill_nan_value = X[num_feature_name].max()
-                    self.__fill_numerical_nan_values[fill_nan_value] = fill_nan_value
+                    self._fill_numerical_nan_values[fill_nan_value] = fill_nan_value
                     X[num_feature_name].fillna(fill_nan_value, inplace=True)
 
         if self.categorical_nan_mode == "as_category":
-            for cat_feature in self.categorical_feature_names:
+            for cat_feature in categorical_feature_names:
                 X[cat_feature].fillna(self.categorical_nan_filler, inplace=True)
 
         hierarchy = self.hierarchy.copy()
@@ -726,68 +770,17 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             else:
                 assert False
 
-        root_mask = y.apply(lambda x: True)
-        self._root = self.__create_node(
-            mask=root_mask,
-            hierarchy=hierarchy,
-            available_feature_names=available_feature_names,
-            depth=0,
+        builder = Builder(
+            X=X,
+            y=y,
+            criterion=self.criterion,
+            splitter=splitter,
+            max_leaf_nodes=max_leaf_nodes,
         )
+        root, feature_importances = builder.build(hierarchy, available_feature_names)
 
-        if self.__is_splittable(self._root):
-            self.splittable_leaf_nodes.append(self._root)
-
-        while (
-            len(self.splittable_leaf_nodes) > 0
-            and self.__leaf_counter < self.max_leaf_nodes
-        ):
-            best_node = self.splittable_leaf_nodes.pop()
-            (
-                inf_gain,
-                split_type,
-                split_feature_name,
-                feature_values,
-                child_masks,
-            ) = best_node._best_split
-
-            self._feature_importances[split_feature_name] += inf_gain
-
-            for child_mask, feature_value in zip(child_masks, feature_values):
-                # add opened features
-                if split_feature_name in best_node._hierarchy:
-                    value = best_node._hierarchy.pop(split_feature_name)
-                    if isinstance(value, str):
-                        best_node._available_feature_names.append(value)
-                    elif isinstance(value, list):
-                        best_node._available_feature_names.extend(value)
-                    else:
-                        assert False
-
-                child_node = self.__create_node(
-                    mask=child_mask,
-                    hierarchy=best_node._hierarchy,
-                    available_feature_names=best_node._available_feature_names,
-                    depth=best_node._depth+1,
-                )
-                child_node.feature_value = feature_value
-                self.__leaf_counter += 1
-
-                best_node.childs.append(child_node)
-                if self.__is_splittable(child_node):
-                    bisect.insort(
-                        self.splittable_leaf_nodes,
-                        child_node,
-                        key=lambda x: x._best_split[0],
-                    )
-
-            best_node.is_leaf = False
-            best_node.split_type = split_type
-            best_node.split_feature_name = split_feature_name
-            self.__leaf_counter -= 1
-
-        del self.X
-        del self.y
-        del self.splittable_leaf_nodes
+        self._root = root
+        self._feature_importances = feature_importances
 
         self._is_fitted = True
 
@@ -821,435 +814,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
                     f"`rank_feature_names` contain feature {rank_feature_name},"
                     " which isnt present in the training data."
                 )
-
-    def __is_splittable(self, node: TreeNode) -> bool:
-        """Checks whether a tree node can be split."""
-        if self.max_depth and node._depth >= self.max_depth:
-            return False
-
-        if node.samples < self.min_samples_split:
-            return False
-
-        if node.impurity == 0:
-            return False
-
-        best_split_results = self.__find_best_split(node._mask, node._available_feature_names)
-        inf_gain = best_split_results[0]
-        if inf_gain < self.min_impurity_decrease:
-            return False
-        else:
-            node._best_split = best_split_results
-            return True
-
-    def __create_node(
-        self,
-        mask: pd.Series,
-        hierarchy: dict[str, str | list[str]],
-        available_feature_names: list[str],
-        depth: int,
-    ) -> TreeNode:
-        """Create a node of the tree."""
-        hierarchy = hierarchy.copy()
-        available_feature_names = available_feature_names.copy()
-
-        samples = mask.sum()
-        distribution = self.__distribution(mask)
-        impurity = self.__impurity(mask)
-        label = self.y[mask].value_counts().index[0]
-
-        tree_node = TreeNode(
-            self.__node_counter,
-            samples,
-            distribution,
-            impurity,
-            label,
-            depth,
-            mask,
-            hierarchy,
-            available_feature_names,
-        )
-
-        self.__node_counter += 1
-
-        return tree_node
-
-    def __find_best_split(
-        self,
-        parent_mask: pd.Series,
-        available_feature_names: list[str],
-    ) -> tuple[float, str | None, str | None, list[list[str]] | None, list[pd.Series] | None]:
-        """
-        Finds the best tree node split, if it exists.
-
-        Parameters:
-            parent_mask: boolean mask of the tree node.
-            available_feature_names: the list of features available for splitting.
-
-        Returns:
-            Tuple `(inf_gain, split_type, split_feature_name, feature_values,
-            child_masks)`.
-              inf_gain: information gain of the split.
-              split_type: split type.
-              split_feature_name: the feature by which it is best to split the input set.
-              feature_values: feature values corresponding to child nodes.
-              child_masks: list of child masks.
-        """
-        best_inf_gain = float("-inf")
-        best_split_type = None
-        best_split_feature_name = None
-        best_feature_values = None
-        best_child_masks = None
-        for split_feature_name in available_feature_names:
-            if split_feature_name in self.numerical_feature_names:
-                split_type = "numerical"
-                (
-                    inf_gain,
-                    feature_values,
-                    child_masks,
-                ) = self.__num_split(parent_mask, split_feature_name)
-            elif split_feature_name in self.categorical_feature_names:
-                split_type = "categorical"
-                (
-                    inf_gain,
-                    feature_values,
-                    child_masks,
-                ) = self.__best_cat_split(parent_mask, split_feature_name)
-            elif split_feature_name in self.rank_feature_names:
-                split_type = "rank"
-                (
-                    inf_gain,
-                    feature_values,
-                    child_masks,
-                ) = self.__best_rank_split(parent_mask, split_feature_name)
-
-            if best_inf_gain < inf_gain:
-                best_inf_gain = inf_gain
-                best_split_type = split_type
-                best_split_feature_name = split_feature_name
-                best_feature_values = feature_values
-                best_child_masks = child_masks
-
-        return (
-            best_inf_gain,
-            best_split_type,
-            best_split_feature_name,
-            best_feature_values,
-            best_child_masks,
-        )
-
-    def __num_split(
-        self,
-        parent_mask: pd.Series,
-        split_feature_name: str,
-    ) -> tuple[float, list[list[str]] | None, list[pd.Series] | None]:
-        """
-        Finds the best tree node split by set numerical feature, if it exists.
-
-        Parameters:
-            parent_mask: boolean mask of the tree node.
-            split_feature_name: The name of the set numerical feature by which to find
-              the best split.
-
-        Returns:
-            Tuple `(inf_gain, feature_values, child_masks)`.
-              inf_gain: information gain of the split.
-              feature_values: feature values corresponding to child nodes.
-              child_masks: boolean masks of child nodes.
-        """
-        use_including_na = (
-            self.numerical_nan_mode == "include"
-            # and there are samples with missing values
-            and (parent_mask & self.X[split_feature_name].isna()).sum()
-        )
-
-        if use_including_na:
-            mask_notna = parent_mask & self.X[split_feature_name].notna()
-            # if split by feature value is not possible
-            if mask_notna.sum() <= 1:
-                return float("-inf"), None, None
-            mask_na = parent_mask & self.X[split_feature_name].isna()
-
-            points = self.X.loc[mask_notna, split_feature_name].to_numpy()
-        else:
-            points = self.X.loc[parent_mask, split_feature_name].to_numpy()
-
-        thresholds = get_thresholds(points)
-
-        best_inf_gain = float("-inf")
-        best_feature_values = None
-        best_child_masks = None
-        for threshold in thresholds:
-            mask_less = parent_mask & (self.X[split_feature_name] <= threshold)
-            mask_more = parent_mask & (self.X[split_feature_name] > threshold)
-
-            if use_including_na:
-                mask_less = mask_less | mask_na
-                mask_more = mask_more | mask_na
-
-            if (
-                mask_less.sum() < self.min_samples_leaf
-                or mask_more.sum() < self.min_samples_leaf
-            ):
-                continue
-
-            child_masks = [mask_less, mask_more]
-
-            inf_gain = self.__information_gain(
-                parent_mask, child_masks, nan_mode=self.numerical_nan_mode)
-
-            if best_inf_gain < inf_gain:
-                best_inf_gain = inf_gain
-                less_values = [f"<= {threshold}"]
-                more_values = [f"> {threshold}"]
-                best_feature_values = [less_values, more_values]
-                best_child_masks = child_masks
-
-        return best_inf_gain, best_feature_values, best_child_masks
-
-    def __best_cat_split(
-        self,
-        parent_mask: pd.Series,
-        split_feature_name: str,
-    ) -> tuple[float, list[list[str]] | None, list[pd.Series] | None]:
-        """
-        Split a node according to a categorical feature in the best way.
-
-        Parameters:
-            parent_mask: boolean mask of split node.
-            split_feature_name: feature according to which node should be split.
-
-        Returns:
-            Tuple `(inf_gain, feature_values, child_masks)`.
-              inf_gain: information gain of the split.
-              feature_values: feature values corresponding to child nodes.
-              child_masks: boolean masks of child nodes.
-        """
-        available_feature_values = self.X.loc[parent_mask, split_feature_name].unique()
-        if (
-            self.categorical_nan_mode == "include"
-            and pd.isna(available_feature_values).any()  # if contains missing values
-        ):
-            available_feature_values = available_feature_values[~pd.isna(available_feature_values)]
-        if len(available_feature_values) <= 1:
-            return float("-inf"), None, None
-        available_feature_values = sorted(available_feature_values)
-
-        # get list of all possible partitions
-        partitions = []
-        for partition in cat_partitions(available_feature_values):
-            # if partitions is not really partitions
-            if len(partition) < 2:
-                continue
-            # limitation of branching
-            if len(partition) > self.max_childs:
-                continue
-            # if the number of leaves exceeds the limit after splitting
-            if self.__leaf_counter + len(partition) > self.max_leaf_nodes:
-                continue
-
-            partitions.append(partition)
-
-        best_inf_gain = float("-inf")
-        best_feature_values = None
-        best_child_masks = None
-        for feature_values in partitions:
-            inf_gain, child_masks = \
-                self.__cat_split(parent_mask, split_feature_name, feature_values)
-            if best_inf_gain < inf_gain:
-                best_inf_gain = inf_gain
-                best_child_masks = child_masks
-                best_feature_values = feature_values
-
-        return best_inf_gain, best_feature_values, best_child_masks
-
-    def __cat_split(
-        self,
-        parent_mask: pd.Series,
-        split_feature_name: str,
-        feature_values: list[list],
-    ) -> tuple[float, list[pd.Series] | None]:
-        """
-        Split a node according to a categorical feature according to the
-        defined feature values.
-
-        Parameters:
-            parent_mask: boolean mask of split node.
-            split_feature_name: feature according to which node should be split.
-            feature_values: feature values corresponding to child nodes.
-
-        Returns:
-            Tuple `(inf_gain, child_masks)`.
-              inf_gain: information gain of the split.
-              child_masks: boolean masks of child nodes.
-        """
-        mask_na = parent_mask & self.X[split_feature_name].isna()
-
-        child_masks = []
-        for list_ in feature_values:
-            child_mask = parent_mask & (self.X[split_feature_name].isin(list_) | mask_na)
-            if child_mask.sum() < self.min_samples_leaf:
-                return float("-inf"), None
-            child_masks.append(child_mask)
-
-        inf_gain = self.__information_gain(
-            parent_mask, child_masks, nan_mode=self.categorical_nan_mode)
-
-        return inf_gain, child_masks
-
-    def __best_rank_split(
-        self,
-        parent_mask: pd.Series,
-        split_feature_name: str,
-    ) -> tuple[float, list[list[str]], list[pd.Series]]:
-        """Split a node according to a rank feature in the best way."""
-        available_feature_values = self.rank_feature_names[split_feature_name]
-
-        best_inf_gain = float("-inf")
-        best_child_masks = None
-        best_feature_values = None
-        for feature_values in rank_partitions(available_feature_values):
-            inf_gain, child_masks = \
-                self.__rank_split(parent_mask, split_feature_name, feature_values)
-            if best_inf_gain < inf_gain:
-                best_inf_gain = inf_gain
-                best_child_masks = child_masks
-                best_feature_values = feature_values
-
-        return best_inf_gain, best_feature_values, best_child_masks
-
-    def __rank_split(
-        self,
-        parent_mask: pd.Series,
-        split_feature_name: str,
-        feature_values: list[list[str]],
-    ) -> tuple[float, list[pd.Series] | None]:
-        """
-        Splits a node according to a rank feature according to the defined feature
-        values.
-        """
-        left_list_, right_list_ = feature_values
-
-        mask_left = parent_mask & self.X[split_feature_name].isin(left_list_)
-        mask_right = parent_mask & self.X[split_feature_name].isin(right_list_)
-
-        if (
-            mask_left.sum() < self.min_samples_leaf
-            or mask_right.sum() < self.min_samples_leaf
-        ):
-            return float("-inf"), None
-
-        child_masks = [mask_left, mask_right]
-
-        inf_gain = self.__information_gain(parent_mask, child_masks)
-
-        return inf_gain, child_masks
-
-    def __information_gain(
-        self,
-        parent_mask: pd.Series,
-        child_masks: list[pd.Series],
-        nan_mode: str | None = None,
-    ) -> float:
-        """
-        Calculates information gain of the split.
-
-        Parameters:
-            parent_mask: boolean mask of parent node.
-            child_masks: list of boolean masks of child nodes.
-            nan_mode: missing values handling node.
-              If 'include', then turn on normalization of child nodes impurity.
-
-        Returns:
-            information gain.
-
-        References:
-            https://scikit-learn.org/stable/modules/generated/sklearn.tree.DecisionTreeClassifier.html
-
-        Formula in LaTeX:
-            \text{Information Gain} = \frac{N_{\text{parent}}}{N} * \Big(\text{impurity}_{\text{parent}} - \sum^C_{i=1}{\frac{N_{\text{child}_i}}{N_{\text{parent}}}} * \text{impurity}_{\text{child}_i} \Big)
-            where
-            \text{Information Gain} - information fain;
-            N - the number of samples in the entire training set;
-            N_{\text{parent}} - the number of samples in the parent node;
-            \text{impurity}_{\text{parent}} - the parent node impurity;
-            С - the number of child nodes;
-            N_{\text{child}_i} - the number of samples in the child node;
-            \text{impurity}_{\text{child}_i} - the child node impurity.
-        """
-        N = self.y.shape[0]
-        N_parent = parent_mask.sum()
-
-        impurity_parent = self.__impurity(parent_mask)
-
-        weighted_impurity_childs = 0
-        N_childs = 0
-        for child_mask_i in child_masks:
-            N_child_i = child_mask_i.sum()
-            N_childs += N_child_i
-            impurity_child_i = self.__impurity(child_mask_i)
-            weighted_impurity_childs += (N_child_i / N_parent) * impurity_child_i
-
-        if nan_mode == "include":
-            norm_coef = N_parent / N_childs
-            weighted_impurity_childs *= norm_coef
-
-        local_information_gain = impurity_parent - weighted_impurity_childs
-
-        information_gain = (N_parent / N) * local_information_gain
-
-        return information_gain
-
-    def __gini_index(self, mask: pd.Series) -> float:
-        """
-        Calculates Gini index in a tree node.
-
-        Gini index formula in LaTeX:
-            \text{Gini Index} = \sum^C_{i=1} p_i \times (1 - p_i)
-            where
-            \text{Gini Index} - Gini index;
-            C - total number of classes;
-            p_i - the probability of choosing a sample with class i.
-        """
-        N = mask.sum()
-
-        gini_index = 0
-        for label in self.__class_names:
-            N_i = (mask & (self.y == label)).sum()
-            p_i = N_i / N
-            gini_index += p_i * (1 - p_i)
-
-        return gini_index
-
-    def __entropy(self, mask: pd.Series) -> float:
-        """
-        Calculates entropy in a tree node.
-
-        Entropy formula in LaTeX:
-        H = \log{\overline{N}} = \sum^N_{i=1} p_i \log{(1/p_i)} = -\sum^N_{i=1} p_i \log{p_i}
-        where
-        H - entropy;
-        \overline{N} - effective number of states;
-        p_i - probability of the i-th system state.
-        """
-        N = mask.sum()
-
-        entropy = 0
-        for label in self.__class_names:
-            N_i = (mask & (self.y == label)).sum()
-            if N_i != 0:
-                p_i = N_i / N
-                entropy -= p_i * math.log2(p_i)
-
-        return entropy
-
-    def __distribution(self, mask: pd.Series) -> list[int]:
-        """Calculates the class distribution."""
-        distribution = [
-            (mask & (self.y == class_name)).sum()
-            for class_name in self.__class_names
-        ]
-
-        return distribution
 
     def predict(self, X: pd.DataFrame | pd.Series) -> list[str] | str:
         """
@@ -1308,7 +872,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
 
         if self.numerical_nan_mode in ["min", "max"]:
             for num_feature in self.numerical_feature_names:
-                X.fillna(self.__fill_numerical_nan_values[num_feature], inplace=True)
+                X.fillna(self._fill_numerical_nan_values[num_feature], inplace=True)
 
         if self.categorical_nan_mode == "as_category":
             for cat_feature in self.categorical_feature_names:
@@ -1393,9 +957,9 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         fitted_features_set = set(self._feature_names)
         X_features_set = set(X.columns)
         if fitted_features_set != X_features_set:
-            message = (
-                "The feature names should match those that were passed during fit.\n"
-            )
+            message = [
+                "The feature names should match those that were passed during fit."
+            ]
 
             unexpected_names = sorted(X_features_set - fitted_features_set)
             missing_names = sorted(fitted_features_set - X_features_set)
@@ -1411,16 +975,16 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
                 return "\n".join(output)
 
             if unexpected_names:
-                message += "Feature names unseen at fit time:\n"
-                message += add_names(unexpected_names)
+                message.append("Feature names unseen at fit time:")
+                message.append(add_names(unexpected_names))
 
             if missing_names:
-                message += "Feature names seen at fit time, yet now missing:\n"
-                message += add_names(missing_names)
+                message.append("Feature names seen at fit time, yet now missing:")
+                message.append(add_names(missing_names))
 
             # TODO: same order of features
 
-            raise ValueError(message)
+            raise ValueError("\n".join(message))
 
     def score(
         self,
@@ -1444,7 +1008,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         """Возвращает параметры этого классификатора."""
         return {
             "criterion": self.criterion,
-            "max_depth": self.__max_depth,
+            "max_depth": self.max_depth,
             "min_samples_split": self.min_samples_split,
             "min_samples_leaf": self.min_samples_leaf,
             "max_leaf_nodes": self.max_leaf_nodes,
@@ -1459,6 +1023,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             "categorical_nan_filler": self.categorical_nan_filler,
         }
 
+    # TODO: сейчас явно не правильно работает
     def set_params(self, **params):
         """Set the parameters of this estimator."""
         # Simple optimization to gain speed (inspect is slow)
