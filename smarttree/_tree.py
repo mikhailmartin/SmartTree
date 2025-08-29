@@ -750,26 +750,15 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             for cat_feature in categorical_feature_names:
                 X[cat_feature].fillna(self.categorical_nan_filler, inplace=True)
 
-        hierarchy = self.hierarchy.copy()
-        available_feature_names = X.columns.tolist()
-        # remove those features that cannot be considered yet
-        for value in hierarchy.values():
-            if isinstance(value, str):
-                available_feature_names.remove(value)
-            elif isinstance(value, list):
-                for feature_name in value:
-                    available_feature_names.remove(feature_name)
-            else:
-                assert False
-
         builder = Builder(
             X=X,
             y=y,
             criterion=self.criterion,
             splitter=splitter,
             max_leaf_nodes=max_leaf_nodes,
+            hierarchy=self.hierarchy,
         )
-        root, feature_importances = builder.build(hierarchy, available_feature_names)
+        root, feature_importances = builder.build()
 
         self._root = root
         self._feature_importances = feature_importances

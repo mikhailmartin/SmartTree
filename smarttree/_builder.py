@@ -17,12 +17,14 @@ class Builder:
         criterion: ClassificationCriterionOption,
         splitter: NodeSplitter,
         max_leaf_nodes: int,
+        hierarchy: dict[str, str | list[str]],
     ) -> None:
         self.X = X
         self.y = y
         self.criterion = criterion
         self.splitter = splitter
         self.max_leaf_nodes = max_leaf_nodes
+        self.hierarchy = hierarchy
 
         match self.criterion:
             case "gini":
@@ -35,8 +37,20 @@ class Builder:
 
         self.node_counter: int = 0
 
-    def build(self, hierarchy, available_feature_names) -> TreeNode:
+    def build(self) -> TreeNode:
         """TODO."""
+        hierarchy = self.hierarchy.copy()
+        available_feature_names = self.X.columns.tolist()
+        # remove those features that cannot be considered yet
+        for value in hierarchy.values():
+            if isinstance(value, str):
+                available_feature_names.remove(value)
+            elif isinstance(value, list):
+                for feature_name in value:
+                    available_feature_names.remove(feature_name)
+            else:
+                assert False
+
         root = self.create_node(
             mask=self.y.apply(lambda x: True),
             hierarchy=hierarchy,
