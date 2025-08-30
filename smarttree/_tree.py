@@ -980,7 +980,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         self,
         deep: bool = True,  # implemented for sklearn.model_selection.GridSearchCV
     ) -> dict:
-        """Возвращает параметры этого классификатора."""
+        """Returns the parameters of this estimator instance."""
         return {
             "criterion": self.criterion,
             "max_depth": self.max_depth,
@@ -998,9 +998,8 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             "categorical_nan_filler": self.categorical_nan_filler,
         }
 
-    # TODO: сейчас явно не правильно работает
     def set_params(self, **params) -> Self:
-        """Set the parameters of this estimator."""
+        """Set the parameters of this estimator instance."""
         # Simple optimization to gain speed (inspect is slow)
         if not params:
             return self
