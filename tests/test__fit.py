@@ -78,6 +78,6 @@ def test__fit():
     assert tree.feature_names == [
         "2. Возраст", "3. Семейное положение", "5. В какой семье Вы выросли?"
     ]
-    assert tree.class_names == [
+    assert tree.classes_ == [
         "доброкачественная опухоль", "злокачественная опухоль", "норма"
     ]
