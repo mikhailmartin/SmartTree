@@ -1,6 +1,6 @@
-from contextlib import nullcontext as does_not_raise
 import os
 import re
+from contextlib import nullcontext as does_not_raise
 
 import pandas as pd
 import pytest

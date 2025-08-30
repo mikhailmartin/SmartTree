@@ -3,7 +3,6 @@ from pytest import raises
 from smarttree import SmartDecisionTreeClassifier
 from smarttree._exceptions import NotFittedError
 
-
 NOT_FITTED_MSDT = SmartDecisionTreeClassifier()
 
 

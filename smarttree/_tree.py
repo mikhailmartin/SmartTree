@@ -1,19 +1,19 @@
 """Custom realization of Decision Tree which can handle categorical features."""
-from abc import abstractmethod
 import logging
 import math
+from abc import abstractmethod
 from typing import Self
 
-from graphviz import Digraph
 import numpy as np
 import pandas as pd
+from graphviz import Digraph
 from sklearn.metrics import accuracy_score
 
 from smarttree._builder import Builder
 from smarttree._constants import (
+    CategoricalNanModeOption,
     ClassificationCriterionOption,
     NumericalNanModeOption,
-    CategoricalNanModeOption,
     VerboseOption,
 )
 from smarttree._exceptions import NotFittedError

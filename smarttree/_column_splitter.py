@@ -1,11 +1,13 @@
-from abc import ABC, abstractmethod
 import math
+from abc import ABC, abstractmethod
 
 import numpy as np
 import pandas as pd
 
 from ._constants import (
-    ClassificationCriterionOption, NumericalNanModeOption, CategoricalNanModeOption
+    CategoricalNanModeOption,
+    ClassificationCriterionOption,
+    NumericalNanModeOption,
 )
 
 

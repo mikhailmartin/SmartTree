@@ -4,9 +4,9 @@ from collections import defaultdict
 
 import pandas as pd
 
-from ._tree_node import TreeNode
 from ._constants import ClassificationCriterionOption
 from ._node_splitter import NodeSplitter
+from ._tree_node import TreeNode
 
 
 class Builder:

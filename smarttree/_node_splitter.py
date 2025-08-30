@@ -2,14 +2,17 @@ from collections import namedtuple
 
 import pandas as pd
 
-from smarttree._tree_node import TreeNode
 from ._column_splitter import (
-    NumericalColumnSplitter, CategoricalColumnSplitter, RankColumnSplitter
+    CategoricalColumnSplitter,
+    NumericalColumnSplitter,
+    RankColumnSplitter,
 )
 from ._constants import (
-    ClassificationCriterionOption, NumericalNanModeOption, CategoricalNanModeOption
+    CategoricalNanModeOption,
+    ClassificationCriterionOption,
+    NumericalNanModeOption,
 )
-
+from ._tree_node import TreeNode
 
 SplitResult = namedtuple(
     typename="SplitResult",

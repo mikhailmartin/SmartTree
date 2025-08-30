@@ -1,10 +1,10 @@
-from contextlib import nullcontext as does_not_raise
 import re
-
-from smarttree import SmartDecisionTreeClassifier
+from contextlib import nullcontext as does_not_raise
 
 import pytest
 from pytest import param, raises
+
+from smarttree import SmartDecisionTreeClassifier
 
 
 @pytest.mark.parametrize(
