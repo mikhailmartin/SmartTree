@@ -2,6 +2,11 @@ import pytest
 from pytest import param
 
 from smarttree import SmartDecisionTreeClassifier
+from smarttree._constants import (
+    CategoricalNanModeOption,
+    ClassificationCriterionOption,
+    NumericalNanModeOption,
+)
 
 
 @pytest.mark.parametrize(
@@ -12,6 +17,7 @@ from smarttree import SmartDecisionTreeClassifier
     ],
 )
 def test_repr_tree__criterion(criterion, expected):
+    criterion: ClassificationCriterionOption
     tree_classifier = SmartDecisionTreeClassifier(criterion=criterion)
     assert repr(tree_classifier) == expected
 
@@ -152,6 +158,7 @@ def test_repr_tree__hierarchy(hierarchy, expected):
     ],
 )
 def test_repr_tree__numerical_nan_mode(numerical_nan_mode, expected):
+    numerical_nan_mode: NumericalNanModeOption
     tree_classifier = SmartDecisionTreeClassifier(numerical_nan_mode=numerical_nan_mode)
     assert repr(tree_classifier) == expected
 
@@ -164,6 +171,7 @@ def test_repr_tree__numerical_nan_mode(numerical_nan_mode, expected):
     ],
 )
 def test_repr_tree__categorical_nan_mode(categorical_nan_mode, expected):
+    categorical_nan_mode: CategoricalNanModeOption
     tree_classifier = SmartDecisionTreeClassifier(categorical_nan_mode=categorical_nan_mode)
     assert repr(tree_classifier) == expected
 

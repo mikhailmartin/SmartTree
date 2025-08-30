@@ -1,5 +1,6 @@
 import math
 from abc import ABC, abstractmethod
+from typing import Generator
 
 import numpy as np
 import pandas as pd
@@ -360,7 +361,9 @@ class CategoricalColumnSplitter(BaseColumnSplitter):
 
         return inf_gain, child_masks
 
-    def cat_partitions(self, collection: list) -> list[list]:
+    def cat_partitions(
+        self, collection: list
+    ) -> Generator[list[list[list]], None, None]:
         """
         References:
             https://en.wikipedia.org/wiki/Partition_of_a_set
@@ -446,6 +449,6 @@ class RankColumnSplitter(BaseColumnSplitter):
         return inf_gain, child_masks
 
     @staticmethod
-    def rank_partitions(collection: list) -> list[list]:
+    def rank_partitions(collection: list) -> Generator[tuple[list, list], None, None]:
         for i in range(1, len(collection)):
             yield collection[:i], collection[i:]
