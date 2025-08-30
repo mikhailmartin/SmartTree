@@ -1,46 +1,55 @@
+import pytest
 from pytest import raises
 
-from smarttree import SmartDecisionTreeClassifier
+from smarttree import BaseSmartDecisionTree, SmartDecisionTreeClassifier
 from smarttree._exceptions import NotFittedError
 
-NOT_FITTED_MSDT = SmartDecisionTreeClassifier()
+
+@pytest.fixture(scope="module")
+def not_fitted_tree() -> BaseSmartDecisionTree:
+    return SmartDecisionTreeClassifier()
 
 
-def test__tree():
+def test__tree(not_fitted_tree):
     with raises(NotFittedError):
-        _ = NOT_FITTED_MSDT.tree
+        _ = not_fitted_tree.tree
 
 
-def test__class_names():
+def test__feature_names(not_fitted_tree):
     with raises(NotFittedError):
-        _ = NOT_FITTED_MSDT.class_names
+        _ = not_fitted_tree.feature_names
 
 
-def test__feature_names():
+def test__feature_importances(not_fitted_tree):
     with raises(NotFittedError):
-        _ = NOT_FITTED_MSDT.feature_names
+        _ = not_fitted_tree.feature_importances_
 
 
-def test__feature_importances():
+def test__predict(not_fitted_tree):
     with raises(NotFittedError):
-        _ = NOT_FITTED_MSDT.feature_importances_
+        _ = not_fitted_tree.predict(None)
 
 
-def test__predict():
+def test__predict_proba(not_fitted_tree, X):
     with raises(NotFittedError):
-        _ = NOT_FITTED_MSDT.predict(None)
+        _ = not_fitted_tree.predict_proba(X)
 
 
-def test__predict_proba():
+def test__score(not_fitted_tree, X, y):
     with raises(NotFittedError):
-        _ = NOT_FITTED_MSDT.predict_proba(None)
+        _ = not_fitted_tree.score(X, y)
 
 
-def test__score():
+def test__render(not_fitted_tree):
     with raises(NotFittedError):
-        _ = NOT_FITTED_MSDT.score(None, None)
+        _ = not_fitted_tree.render()
 
 
-def test__render():
+@pytest.fixture(scope="module")
+def not_fitted_tree_classifier() -> SmartDecisionTreeClassifier:
+    return SmartDecisionTreeClassifier()
+
+
+def test__class_names(not_fitted_tree_classifier):
     with raises(NotFittedError):
-        _ = NOT_FITTED_MSDT.render()
+        _ = not_fitted_tree_classifier.class_names
