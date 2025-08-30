@@ -486,7 +486,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
           A node wil be split if this split induces a decrease of the impurity
           greater than or equal to this value.
 
-          TODO: formula
+          ...
 
         max_childs: int, default=None
           When choosing a categorical split, `max_childs` limits the maximum
@@ -504,7 +504,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
           List of rank feature names.
 
         hierarchy: dict, default=None
-          TODO.
+          ...
 
         numerical_nan_mode: Literal['include', 'min', 'max'], default='include'
           The mode of handling missing values in a numerical feature.
@@ -550,7 +550,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         min_samples_leaf: int | float = 1,
         max_leaf_nodes: int | None = None,
         min_impurity_decrease: float = .0,
-        # TODO: class_weight: dict | list[dict] | Literal["balanced"] | None,
         max_childs: int | None = None,
         numerical_feature_names: list[str] | str | None = None,
         categorical_feature_names: list[str] | str | None = None,
