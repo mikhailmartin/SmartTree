@@ -1,5 +1,6 @@
 from contextlib import nullcontext as does_not_raise
 
+import pandas as pd
 import pytest
 
 from smarttree import BaseSmartDecisionTree
@@ -59,16 +60,25 @@ def implemented_smart_tree() -> BaseSmartDecisionTree:
         def predict_proba(self, X):
             return "Implemented"
 
-        def score(self, X, y):
+        def score(self, X, y, sample_weight: pd.Series | None = None):
             return "Implemented"
 
-        def get_params(self):
+        def get_params(self, deep: bool = True):
             return "Implemented"
 
         def set_params(self):
             return "Implemented"
 
-        def render(self):
+        def render(
+            self,
+            *,
+            rounded: bool = False,
+            show_impurity: bool = False,
+            show_num_samples: bool = False,
+            show_distribution: bool = False,
+            show_label: bool = False,
+            **kwargs,
+        ):
             return "Implemented"
 
     return ImplementedSmartTree()
