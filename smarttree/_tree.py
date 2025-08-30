@@ -588,7 +588,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
 
         # attributes that are open for reading
         self.__graph = None
-        self.__class_names: list[str] = []
+        self.__classes: list[str] = []
 
     def __check_init_params(self) -> None:
         # TODO: finish this part
@@ -604,9 +604,9 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         ...
 
     @property
-    def class_names(self) -> list[str]:
+    def classes_(self) -> list[str]:
         self._check_is_fitted()
-        return self.__class_names
+        return self.__classes
 
     def __repr__(self) -> str:
         repr_ = []
@@ -734,7 +734,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         )
 
         self._feature_names = X.columns.tolist()
-        self.__class_names = sorted(y.unique())
+        self.__classes = sorted(y.unique())
 
         match self.numerical_nan_mode:
             case "min":
@@ -812,7 +812,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
 
         y_pred_proba_s = self.predict_proba(X)
         y_pred = [
-            self.__class_names[y_pred_proba.argmax()] for y_pred_proba in y_pred_proba_s
+            self.__classes[y_pred_proba.argmax()] for y_pred_proba in y_pred_proba_s
         ]
 
         return y_pred

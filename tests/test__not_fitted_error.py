@@ -50,6 +50,6 @@ def not_fitted_tree_classifier() -> SmartDecisionTreeClassifier:
     return SmartDecisionTreeClassifier()
 
 
-def test__class_names(not_fitted_tree_classifier):
+def test__classes_(not_fitted_tree_classifier):
     with raises(NotFittedError):
-        _ = not_fitted_tree_classifier.class_names
+        _ = not_fitted_tree_classifier.classes_
