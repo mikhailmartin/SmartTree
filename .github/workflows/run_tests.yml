@@ -32,7 +32,7 @@ jobs:
       - name: Install dependencies
         run: |
           poetry install --no-interaction --no-root --with test
-          poetry run pip install -e
+          poetry run pip install -e .
       - name: Test with pytest
         run: |
           source $VENV
