@@ -1,4 +1,3 @@
-# TODO: dataclass
 class TreeNode:
     """Decision Tree Node."""
     def __init__(

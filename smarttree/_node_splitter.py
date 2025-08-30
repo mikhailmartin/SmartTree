@@ -23,7 +23,6 @@ SplitResult = namedtuple(
 
 
 class NodeSplitter:
-    """TODO."""
 
     def __init__(
         self,
@@ -97,7 +96,6 @@ class NodeSplitter:
             rank_feature_names=self.rank_feature_names,
         )
 
-    # TODO: не только проверяет, но и мутирует узел
     def is_splittable(self, node: TreeNode) -> bool:
         """Checks whether a tree node can be split."""
         if node.depth >= self.max_depth:

@@ -38,7 +38,6 @@ class Builder:
         self.node_counter: int = 0
 
     def build(self) -> TreeNode:
-        """TODO."""
         hierarchy = self.hierarchy.copy()
         available_feature_names = self.X.columns.tolist()
         # remove those features that cannot be considered yet
@@ -161,7 +160,6 @@ class Builder:
         return gini_index
 
     def entropy(self, mask: pd.Series) -> float:
-        # TODO: посмотреть разницу между Джини индексом и проч
         r"""
         Calculates entropy in a tree node.
 

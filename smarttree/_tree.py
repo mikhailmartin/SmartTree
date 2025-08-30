@@ -30,17 +30,11 @@ class BaseSmartDecisionTree:
         self,
         *,
         criterion: ClassificationCriterionOption = "gini",
-        # TODO: splitter: Literal["best", "random"],
         max_depth: int | None = None,
         min_samples_split: int | float = 2,
         min_samples_leaf: int | float = 1,
-        # TODO: min_weight_fraction_leaf: float,
-        # TODO: max_features:int | float| Literal["sqrt", "log2"],
-        # TODO: random_state: int | RandomState instance | None,
         max_leaf_nodes: int | None = None,
         min_impurity_decrease: float = .0,
-        # TODO: ccp_alpha: float,
-        # TODO: monotonic_cst,
         max_childs: int | None = None,
         numerical_feature_names: list[str] | str | None = None,
         categorical_feature_names: list[str] | str | None = None,
@@ -411,7 +405,7 @@ class BaseSmartDecisionTree:
             )
 
     @abstractmethod
-    def predict(self, X: pd.DataFrame | pd.Series) -> list[str] | str:  # TODO
+    def predict(self, X: pd.DataFrame | pd.Series) -> list[str] | str:
         raise NotImplementedError
 
     @abstractmethod
@@ -604,7 +598,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         ...
 
     @property
-    def classes_(self) -> list[str]:
+    def classes_(self) -> list[str]:  # TODO: -> np.array
         self._check_is_fitted()
         return self.__classes
 
@@ -832,8 +826,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             classes corresponds to that in the attribute :term:`class_names`.
         """
         self._check_is_fitted()
-
-        # TODO: write __check_predict_proba_data()
 
         X = self.__preprocess(X)
 

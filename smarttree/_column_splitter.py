@@ -119,7 +119,6 @@ class BaseColumnSplitter(ABC):
         return gini_index
 
     def entropy(self, mask: pd.Series) -> float:
-        # TODO: посмотреть разницу между Джини индексом и проч
         r"""
         Calculates entropy in a tree node.
 
