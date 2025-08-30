@@ -2,6 +2,7 @@
 from abc import abstractmethod
 import logging
 import math
+from typing import Self
 
 from graphviz import Digraph
 import numpy as np
@@ -9,15 +10,16 @@ import pandas as pd
 from sklearn.metrics import accuracy_score
 
 from smarttree._builder import Builder
-from smarttree._node_splitter import NodeSplitter
-from smarttree._tree_node import TreeNode
-from smarttree._exceptions import NotFittedError
 from smarttree._constants import (
     ClassificationCriterionOption,
     NumericalNanModeOption,
     CategoricalNanModeOption,
     VerboseOption,
 )
+from smarttree._exceptions import NotFittedError
+from smarttree._node_splitter import NodeSplitter
+from smarttree._renderer import Renderer
+from smarttree._tree_node import TreeNode
 
 
 class BaseSmartDecisionTree:
@@ -1005,7 +1007,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         }
 
     # TODO: сейчас явно не правильно работает
-    def set_params(self, **params):
+    def set_params(self, **params) -> Self:
         """Set the parameters of this estimator."""
         # Simple optimization to gain speed (inspect is slow)
         if not params:
@@ -1039,98 +1041,32 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         If named parameters are set, saves the visualization as a file(s).
 
         Parameters:
-            rounded: whether to round the corners of the nodes
+            rounded: bool, default=False
+              Whether to round the corners of the nodes
               (they are in the shape of a rectangle).
-            show_impurity: whether to show the impurity of the node.
-            show_num_samples: whether to show the number of samples in the node.
-            show_distribution: whether to show the class distribution.
-            show_label: whether to show the class to which the node belongs.
+            show_impurity: bool, default=False
+              Whether to show the impurity of the node.
+            show_num_samples: bool, default=False
+              Whether to show the number of samples in the node.
+            show_distribution: bool, default=False
+              Whether to show the class distribution.
+            show_label: bool, default=False
+              Whether to show the class to which the node belongs.
             **kwargs: arguments for graphviz.Digraph.render.
 
         Returns:
-            An object of the Digraph class containing a description of the graph
-            structure of the tree for visualization.
+            Digraph: class containing a description of the graph structure of
+            the tree for visualization.
         """
         self._check_is_fitted()
 
-        if self.__graph is None:
-            self.__create_graph(
-                rounded, show_impurity, show_num_samples, show_distribution, show_label)
-        if kwargs:
-            self.__graph.render(**kwargs)
-
-        return self.__graph
-
-    def __create_graph(
-        self,
-        rounded: bool,
-        show_impurity: bool,
-        show_num_samples: bool,
-        show_distribution: bool,
-        show_label: bool,
-    ) -> None:
-        """
-        Creates an object of the Digraph class containing a description of the graph
-        structure of the tree for visualization.
-        """
-        node_attr = {"shape": "box"}
-        if rounded:
-            node_attr["style"] = "rounded"
-
-        self.__graph = Digraph(name="decision tree", node_attr=node_attr)
-        self.__add_node(
-            node=self._root,
-            parent_name=None,
+        renderer = Renderer(criterion=self.criterion, rounded=rounded)
+        graph = renderer.render(
+            tree=self.tree,
             show_impurity=show_impurity,
             show_num_samples=show_num_samples,
             show_distribution=show_distribution,
             show_label=show_label,
         )
 
-    def __add_node(
-        self,
-        node: TreeNode,
-        parent_name: str | None,
-        show_impurity: bool,
-        show_num_samples: bool,
-        show_distribution: bool,
-        show_label: bool,
-    ) -> None:
-        """
-        Recursively adds a description of the node and its relationship to the parent
-        node (if available).
-        """
-        node_name = f"node {node.number}"
-
-        node_content = [f"Node {node.number}"]
-        if node.split_feature_name:
-            node_content.append(f"{node.split_feature_name}")
-        if show_impurity:
-            node_content.append(f"{self.criterion} = {node.impurity:.2f}")
-        if show_num_samples:
-            node_content.append(f"samples = {node.samples}")
-        if show_distribution:
-            node_content.append(f"distribution = {node.distribution}")
-        if show_label:
-            node_content.append(f"label = {node.label}")
-        node_content = "\n".join(node_content)
-
-        self.__graph.node(name=node_name, label=node_content)
-
-        if parent_name:
-            edge_label = "\n".join([str(fv) for fv in node.feature_value])
-            self.__graph.edge(
-                tail_name=parent_name,
-                head_name=node_name,
-                label=edge_label,
-            )
-
-        for child in node.childs:
-            self.__add_node(
-                node=child,
-                parent_name=node_name,
-                show_impurity=show_impurity,
-                show_num_samples=show_num_samples,
-                show_distribution=show_distribution,
-                show_label=show_label,
-            )
+        return graph
