@@ -333,6 +333,19 @@ class BaseSmartDecisionTree:
                 f" The current value of `categorical_nan_filler` is {self.__categorical_nan_filler!r}."
             )
 
+    def __check_init_params(self) -> None:
+        # TODO: finish this part
+        # if (
+        #     (isinstance(min_samples_split, int) and isinstance(min_samples_leaf, int))
+        #     and min_samples_split < 2 * min_samples_leaf
+        # ):
+        #     raise ValueError(
+        #         '`min_samples_split` должен быть строго в 2 раза больше'
+        #         ' `min_samples_leaf`. Текущее значение `min_samples_split` ='
+        #         f' {min_samples_split}, `min_samples_leaf` = {min_samples_leaf}.'
+        #     )
+        ...
+
     @property
     def criterion(self) -> ClassificationCriterionOption:
         return self.__criterion
@@ -604,7 +617,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         categorical_nan_filler: str = "missing_value",
         verbose: VerboseOption = "WARNING",
     ) -> None:
-
         super().__init__(
             criterion=criterion,
             max_depth=max_depth,
@@ -622,22 +634,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             categorical_nan_filler=categorical_nan_filler,
             verbose=verbose,
         )
-
-        # attributes that are open for reading
         self.__classes: list[str] = []
-
-    def __check_init_params(self) -> None:
-        # TODO: finish this part
-        # if (
-        #     (isinstance(min_samples_split, int) and isinstance(min_samples_leaf, int))
-        #     and min_samples_split < 2 * min_samples_leaf
-        # ):
-        #     raise ValueError(
-        #         '`min_samples_split` должен быть строго в 2 раза больше'
-        #         ' `min_samples_leaf`. Текущее значение `min_samples_split` ='
-        #         f' {min_samples_split}, `min_samples_leaf` = {min_samples_leaf}.'
-        #     )
-        ...
 
     @property
     def classes_(self) -> list[str]:  # TODO: -> np.array
