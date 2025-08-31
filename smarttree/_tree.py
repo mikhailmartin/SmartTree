@@ -420,9 +420,27 @@ class BaseSmartDecisionTree:
     ) -> float:
         raise NotImplementedError
 
-    @abstractmethod
-    def get_params(self, deep: bool = True) -> dict:
-        raise NotImplementedError
+    def get_params(
+        self,
+        deep: bool = True,  # implemented for sklearn.model_selection.GridSearchCV
+    ) -> dict:
+        """Returns the parameters of this estimator instance."""
+        return {
+            "criterion": self.criterion,
+            "max_depth": self.max_depth,
+            "min_samples_split": self.min_samples_split,
+            "min_samples_leaf": self.min_samples_leaf,
+            "max_leaf_nodes": self.max_leaf_nodes,
+            "min_impurity_decrease": self.min_impurity_decrease,
+            "max_childs": self.max_childs,
+            "numerical_feature_names": self.numerical_feature_names,
+            "categorical_feature_names": self.categorical_feature_names,
+            "rank_feature_names": self.rank_feature_names,
+            "hierarchy": self.hierarchy,
+            "numerical_nan_mode": self.numerical_nan_mode,
+            "categorical_nan_mode": self.categorical_nan_mode,
+            "categorical_nan_filler": self.categorical_nan_filler,
+        }
 
     @abstractmethod
     def set_params(self, **params):
@@ -974,28 +992,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         score = accuracy_score(y, self.predict(X), sample_weight=sample_weight)
 
         return score
-
-    def get_params(
-        self,
-        deep: bool = True,  # implemented for sklearn.model_selection.GridSearchCV
-    ) -> dict:
-        """Returns the parameters of this estimator instance."""
-        return {
-            "criterion": self.criterion,
-            "max_depth": self.max_depth,
-            "min_samples_split": self.min_samples_split,
-            "min_samples_leaf": self.min_samples_leaf,
-            "max_leaf_nodes": self.max_leaf_nodes,
-            "min_impurity_decrease": self.min_impurity_decrease,
-            "max_childs": self.max_childs,
-            "numerical_feature_names": self.numerical_feature_names,
-            "categorical_feature_names": self.categorical_feature_names,
-            "rank_feature_names": self.rank_feature_names,
-            "hierarchy": self.hierarchy,
-            "numerical_nan_mode": self.numerical_nan_mode,
-            "categorical_nan_mode": self.categorical_nan_mode,
-            "categorical_nan_filler": self.categorical_nan_filler,
-        }
 
     def set_params(self, **params) -> Self:
         """Set the parameters of this estimator instance."""
