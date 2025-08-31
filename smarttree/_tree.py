@@ -442,9 +442,23 @@ class BaseSmartDecisionTree:
             "categorical_nan_filler": self.categorical_nan_filler,
         }
 
-    @abstractmethod
-    def set_params(self, **params):
-        raise NotImplementedError
+    def set_params(self, **params) -> Self:
+        """Set the parameters of this estimator instance."""
+        # Simple optimization to gain speed (inspect is slow)
+        if not params:
+            return self
+
+        valid_params = self.get_params(deep=True)
+
+        for param, value in params.items():
+            if param not in valid_params:
+                raise ValueError(
+                    f"Invalid parameter {param} for estimator {self}."
+                    f" Valid parameters are: {valid_params}."
+                )
+            setattr(self, f"_{self.__class__.__name__}__{param}", value)
+
+        return self
 
     @abstractmethod
     def render(
@@ -992,24 +1006,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         score = accuracy_score(y, self.predict(X), sample_weight=sample_weight)
 
         return score
-
-    def set_params(self, **params) -> Self:
-        """Set the parameters of this estimator instance."""
-        # Simple optimization to gain speed (inspect is slow)
-        if not params:
-            return self
-
-        valid_params = self.get_params(deep=True)
-
-        for param, value in params.items():
-            if param not in valid_params:
-                raise ValueError(
-                    f"Invalid parameter {param} for estimator {self}."
-                    f" Valid parameters are: {valid_params}."
-                )
-            setattr(self, f'_{self.__class__.__name__}__{param}', value)
-
-        return self
 
     def render(
         self,
