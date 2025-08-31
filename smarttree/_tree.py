@@ -273,7 +273,7 @@ class BaseSmartDecisionTree:
     def __check__hierarchy(self) -> None:
         common_message = (
             "`hierarchy` must be a dictionary"
-            " {opening feature: opened feature / list of opened strings}."
+            " {opening feature: opened feature / list of opened features}."
         )
 
         if isinstance(self.__hierarchy, dict):
