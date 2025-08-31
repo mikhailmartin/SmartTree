@@ -64,3 +64,24 @@ def implemented_smart_tree() -> BaseSmartDecisionTree:
 def test__implemented(implemented_smart_tree, X, y, method_call):
     with does_not_raise():
         method_call(implemented_smart_tree, X, y)
+
+
+def test__get_params(implemented_smart_tree):
+    params = implemented_smart_tree.get_params()
+    expected_params = {
+        "criterion": "gini",
+        "max_depth": None,
+        "min_samples_split": 2,
+        "min_samples_leaf": 1,
+        "max_leaf_nodes": None,
+        "min_impurity_decrease": .0,
+        "max_childs": None,
+        "numerical_feature_names": [],
+        "categorical_feature_names": [],
+        "rank_feature_names": {},
+        "hierarchy": {},
+        "numerical_nan_mode": "min",
+        "categorical_nan_mode": "as_category",
+        "categorical_nan_filler": "missing_value",
+    }
+    assert params == expected_params
