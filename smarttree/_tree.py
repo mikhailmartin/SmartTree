@@ -2,6 +2,7 @@
 import logging
 import math
 from abc import abstractmethod
+from functools import lru_cache
 from typing import Self
 
 import numpy as np
@@ -623,7 +624,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         )
 
         # attributes that are open for reading
-        self.__graph = None
         self.__classes: list[str] = []
 
     def __check_init_params(self) -> None:
@@ -1018,6 +1018,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
 
         return score
 
+    @lru_cache
     def render(
         self,
         *,
