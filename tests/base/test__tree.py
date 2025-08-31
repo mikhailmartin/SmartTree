@@ -33,11 +33,6 @@ def test__score(not_implemented_smart_tree, X, y):
         not_implemented_smart_tree.score(X, y)
 
 
-def test__get_params(not_implemented_smart_tree):
-    with pytest.raises(NotImplementedError):
-        not_implemented_smart_tree.get_params()
-
-
 def test__set_params(not_implemented_smart_tree):
     with pytest.raises(NotImplementedError):
         not_implemented_smart_tree.set_params()
@@ -61,9 +56,6 @@ def implemented_smart_tree() -> BaseSmartDecisionTree:
             return "Implemented"
 
         def score(self, X, y, sample_weight: pd.Series | None = None):
-            return "Implemented"
-
-        def get_params(self, deep: bool = True):
             return "Implemented"
 
         def set_params(self):
