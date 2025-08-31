@@ -5,6 +5,17 @@ import pytest
 
 from smarttree import BaseSmartDecisionTree
 
+parametrization = {
+    "argnames": "method_call",
+    "argvalues": [
+        lambda tree, X, y: tree.fit(X, y),
+        lambda tree, X, y: tree.predict(X),
+        lambda tree, X, y: tree.predict_proba(X),
+        lambda tree, X, y: tree.score(X, y),
+        lambda tree, X, y: tree.render(),
+    ],
+}
+
 
 @pytest.fixture(scope="module")
 def not_implemented_smart_tree() -> BaseSmartDecisionTree:
@@ -13,29 +24,10 @@ def not_implemented_smart_tree() -> BaseSmartDecisionTree:
     return NotImplementedSmartTree()
 
 
-def test__fit(not_implemented_smart_tree, X, y):
+@pytest.mark.parametrize(**parametrization)
+def test__not_implemented(not_implemented_smart_tree, X, y, method_call):
     with pytest.raises(NotImplementedError):
-        not_implemented_smart_tree.fit(X, y)
-
-
-def test__predict(not_implemented_smart_tree, X):
-    with pytest.raises(NotImplementedError):
-        not_implemented_smart_tree.predict(X)
-
-
-def test__predict_proba(not_implemented_smart_tree, X):
-    with pytest.raises(NotImplementedError):
-        not_implemented_smart_tree.predict_proba(X)
-
-
-def test__score(not_implemented_smart_tree, X, y):
-    with pytest.raises(NotImplementedError):
-        not_implemented_smart_tree.score(X, y)
-
-
-def test__render(not_implemented_smart_tree):
-    with pytest.raises(NotImplementedError):
-        not_implemented_smart_tree.render()
+        method_call(not_implemented_smart_tree, X, y)
 
 
 @pytest.fixture(scope="module")
@@ -68,12 +60,7 @@ def implemented_smart_tree() -> BaseSmartDecisionTree:
     return ImplementedSmartTree()
 
 
-def test__implemented(implemented_smart_tree, X, y):
+@pytest.mark.parametrize(**parametrization)
+def test__implemented(implemented_smart_tree, X, y, method_call):
     with does_not_raise():
-        implemented_smart_tree.fit(X, y)
-        implemented_smart_tree.predict(X)
-        implemented_smart_tree.predict_proba(X)
-        implemented_smart_tree.score(X, y)
-        implemented_smart_tree.get_params()
-        implemented_smart_tree.set_params()
-        implemented_smart_tree.render()
+        method_call(implemented_smart_tree, X, y)
