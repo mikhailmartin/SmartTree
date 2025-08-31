@@ -540,7 +540,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         hierarchy: dict, default=None
           ...
 
-        numerical_nan_mode: Literal['include', 'min', 'max'], default='include'
+        numerical_nan_mode: {'include', 'min', 'max'}, default='include'
           The mode of handling missing values in a numerical feature.
 
           - If 'include': While training samples with missing values are
@@ -551,7 +551,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
           - If 'max', missing values are filled with maximum value of
             a numerical feature in training data.
 
-        categorical_nan_mode: Literal['include', 'as_category'], default='include'
+        categorical_nan_mode: {'include', 'as_category'}, default='include'
           The mode of handling missing values in a categorical feature.
 
           - If 'include': While training samples with missing values are
@@ -565,7 +565,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
           training and predicting missing values will be filled with
           `categorical_nan_filler`.
 
-        verbose: Literal['critical', 'error', 'warning', 'info', 'debug'] or int, default="warning"
+        verbose: {'critical', 'error', 'warning', 'info', 'debug'} or int, default="warning"
           Controls the level of decision tree verbosity.
 
           - If 'critical'
