@@ -450,11 +450,12 @@ class BaseSmartDecisionTree:
             return self
 
         valid_params = self.get_params(deep=True)
+        valid_params = ", ".join(valid_params.keys())
 
         for param, value in params.items():
             if param not in valid_params:
                 raise ValueError(
-                    f"Invalid parameter {param} for estimator {self}."
+                    f"Invalid parameter `{param}` for estimator {self.__class__.__name__}."
                     f" Valid parameters are: {valid_params}."
                 )
             setattr(self, f"_{self.__class__.__bases__[0].__name__}__{param}", value)
