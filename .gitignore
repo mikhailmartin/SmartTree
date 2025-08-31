@@ -5,6 +5,4 @@
 # bytecode
 __pycache__/
 
-*.csv
-!test_dataset.csv
 *.ipynb
