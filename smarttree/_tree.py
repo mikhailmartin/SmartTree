@@ -117,8 +117,17 @@ class BaseSmartDecisionTree:
 
         if self.__rank_feature_names is None:
             self.__rank_feature_names = dict()
+            self.logger.debug(
+                f"[{self.__class__.__name__}] [Debug] `rank_feature_names`"
+                f" is set to {self.__rank_feature_names}."
+            )
 
-        self.__hierarchy = hierarchy if hierarchy else dict()
+        if self.__hierarchy is None:
+            self.__hierarchy = dict()
+            self.logger.debug(
+                f"[{self.__class__.__name__}] [Debug] `hierarchy`"
+                f" is set to {self.__hierarchy}."
+            )
 
     def __check__criterion(self) -> None:
         if self.__criterion not in ("entropy", "gini", "log_loss"):
