@@ -85,3 +85,25 @@ def test__get_params(implemented_smart_tree):
         "categorical_nan_filler": "missing_value",
     }
     assert params == expected_params
+
+
+def test__set_params(implemented_smart_tree):
+    expected_params = params_to_set = {
+        "criterion": "entropy",
+        "max_depth": 4,
+        "min_samples_split": 4,
+        "min_samples_leaf": 2,
+        "max_leaf_nodes": 2,
+        "min_impurity_decrease": .01,
+        "max_childs": 2,
+        "numerical_feature_names": ["num_feature"],
+        "categorical_feature_names": ["cat_feature"],
+        "rank_feature_names": {"rank_feature": ["1", "2", "3"]},
+        "hierarchy": {"num_feature": "rank_feature"},
+        "numerical_nan_mode": "max",
+        "categorical_nan_mode": "include",
+        "categorical_nan_filler": "NaN",
+    }
+    implemented_smart_tree.set_params(**params_to_set)
+    params = implemented_smart_tree.get_params()
+    assert params == expected_params
