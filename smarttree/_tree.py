@@ -271,34 +271,35 @@ class BaseSmartDecisionTree:
             )
 
     def __check__hierarchy(self) -> None:
+        common_message = (
+            "`hierarchy` must be a dictionary"
+            " {opening feature: opened feature / list of opened strings}."
+        )
+
         if isinstance(self.__hierarchy, dict):
             for key, value in self.__hierarchy.items():
                 if not isinstance(key, str):
                     raise ValueError(
-                        "`hierarchy` must be a dictionary"
-                        " {opening feature: opened feature / list of opened strings}."
-                        f" Value {key!r} of opening feature isnt a string."
+                        common_message
+                        + f" Value {key!r} of opening feature isnt a string."
                     )
                 if not isinstance(value, (str, list)):
                     raise ValueError(
-                        "`hierarchy` must be a dictionary"
-                        " {opening feature: opened feature / list of opened features}."
-                        f" Value {value} of opened feature(s) isnt a string (list of"
+                        common_message
+                        + f" Value {value} of opened feature(s) isnt a string (list of"
                         " strings)."
                     )
                 if isinstance(value, list):
                     for elem in value:
                         if not isinstance(elem, str):
                             raise ValueError(
-                                "`hierarchy` must be a dictionary {opening feature:"
-                                " opened feature / list of opened features}."
-                                f" Value {elem} of opened feature isnt a string."
+                                common_message
+                                + f" Value {elem} of opened feature isnt a string."
                             )
         elif self.__hierarchy is not None:
             raise ValueError(
-                "`hierarchy` must be a dictionary"
-                " {opening feature: opened feature / list of opened strings}."
-                f" The current value of `hierarchy` is {self.__hierarchy!r}."
+                common_message
+                + f" The current value of `hierarchy` is {self.__hierarchy!r}."
             )
 
     def __check__numerical_nan_mode(self) -> None:
