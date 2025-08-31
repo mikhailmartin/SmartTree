@@ -457,7 +457,7 @@ class BaseSmartDecisionTree:
                     f"Invalid parameter {param} for estimator {self}."
                     f" Valid parameters are: {valid_params}."
                 )
-            setattr(self, f"_{self.__class__.__name__}__{param}", value)
+            setattr(self, f"_{self.__class__.__bases__[0].__name__}__{param}", value)
 
         return self
 
