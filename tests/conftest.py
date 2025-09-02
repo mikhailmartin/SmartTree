@@ -4,6 +4,7 @@ import pandas as pd
 import pytest
 
 from smarttree import BaseSmartDecisionTree
+from smarttree._tree_node import TreeNode
 
 NUMERICAL_FEATURE_NAMES = [
     "2. Возраст",
@@ -146,6 +147,17 @@ def rank_feature_names() -> dict[str: list]:
 @pytest.fixture(scope="session")
 def y(data) -> pd.Series:
     return data[TARGET_COL]
+
+
+@pytest.fixture(scope="session")
+def root_node(X, y):
+    return TreeNode(
+        number=0,
+        samples=y.apply(lambda x: True).sum(),
+        depth=0,
+        mask=y.apply(lambda x: True),
+        available_feature_names=X.columns.tolist(),
+    )
 
 
 class ConcreteSmartTree(BaseSmartDecisionTree):

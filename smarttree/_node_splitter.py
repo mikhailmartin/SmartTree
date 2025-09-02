@@ -104,24 +104,20 @@ class NodeSplitter:
         if node.samples < self.min_samples_split:
             return False
 
-        split_result = self.find_best_split(node.mask, node.available_feature_names)
+        split_result = self.find_best_split(node)
         if split_result.inf_gain < self.min_impurity_decrease:
             return False
         else:
             node.split_result = split_result
             return True
 
-    def find_best_split(
-        self,
-        parent_mask: pd.Series,
-        available_feature_names: list[str],
-    ) -> SplitResult:
+    def find_best_split(self, node: TreeNode) -> SplitResult:
         """
         Finds the best tree node split, if it exists.
 
         Parameters:
-            parent_mask: boolean mask of the tree node.
-            available_feature_names: the list of features available for splitting.
+            node: TreeNode
+              The tree node to find best split.
 
         Returns:
             Tuple `(inf_gain, split_type, split_feature_name, feature_values,
@@ -137,18 +133,18 @@ class NodeSplitter:
         best_split_feature_name = None
         best_feature_values = None
         best_child_masks = None
-        for split_feature_name in available_feature_names:
+        for split_feature_name in node.available_feature_names:
             split_type = self.feature_split_type[split_feature_name]
             match split_type:
                 case "numerical":
                     inf_gain, feature_values, child_masks = \
-                        self.numerical_column_splitter.split(parent_mask, split_feature_name)
+                        self.numerical_column_splitter.split(node.mask, split_feature_name)
                 case "categorical":
                     inf_gain, feature_values, child_masks = \
-                        self.categorical_column_splitter.split(parent_mask, split_feature_name, self.leaf_counter)
+                        self.categorical_column_splitter.split(node.mask, split_feature_name, self.leaf_counter)
                 case "rank":
                     inf_gain, feature_values, child_masks = \
-                        self.rank_column_splitter.split(parent_mask, split_feature_name)
+                        self.rank_column_splitter.split(node.mask, split_feature_name)
 
             if best_inf_gain < inf_gain:
                 best_inf_gain = inf_gain
