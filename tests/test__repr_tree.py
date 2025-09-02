@@ -1,5 +1,4 @@
 import pytest
-from pytest import param
 
 from smarttree import SmartDecisionTreeClassifier
 from smarttree._constants import (
@@ -12,9 +11,10 @@ from smarttree._constants import (
 @pytest.mark.parametrize(
     ("criterion", "expected"),
     [
-        param("gini", f"{SmartDecisionTreeClassifier.__name__}()"),
-        param("entropy", f"{SmartDecisionTreeClassifier.__name__}(criterion='entropy')"),
+        ("gini", f"{SmartDecisionTreeClassifier.__name__}()"),
+        ("entropy", f"{SmartDecisionTreeClassifier.__name__}(criterion='entropy')"),
     ],
+    ids=["default value", "not default value"],
 )
 def test_repr_tree__criterion(criterion, expected):
     criterion: ClassificationCriterionOption
@@ -25,9 +25,10 @@ def test_repr_tree__criterion(criterion, expected):
 @pytest.mark.parametrize(
     ("max_depth", "expected"),
     [
-        param(None, f"{SmartDecisionTreeClassifier.__name__}()"),
-        param(1, f"{SmartDecisionTreeClassifier.__name__}(max_depth=1)"),
+        (None, f"{SmartDecisionTreeClassifier.__name__}()"),
+        (1, f"{SmartDecisionTreeClassifier.__name__}(max_depth=1)"),
     ],
+    ids=["default value", "not default value"],
 )
 def test_repr_tree__max_depth(max_depth, expected):
     tree_classifier = SmartDecisionTreeClassifier(max_depth=max_depth)
@@ -37,10 +38,11 @@ def test_repr_tree__max_depth(max_depth, expected):
 @pytest.mark.parametrize(
     ("min_samples_split", "expected"),
     [
-        param(2, f"{SmartDecisionTreeClassifier.__name__}()"),
-        param(3, f"{SmartDecisionTreeClassifier.__name__}(min_samples_split=3)"),
-        param(.5, f"{SmartDecisionTreeClassifier.__name__}(min_samples_split=0.5)"),
+        (2, f"{SmartDecisionTreeClassifier.__name__}()"),
+        (3, f"{SmartDecisionTreeClassifier.__name__}(min_samples_split=3)"),
+        (.5, f"{SmartDecisionTreeClassifier.__name__}(min_samples_split=0.5)"),
     ],
+    ids=["default value", "not default value(int)", "not default value(float)"],
 )
 def test_repr_tree__min_samples_split(min_samples_split, expected):
     tree_classifier = SmartDecisionTreeClassifier(min_samples_split=min_samples_split)
@@ -50,10 +52,11 @@ def test_repr_tree__min_samples_split(min_samples_split, expected):
 @pytest.mark.parametrize(
     ("min_samples_leaf", "expected"),
     [
-        param(1, f"{SmartDecisionTreeClassifier.__name__}()"),
-        param(2, f"{SmartDecisionTreeClassifier.__name__}(min_samples_leaf=2)"),
-        param(.5, f"{SmartDecisionTreeClassifier.__name__}(min_samples_leaf=0.5)"),
+        (1, f"{SmartDecisionTreeClassifier.__name__}()"),
+        (2, f"{SmartDecisionTreeClassifier.__name__}(min_samples_leaf=2)"),
+        (.5, f"{SmartDecisionTreeClassifier.__name__}(min_samples_leaf=0.5)"),
     ],
+    ids=["default value", "not default value(int)", "not default value(float)"],
 )
 def test_repr_tree__min_samples_leaf(min_samples_leaf, expected):
     tree_classifier = SmartDecisionTreeClassifier(min_samples_leaf=min_samples_leaf)
@@ -63,9 +66,10 @@ def test_repr_tree__min_samples_leaf(min_samples_leaf, expected):
 @pytest.mark.parametrize(
     ("max_leaf_nodes", "expected"),
     [
-        param(None, f"{SmartDecisionTreeClassifier.__name__}()"),
-        param(2, f"{SmartDecisionTreeClassifier.__name__}(max_leaf_nodes=2)"),
+        (None, f"{SmartDecisionTreeClassifier.__name__}()"),
+        (2, f"{SmartDecisionTreeClassifier.__name__}(max_leaf_nodes=2)"),
     ],
+    ids=["default value", "not default value"],
 )
 def test_repr_tree__max_leaf_nodes(max_leaf_nodes, expected):
     tree_classifier = SmartDecisionTreeClassifier(max_leaf_nodes=max_leaf_nodes)
@@ -75,9 +79,10 @@ def test_repr_tree__max_leaf_nodes(max_leaf_nodes, expected):
 @pytest.mark.parametrize(
     ("min_impurity_decrease", "expected"),
     [
-        param(.0, f"{SmartDecisionTreeClassifier.__name__}()"),
-        param(.5, f"{SmartDecisionTreeClassifier.__name__}(min_impurity_decrease=0.5)"),
+        (.0, f"{SmartDecisionTreeClassifier.__name__}()"),
+        (.5, f"{SmartDecisionTreeClassifier.__name__}(min_impurity_decrease=0.5)"),
     ],
+    ids=["default value", "not default value"],
 )
 def test_repr_tree__min_impurity_decrease(min_impurity_decrease, expected):
     tree_classifier = SmartDecisionTreeClassifier(min_impurity_decrease=min_impurity_decrease)
@@ -87,9 +92,10 @@ def test_repr_tree__min_impurity_decrease(min_impurity_decrease, expected):
 @pytest.mark.parametrize(
     ("max_childs", "expected"),
     [
-        param(None, f"{SmartDecisionTreeClassifier.__name__}()"),
-        param(2, f"{SmartDecisionTreeClassifier.__name__}(max_childs=2)"),
+        (None, f"{SmartDecisionTreeClassifier.__name__}()"),
+        (2, f"{SmartDecisionTreeClassifier.__name__}(max_childs=2)"),
     ],
+    ids=["default value", "not default value"],
 )
 def test_repr_tree__max_childs(max_childs, expected):
     tree_classifier = SmartDecisionTreeClassifier(max_childs=max_childs)
@@ -99,10 +105,11 @@ def test_repr_tree__max_childs(max_childs, expected):
 @pytest.mark.parametrize(
     ("numerical_feature_names", "expected"),
     [
-        param(None, f"{SmartDecisionTreeClassifier.__name__}()"),
-        param("feature", f"{SmartDecisionTreeClassifier.__name__}(numerical_feature_names=['feature'])"),
-        param(["feature"], f"{SmartDecisionTreeClassifier.__name__}(numerical_feature_names=['feature'])"),
+        (None, f"{SmartDecisionTreeClassifier.__name__}()"),
+        ("feature", f"{SmartDecisionTreeClassifier.__name__}(numerical_feature_names=['feature'])"),
+        (["feature"], f"{SmartDecisionTreeClassifier.__name__}(numerical_feature_names=['feature'])"),
     ],
+    ids=["default value", "not default value(str)", "not default value(list[str])"],
 )
 def test_repr_tree__numerical_feature_names(numerical_feature_names, expected):
     tree_classifier = SmartDecisionTreeClassifier(
@@ -113,10 +120,11 @@ def test_repr_tree__numerical_feature_names(numerical_feature_names, expected):
 @pytest.mark.parametrize(
     ("categorical_feature_names", "expected"),
     [
-        param(None, f"{SmartDecisionTreeClassifier.__name__}()"),
-        param("feature", f"{SmartDecisionTreeClassifier.__name__}(categorical_feature_names=['feature'])"),
-        param(["feature"], f"{SmartDecisionTreeClassifier.__name__}(categorical_feature_names=['feature'])"),
+        (None, f"{SmartDecisionTreeClassifier.__name__}()"),
+        ("feature", f"{SmartDecisionTreeClassifier.__name__}(categorical_feature_names=['feature'])"),
+        (["feature"], f"{SmartDecisionTreeClassifier.__name__}(categorical_feature_names=['feature'])"),
     ],
+    ids=["default value", "not default value(str)", "not default value(list[str])"],
 )
 def test_repr_tree__categorical_feature_names(categorical_feature_names, expected):
     tree_classifier = SmartDecisionTreeClassifier(
@@ -127,9 +135,10 @@ def test_repr_tree__categorical_feature_names(categorical_feature_names, expecte
 @pytest.mark.parametrize(
     ("rank_feature_names", "expected"),
     [
-        param(None, f"{SmartDecisionTreeClassifier.__name__}()"),
-        param({"f": ["v1", "v2"]}, f"{SmartDecisionTreeClassifier.__name__}(rank_feature_names={{'f': ['v1', 'v2']}})"),
+        (None, f"{SmartDecisionTreeClassifier.__name__}()"),
+        ({"f": ["v1", "v2"]}, f"{SmartDecisionTreeClassifier.__name__}(rank_feature_names={{'f': ['v1', 'v2']}})"),
     ],
+    ids=["default value", "not default value"],
 )
 def test_repr_tree__rank_feature_names(rank_feature_names, expected):
     tree_classifier = SmartDecisionTreeClassifier(rank_feature_names=rank_feature_names)
@@ -139,9 +148,14 @@ def test_repr_tree__rank_feature_names(rank_feature_names, expected):
 @pytest.mark.parametrize(
     ("hierarchy", "expected"),
     [
-        param(None, f"{SmartDecisionTreeClassifier.__name__}()"),
-        param({"f": "f1"}, f"{SmartDecisionTreeClassifier.__name__}(hierarchy={{'f': 'f1'}})"),
-        param({"f": ["f1", "f2"]}, f"{SmartDecisionTreeClassifier.__name__}(hierarchy={{'f': ['f1', 'f2']}})"),
+        (None, f"{SmartDecisionTreeClassifier.__name__}()"),
+        ({"f": "f1"}, f"{SmartDecisionTreeClassifier.__name__}(hierarchy={{'f': 'f1'}})"),
+        ({"f": ["f1", "f2"]}, f"{SmartDecisionTreeClassifier.__name__}(hierarchy={{'f': ['f1', 'f2']}})"),
+    ],
+    ids=[
+        "default value",
+        "not default value(dict[str, str])",
+        "not default value(dict[str, list[str]])",
     ],
 )
 def test_repr_tree__hierarchy(hierarchy, expected):
@@ -152,10 +166,10 @@ def test_repr_tree__hierarchy(hierarchy, expected):
 @pytest.mark.parametrize(
     ("numerical_nan_mode", "expected"),
     [
-        param("min", f"{SmartDecisionTreeClassifier.__name__}()"),
-        param("max", f"{SmartDecisionTreeClassifier.__name__}(numerical_nan_mode='max')"),
-        param("include", f"{SmartDecisionTreeClassifier.__name__}(numerical_nan_mode='include')"),
+        ("min", f"{SmartDecisionTreeClassifier.__name__}()"),
+        ("max", f"{SmartDecisionTreeClassifier.__name__}(numerical_nan_mode='max')"),
     ],
+    ids=["default value", "not default value"],
 )
 def test_repr_tree__numerical_nan_mode(numerical_nan_mode, expected):
     numerical_nan_mode: NumericalNanModeOption
@@ -166,9 +180,10 @@ def test_repr_tree__numerical_nan_mode(numerical_nan_mode, expected):
 @pytest.mark.parametrize(
     ("categorical_nan_mode", "expected"),
     [
-        param("include", f"{SmartDecisionTreeClassifier.__name__}()"),
-        param("as_category", f"{SmartDecisionTreeClassifier.__name__}(categorical_nan_mode='as_category')"),
+        ("include", f"{SmartDecisionTreeClassifier.__name__}()"),
+        ("as_category", f"{SmartDecisionTreeClassifier.__name__}(categorical_nan_mode='as_category')"),
     ],
+    ids=["default value", "not default value"],
 )
 def test_repr_tree__categorical_nan_mode(categorical_nan_mode, expected):
     categorical_nan_mode: CategoricalNanModeOption
@@ -179,9 +194,10 @@ def test_repr_tree__categorical_nan_mode(categorical_nan_mode, expected):
 @pytest.mark.parametrize(
     ("categorical_nan_filler", "expected"),
     [
-        param("missing_value", f"{SmartDecisionTreeClassifier.__name__}()"),
-        param("NULL", f"{SmartDecisionTreeClassifier.__name__}(categorical_nan_filler='NULL')"),
+        ("missing_value", f"{SmartDecisionTreeClassifier.__name__}()"),
+        ("NULL", f"{SmartDecisionTreeClassifier.__name__}(categorical_nan_filler='NULL')"),
     ],
+    ids=["default value", "not default value"],
 )
 def test_repr_tree__categorical_nan_filler(categorical_nan_filler, expected):
     tree_classifier = SmartDecisionTreeClassifier(

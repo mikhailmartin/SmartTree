@@ -16,6 +16,7 @@ IMPLEMENTATION_PARAMETRIZATION = {
         lambda tree, X, y: tree.score(X, y),
         lambda tree, X, y: tree.render(),
     ],
+    "ids": ["fit", "predict", "predict_proba", "score", "render"],
 }
 
 DEFAULT_PARAMS_FROM_GET = {

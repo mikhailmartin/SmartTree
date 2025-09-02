@@ -3,7 +3,7 @@ from contextlib import nullcontext as does_not_raise
 
 import pandas as pd
 import pytest
-from pytest import param, raises
+from pytest import raises
 
 from smarttree import SmartDecisionTreeClassifier
 
@@ -15,23 +15,23 @@ y_ = data_["Метка"]
 @pytest.mark.parametrize(
     ("X_", "y_", "expected"),
     [
-        param(X_, y_, does_not_raise()),
-        param(
+        (X_, y_, does_not_raise()),
+        (
             "X", y_,
             raises(ValueError, match="X must be a pandas.DataFrame."),
         ),
-        param(
+        (
             X_, "y",
             raises(
                 ValueError,
                 match="y must be a pandas.Series.",
             ),
         ),
-        param(
+        (
             X_, y_[:-1],
             raises(ValueError, match="X and y must be the equal length."),
         ),
-        param(
+        (
             X_.rename(columns={"2. Возраст": "2. Age"}), y_,
             raises(
                 ValueError,

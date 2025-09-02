@@ -2,7 +2,7 @@ import re
 from contextlib import nullcontext as does_not_raise
 
 import pytest
-from pytest import param, raises
+from pytest import raises
 
 from smarttree import SmartDecisionTreeClassifier
 from smarttree._constants import (
@@ -15,10 +15,10 @@ from smarttree._constants import (
 @pytest.mark.parametrize(
     ("criterion", "expected"),
     [
-        param("gini", does_not_raise()),
-        param("entropy", does_not_raise()),
-        param("log_loss", does_not_raise()),
-        param(
+        ("gini", does_not_raise()),
+        ("entropy", does_not_raise()),
+        ("log_loss", does_not_raise()),
+        (
             "gjni",
             raises(
                 ValueError,
@@ -27,9 +27,9 @@ from smarttree._constants import (
                     " The current value of `criterion` is 'gjni'."
                 ),
             ),
-            id="invalid-criterion",
         ),
     ],
+    ids=["gini", "entropy", "log_loss", "invalid"]
 )
 def test_init_param__criterion(criterion, expected):
     with expected:
@@ -40,9 +40,9 @@ def test_init_param__criterion(criterion, expected):
 @pytest.mark.parametrize(
     ("max_depth", "expected"),
     [
-        param(None, does_not_raise()),
-        param(2, does_not_raise()),
-        param(
+        (None, does_not_raise()),
+        (2, does_not_raise()),
+        (
             -1,
             raises(
                 ValueError,
@@ -52,7 +52,7 @@ def test_init_param__criterion(criterion, expected):
                 ),
             ),
         ),
-        param(
+        (
             1.5,
             raises(
                 ValueError,
@@ -62,7 +62,7 @@ def test_init_param__criterion(criterion, expected):
                 ),
             ),
         ),
-        param(
+        (
             "string",
             raises(
                 ValueError,
@@ -73,6 +73,7 @@ def test_init_param__criterion(criterion, expected):
             ),
         ),
     ],
+    ids=["None", "2", "negative", "float", "str"],
 )
 def test_init_param__max_depth(max_depth, expected):
     with expected:
@@ -82,8 +83,8 @@ def test_init_param__max_depth(max_depth, expected):
 @pytest.mark.parametrize(
     ("min_samples_split", "expected"),
     [
-        param(2, does_not_raise()),
-        param(
+        (2, does_not_raise()),
+        (
             1,
             raises(
                 ValueError,
@@ -94,8 +95,8 @@ def test_init_param__max_depth(max_depth, expected):
                 ),
             ),
         ),
-        param(.5, does_not_raise()),
-        param(
+        (.5, does_not_raise()),
+        (
             0.0,
             raises(
                 ValueError,
@@ -106,7 +107,7 @@ def test_init_param__max_depth(max_depth, expected):
                 ),
             ),
         ),
-        param(
+        (
             1.0,
             raises(
                 ValueError,
@@ -117,7 +118,7 @@ def test_init_param__max_depth(max_depth, expected):
                 ),
             ),
         ),
-        param(
+        (
             "string",
             raises(
                 ValueError,
@@ -129,6 +130,7 @@ def test_init_param__max_depth(max_depth, expected):
             ),
         ),
     ],
+    ids=["int(2)", "int(1)", "float(0.5)", "float(0.0)", "float(1.0)", "str"],
 )
 def test_init_param__min_samples_split(min_samples_split, expected):
     with expected:
@@ -138,8 +140,8 @@ def test_init_param__min_samples_split(min_samples_split, expected):
 @pytest.mark.parametrize(
     ("min_samples_leaf", "expected"),
     [
-        param(1, does_not_raise()),
-        param(
+        (1, does_not_raise()),
+        (
             0,
             raises(
                 ValueError,
@@ -150,8 +152,8 @@ def test_init_param__min_samples_split(min_samples_split, expected):
                 ),
             ),
         ),
-        param(.5, does_not_raise()),
-        param(
+        (.5, does_not_raise()),
+        (
             0.0,
             raises(
                 ValueError,
@@ -162,7 +164,7 @@ def test_init_param__min_samples_split(min_samples_split, expected):
                 ),
             ),
         ),
-        param(
+        (
             1.0,
             raises(
                 ValueError,
@@ -173,7 +175,7 @@ def test_init_param__min_samples_split(min_samples_split, expected):
                 ),
             ),
         ),
-        param(
+        (
             "string",
             raises(
                 ValueError,
@@ -185,6 +187,7 @@ def test_init_param__min_samples_split(min_samples_split, expected):
             ),
         ),
     ],
+    ids=["int(1)", "int(0)", "float(0.5)", "float(0.0)", "float(1.0)", "str"],
 )
 def test_init_params__min_samples_leaf(min_samples_leaf, expected):
     with expected:
@@ -194,7 +197,7 @@ def test_init_params__min_samples_leaf(min_samples_leaf, expected):
 @pytest.mark.parametrize(
     ("max_leaf_nodes", "expected"),
     [
-        param(
+        (
             .0,
             raises(
                 ValueError,
@@ -204,8 +207,8 @@ def test_init_params__min_samples_leaf(min_samples_leaf, expected):
                 ),
             ),
         ),
-        param(2, does_not_raise()),
-        param(
+        (2, does_not_raise()),
+        (
             1,
             raises(
                 ValueError,
@@ -215,7 +218,7 @@ def test_init_params__min_samples_leaf(min_samples_leaf, expected):
                 ),
             ),
         ),
-        param(
+        (
             "string",
             raises(
                 ValueError,
@@ -226,6 +229,7 @@ def test_init_params__min_samples_leaf(min_samples_leaf, expected):
             ),
         ),
     ],
+    ids=["float", "2", "1", "str"],
 )
 def test_init_params__max_leaf_nodes(max_leaf_nodes, expected):
     with expected:
@@ -235,8 +239,8 @@ def test_init_params__max_leaf_nodes(max_leaf_nodes, expected):
 @pytest.mark.parametrize(
     ("min_impurity_decrease", "expected"),
     [
-        param(.0, does_not_raise()),
-        param(
+        (.0, does_not_raise()),
+        (
             -1.,
             raises(
                 ValueError,
@@ -246,7 +250,7 @@ def test_init_params__max_leaf_nodes(max_leaf_nodes, expected):
                 ),
             ),
         ),
-        param(
+        (
             "string",
             raises(
                 ValueError,
@@ -257,6 +261,7 @@ def test_init_params__max_leaf_nodes(max_leaf_nodes, expected):
             ),
         ),
     ],
+    ids=["float(0.0)", "float(negative)", "str"]
 )
 def test_init_params__min_impurity_decrease(min_impurity_decrease, expected):
     with expected:
@@ -266,9 +271,9 @@ def test_init_params__min_impurity_decrease(min_impurity_decrease, expected):
 @pytest.mark.parametrize(
     ("max_childs", "expected"),
     [
-        param(None, does_not_raise()),
-        param(2, does_not_raise()),
-        param(
+        (None, does_not_raise()),
+        (2, does_not_raise()),
+        (
             float("+inf"),
             raises(
                 ValueError,
@@ -278,7 +283,7 @@ def test_init_params__min_impurity_decrease(min_impurity_decrease, expected):
                 ),
             ),
         ),
-        param(
+        (
             1,
             raises(
                 ValueError,
@@ -288,7 +293,7 @@ def test_init_params__min_impurity_decrease(min_impurity_decrease, expected):
                 ),
             ),
         ),
-        param(
+        (
             "string",
             raises(
                 ValueError,
@@ -299,6 +304,7 @@ def test_init_params__min_impurity_decrease(min_impurity_decrease, expected):
             ),
         ),
     ],
+    ids=["None", "2", "float", "1", "str"],
 )
 def test_init_params__max_childs(max_childs, expected):
     with expected:
@@ -308,10 +314,10 @@ def test_init_params__max_childs(max_childs, expected):
 @pytest.mark.parametrize(
     ("numerical_feature_names", "expected"),
     [
-        param(None, does_not_raise()),
-        param("feature", does_not_raise()),
-        param(["feature"], does_not_raise()),
-        param(
+        (None, does_not_raise()),
+        ("feature", does_not_raise()),
+        (["feature"], does_not_raise()),
+        (
             1.,
             raises(
                 ValueError,
@@ -321,7 +327,7 @@ def test_init_params__max_childs(max_childs, expected):
                 ),
             ),
         ),
-        param(
+        (
             [1.],
             raises(
                 ValueError,
@@ -332,6 +338,7 @@ def test_init_params__max_childs(max_childs, expected):
             ),
         ),
     ],
+    ids=["None", "str", "list[str]", "float", "list[float]"],
 )
 def test_init_params__numerical_feature_names(numerical_feature_names, expected):
     with expected:
@@ -341,10 +348,10 @@ def test_init_params__numerical_feature_names(numerical_feature_names, expected)
 @pytest.mark.parametrize(
     ("categorical_feature_names", "expected"),
     [
-        param(None, does_not_raise()),
-        param("feature", does_not_raise()),
-        param(["feature"], does_not_raise()),
-        param(
+        (None, does_not_raise()),
+        ("feature", does_not_raise()),
+        (["feature"], does_not_raise()),
+        (
             1.,
             raises(
                 ValueError,
@@ -354,7 +361,7 @@ def test_init_params__numerical_feature_names(numerical_feature_names, expected)
                 ),
             ),
         ),
-        param(
+        (
             [1.],
             raises(
                 ValueError,
@@ -365,6 +372,7 @@ def test_init_params__numerical_feature_names(numerical_feature_names, expected)
             ),
         ),
     ],
+    ids=["None", "str", "list[str]", "float", "list[float]"],
 )
 def test_init_params__categorical_feature_names(categorical_feature_names, expected):
     with expected:
@@ -374,9 +382,9 @@ def test_init_params__categorical_feature_names(categorical_feature_names, expec
 @pytest.mark.parametrize(
     ("rank_feature_names", "expected"),
     [
-        param(None, does_not_raise()),
-        param({"feature": ["a", "b", "c"]}, does_not_raise()),
-        param(
+        (None, does_not_raise()),
+        ({"feature": ["a", "b", "c"]}, does_not_raise()),
+        (
             1,
             raises(
                 ValueError,
@@ -386,7 +394,7 @@ def test_init_params__categorical_feature_names(categorical_feature_names, expec
                 ),
             ),
         ),
-        param(
+        (
             {1: ["a", "b", "c"]},
             raises(
                 ValueError,
@@ -396,7 +404,7 @@ def test_init_params__categorical_feature_names(categorical_feature_names, expec
                 ),
             ),
         ),
-        param(
+        (
             {"feature": "value"},
             raises(
                 ValueError,
@@ -407,6 +415,7 @@ def test_init_params__categorical_feature_names(categorical_feature_names, expec
             ),
         ),
     ],
+    ids=["None", "dict[str, list[str]", "int", "dict[int, list[str]]", "dict[str, str]"],
 )
 def test_init_params__rank_feature_names(rank_feature_names, expected):
     with expected:
@@ -416,10 +425,10 @@ def test_init_params__rank_feature_names(rank_feature_names, expected):
 @pytest.mark.parametrize(
     ("hierarchy", "expected"),
     [
-        param(None, does_not_raise()),
-        param({"feature_key": "feature"}, does_not_raise()),
-        param({"feature_key": ["feature1", "feature2"]}, does_not_raise()),
-        param(
+        (None, does_not_raise()),
+        ({"feature_key": "feature"}, does_not_raise()),
+        ({"feature_key": ["feature1", "feature2"]}, does_not_raise()),
+        (
             "feature",
             raises(
                 ValueError,
@@ -430,7 +439,7 @@ def test_init_params__rank_feature_names(rank_feature_names, expected):
                 ),
             ),
         ),
-        param(
+        (
             {1: "feature"},
             raises(
                 ValueError,
@@ -441,7 +450,7 @@ def test_init_params__rank_feature_names(rank_feature_names, expected):
                 ),
             ),
         ),
-        param(
+        (
             {"feature_key": 1},
             raises(
                 ValueError,
@@ -452,7 +461,7 @@ def test_init_params__rank_feature_names(rank_feature_names, expected):
                 ),
             ),
         ),
-        param(
+        (
             {"feature_key": ["feature1", 1]},
             raises(
                 ValueError,
@@ -464,6 +473,15 @@ def test_init_params__rank_feature_names(rank_feature_names, expected):
             ),
         ),
     ],
+    ids=[
+        "None",
+        "dict[str, str]",
+        "dict[str, list[str]",
+        "str",
+        "dict[int: str]",
+        "dict[str, int]",
+        "dict[str, list[str | int]]",
+    ],
 )
 def test_init_params__hierarchy(hierarchy, expected):
     with expected:
@@ -473,10 +491,10 @@ def test_init_params__hierarchy(hierarchy, expected):
 @pytest.mark.parametrize(
     ("numerical_nan_mode", "expected"),
     [
-        param("include", does_not_raise()),
-        param("min", does_not_raise()),
-        param("max", does_not_raise()),
-        param(
+        ("include", does_not_raise()),
+        ("min", does_not_raise()),
+        ("max", does_not_raise()),
+        (
             "smth",
             raises(
                 ValueError,
@@ -487,6 +505,7 @@ def test_init_params__hierarchy(hierarchy, expected):
             ),
         ),
     ],
+    ids=["include", "min", "max", "invalid"],
 )
 def test_init_params__numerical_nan_mode(numerical_nan_mode, expected):
     with expected:
@@ -497,9 +516,9 @@ def test_init_params__numerical_nan_mode(numerical_nan_mode, expected):
 @pytest.mark.parametrize(
     ("categorical_nan_mode", "expected"),
     [
-        param("include", does_not_raise()),
-        param("as_category", does_not_raise()),
-        param(
+        ("include", does_not_raise()),
+        ("as_category", does_not_raise()),
+        (
             "smth",
             raises(
                 ValueError,
@@ -510,6 +529,7 @@ def test_init_params__numerical_nan_mode(numerical_nan_mode, expected):
             ),
         ),
     ],
+    ids=["include", "as_category", "invalid"],
 )
 def test_init_params__categorical_nan_mode(categorical_nan_mode, expected):
     with expected:
@@ -520,8 +540,8 @@ def test_init_params__categorical_nan_mode(categorical_nan_mode, expected):
 @pytest.mark.parametrize(
     ("categorical_nan_filler", "expected"),
     [
-        param("nan", does_not_raise()),
-        param(
+        ("nan", does_not_raise()),
+        (
             1,
             raises(
                 ValueError,
@@ -532,6 +552,7 @@ def test_init_params__categorical_nan_mode(categorical_nan_mode, expected):
             ),
         ),
     ],
+    ids=["str", "int"],
 )
 def test_init_param__categorical_nan_filler(categorical_nan_filler, expected):
     with expected:
