@@ -3,7 +3,7 @@ class TreeNode:
     def __init__(
         self,
         number: int,
-        samples: int,
+        num_samples: int,
         distribution: list[int] = None,
         impurity: float = None,
         label: str = None,
@@ -28,7 +28,7 @@ class TreeNode:
             self.childs = []
         else:
             self.childs = childs
-        self.samples = samples
+        self.num_samples = num_samples
         self.distribution = distribution
         self.impurity = impurity
         self.label = label
@@ -41,7 +41,7 @@ class TreeNode:
     def __repr__(self) -> str:
         representation = [
             f"node_number={self.number}",
-            f"samples={self.samples}",
+            f"num_samples={self.num_samples}",
             f"distribution={self.distribution}",
             f"impurity={self.impurity}",
             f"label={self.label!r}",

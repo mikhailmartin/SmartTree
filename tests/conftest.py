@@ -153,7 +153,7 @@ def y(data) -> pd.Series:
 def root_node(X, y):
     return TreeNode(
         number=0,
-        samples=y.apply(lambda x: True).sum(),
+        num_samples=y.apply(lambda x: True).sum(),
         depth=0,
         mask=y.apply(lambda x: True),
         available_feature_names=X.columns.tolist(),

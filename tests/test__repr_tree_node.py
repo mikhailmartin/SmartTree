@@ -4,7 +4,7 @@ from smarttree import TreeNode
 def test_repr_tree_node():
     tree_node = TreeNode(
         number=0,
-        samples=0,
+        num_samples=0,
         distribution=[1, 1, 1],
         impurity=1.,
         label="test",

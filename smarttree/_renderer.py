@@ -57,7 +57,7 @@ class Renderer:
         if show_impurity:
             node_content.append(f"{self.criterion} = {node.impurity:.2f}")
         if show_num_samples:
-            node_content.append(f"samples = {node.samples}")
+            node_content.append(f"samples = {node.num_samples}")
         if show_distribution:
             node_content.append(f"distribution = {node.distribution}")
         if show_label:

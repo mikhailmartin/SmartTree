@@ -118,7 +118,7 @@ class Builder:
         """Creates a node of the tree."""
         tree_node = TreeNode(
             number=self.node_counter,
-            samples=mask.sum(),
+            num_samples=mask.sum(),
             distribution=self.distribution(mask),
             impurity=self.impurity(mask),
             label=self.y[mask].value_counts().index[0],

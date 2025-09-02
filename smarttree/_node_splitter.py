@@ -101,7 +101,7 @@ class NodeSplitter:
         if node.depth >= self.max_depth:
             return False
 
-        if node.samples < self.min_samples_split:
+        if node.num_samples < self.min_samples_split:
             return False
 
         split_result = self.find_best_split(node)
