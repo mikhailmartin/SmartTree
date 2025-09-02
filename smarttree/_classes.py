@@ -26,7 +26,6 @@ from smarttree._tree_node import TreeNode
 class BaseSmartDecisionTree:
     """Base class for smart decision trees."""
 
-    @abstractmethod
     def __init__(
         self,
         *,

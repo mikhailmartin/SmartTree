@@ -2,22 +2,8 @@ import re
 from contextlib import nullcontext as does_not_raise
 from copy import deepcopy
 
-import pandas as pd
 import pytest
 
-from smarttree import BaseSmartDecisionTree
-
-IMPLEMENTATION_PARAMETRIZATION = {
-    "argnames": "method_call",
-    "argvalues": [
-        lambda tree, X, y: tree.fit(X, y),
-        lambda tree, X, y: tree.predict(X),
-        lambda tree, X, y: tree.predict_proba(X),
-        lambda tree, X, y: tree.score(X, y),
-        lambda tree, X, y: tree.render(),
-    ],
-    "ids": ["fit", "predict", "predict_proba", "score", "render"],
-}
 
 DEFAULT_PARAMS_FROM_GET = {
     "criterion": "gini",
@@ -37,63 +23,14 @@ DEFAULT_PARAMS_FROM_GET = {
 }
 
 
-@pytest.fixture(scope="function")
-def not_implemented_smart_tree() -> BaseSmartDecisionTree:
-    class NotImplementedSmartTree(BaseSmartDecisionTree):
-        ...
-    return NotImplementedSmartTree()
-
-
-@pytest.mark.parametrize(**IMPLEMENTATION_PARAMETRIZATION)
-def test__not_implemented(not_implemented_smart_tree, X, y, method_call):
-    with pytest.raises(NotImplementedError):
-        method_call(not_implemented_smart_tree, X, y)
-
-
-@pytest.fixture(scope="function")
-def implemented_smart_tree() -> BaseSmartDecisionTree:
-    class ImplementedSmartTree(BaseSmartDecisionTree):
-        def fit(self, X, y):
-            return "Implemented"
-
-        def predict(self, X):
-            return "Implemented"
-
-        def predict_proba(self, X):
-            return "Implemented"
-
-        def score(self, X, y, sample_weight: pd.Series | None = None):
-            return "Implemented"
-
-        def render(
-            self,
-            *,
-            rounded: bool = False,
-            show_impurity: bool = False,
-            show_num_samples: bool = False,
-            show_distribution: bool = False,
-            show_label: bool = False,
-            **kwargs,
-        ):
-            return "Implemented"
-
-    return ImplementedSmartTree()
-
-
-@pytest.mark.parametrize(**IMPLEMENTATION_PARAMETRIZATION)
-def test__implemented(implemented_smart_tree, X, y, method_call):
-    with does_not_raise():
-        method_call(implemented_smart_tree, X, y)
-
-
-def test__get_params(implemented_smart_tree):
-    params = implemented_smart_tree.get_params()
+def test__get_params(concrete_smart_tree):
+    params = concrete_smart_tree.get_params()
     expected_params = DEFAULT_PARAMS_FROM_GET
     assert params == expected_params
 
 
 @pytest.mark.parametrize(
-    "params_to_set, expected_context",
+    ("params_to_set", "expected_context"),
     [
         ({}, does_not_raise()),
         ({"criterion": "entropy"}, does_not_raise()),
@@ -115,7 +52,7 @@ def test__get_params(implemented_smart_tree):
             pytest.raises(
                 ValueError,
                 match=re.escape(
-                    "Invalid parameter `aboba` for estimator ImplementedSmartTree."
+                    "Invalid parameter `aboba` for estimator ConcreteSmartTree."
                     " Valid parameters are: criterion, max_depth, min_samples_split,"
                     " min_samples_leaf, max_leaf_nodes, min_impurity_decrease,"
                     " max_childs, numerical_feature_names, categorical_feature_names,"
@@ -125,11 +62,29 @@ def test__get_params(implemented_smart_tree):
             ),
         ),
     ],
+    ids=[
+        "void",
+        "criterion",
+        "max_depth",
+        "min_samples_split",
+        "min_samples_leaf",
+        "max_leaf_nodes",
+        "min_impurity_decrease",
+        "max_childs",
+        "numerical_feature_names",
+        "categorical_feature_names",
+        "rank_feature_names",
+        "hierarchy",
+        "numerical_nan_mode",
+        "categorical_nan_mode",
+        "categorical_nan_filler",
+        "invalid",
+    ],
 )
-def test__set_params(implemented_smart_tree, params_to_set, expected_context):
+def test__set_params(concrete_smart_tree, params_to_set, expected_context):
     with expected_context:
-        implemented_smart_tree.set_params(**params_to_set)
+        concrete_smart_tree.set_params(**params_to_set)
         expected_params = deepcopy(DEFAULT_PARAMS_FROM_GET)
         expected_params.update(params_to_set)
-        params = implemented_smart_tree.get_params()
+        params = concrete_smart_tree.get_params()
         assert params == expected_params

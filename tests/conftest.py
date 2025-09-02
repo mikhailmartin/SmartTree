@@ -3,6 +3,8 @@ import os
 import pandas as pd
 import pytest
 
+from smarttree import BaseSmartDecisionTree
+
 NUMERICAL_FEATURE_NAMES = [
     "2. Возраст",
     "4. Если имеете супруга или партнера, как долго вы живете вместе (в годах)?",
@@ -144,3 +146,12 @@ def rank_feature_names() -> dict[str: list]:
 @pytest.fixture(scope="session")
 def y(data) -> pd.Series:
     return data[TARGET_COL]
+
+
+class ConcreteSmartTree(BaseSmartDecisionTree):
+    ...
+
+
+@pytest.fixture(scope="function")
+def concrete_smart_tree():
+    return ConcreteSmartTree()
