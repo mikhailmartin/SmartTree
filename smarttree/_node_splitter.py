@@ -1,3 +1,5 @@
+from typing import NamedTuple
+
 import pandas as pd
 
 from ._column_splitter import (
@@ -103,11 +105,7 @@ class NodeSplitter:
 
     def find_best_split_for(self, node: TreeNode) -> None:
         """Finds the best tree node split, if it exists."""
-        best_inf_gain = float("-inf")
-        best_split_type = None
-        best_split_feature_name = None
-        best_feature_values = None
-        best_child_masks = None
+        best_split_result = NodeSplitResult(float("-inf"), "", "", [], [])
         for split_feature_name in node.available_feature_names:
             split_type = self.feature_split_type[split_feature_name]
             match split_type:
@@ -121,15 +119,21 @@ class NodeSplitter:
                     inf_gain, feature_values, child_masks = \
                         self.rank_column_splitter.split(node.mask, split_feature_name)
 
-            if best_inf_gain < inf_gain:
-                best_inf_gain = inf_gain
-                best_split_type = split_type
-                best_split_feature_name = split_feature_name
-                best_feature_values = feature_values
-                best_child_masks = child_masks
+            if best_split_result.information_gain < inf_gain:
+                best_split_result = NodeSplitResult(
+                    inf_gain, split_type, split_feature_name, feature_values, child_masks
+                )
 
-        node.information_gain = best_inf_gain
-        node.split_type = best_split_type
-        node.split_feature_name = best_split_feature_name
-        node.feature_values = best_feature_values
-        node.child_masks = best_child_masks
+        node.information_gain = best_split_result.information_gain
+        node.split_type = best_split_result.split_type
+        node.split_feature_name = best_split_result.split_feature_name
+        node.feature_values = best_split_result.feature_values
+        node.child_masks = best_split_result.child_masks
+
+
+class NodeSplitResult(NamedTuple):
+    information_gain: float
+    split_type: str
+    split_feature_name: str
+    feature_values: list[list[str]]
+    child_masks: list[pd.Series]
