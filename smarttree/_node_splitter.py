@@ -73,7 +73,7 @@ class NodeSplitter:
         self.class_names: list[str] = sorted(y.unique())
 
         # column splitters
-        self.numerical_column_splitter = NumericalColumnSplitter(
+        self.num_col_splitter = NumericalColumnSplitter(
             X=self.X,
             y=self.y,
             criterion=self.criterion,
@@ -81,7 +81,7 @@ class NodeSplitter:
             min_samples_leaf=self.min_samples_leaf,
             numerical_nan_mode=self.numerical_nan_mode,
         )
-        self.categorical_column_splitter = CategoricalColumnSplitter(
+        self.cat_col_splitter = CategoricalColumnSplitter(
             X=self.X,
             y=self.y,
             criterion=self.criterion,
@@ -91,7 +91,7 @@ class NodeSplitter:
             categorical_nan_mode=self.categorical_nan_mode,
             max_childs=self.max_childs,
         )
-        self.rank_column_splitter = RankColumnSplitter(
+        self.rank_col_splitter = RankColumnSplitter(
             X=self.X,
             y=self.y,
             criterion=self.criterion,
@@ -108,11 +108,7 @@ class NodeSplitter:
         if node.num_samples < self.min_samples_split:
             return False
 
-        self.find_best_split_for(node)
-        if node.information_gain < self.min_impurity_decrease:
-            return False
-        else:
-            return True
+        return node.information_gain >= self.min_impurity_decrease
 
     def find_best_split_for(self, node: TreeNode) -> None:
         """Finds the best tree node split, if it exists."""
@@ -121,11 +117,11 @@ class NodeSplitter:
             split_type = self.feature_split_type[split_feature_name]
             match split_type:
                 case "numerical":
-                    split_result = self.numerical_column_splitter.split(node.mask, split_feature_name)
+                    split_result = self.num_col_splitter.split(node.mask, split_feature_name)
                 case "categorical":
-                    split_result = self.categorical_column_splitter.split(node.mask, split_feature_name, self.leaf_counter)
+                    split_result = self.cat_col_splitter.split(node.mask, split_feature_name, self.leaf_counter)
                 case "rank":
-                    split_result = self.rank_column_splitter.split(node.mask, split_feature_name)
+                    split_result = self.rank_col_splitter.split(node.mask, split_feature_name)
 
             if best_split_result.information_gain < split_result.information_gain:
                 best_split_result = NodeSplitResult(

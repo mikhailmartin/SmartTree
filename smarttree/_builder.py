@@ -60,6 +60,7 @@ class Builder:
         splittable_leaf_nodes: list[TreeNode] = []
         feature_importances = defaultdict(float)
 
+        self.splitter.find_best_split_for(root)
         if self.splitter.is_splittable(root):
             splittable_leaf_nodes.append(root)
 
@@ -89,6 +90,7 @@ class Builder:
                 self.splitter.leaf_counter += 1
 
                 best_node.childs.append(child_node)
+                self.splitter.find_best_split_for(child_node)
                 if self.splitter.is_splittable(child_node):
                     bisect.insort(
                         splittable_leaf_nodes,

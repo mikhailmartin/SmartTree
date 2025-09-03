@@ -25,9 +25,10 @@ def concrete_node_splitter(
     )
 
 
-def test__is_splittable(concrete_node_splitter, root_node):
-    concrete_node_splitter.is_splittable(root_node)
-
-
 def test__find_best_split(concrete_node_splitter, root_node):
     concrete_node_splitter.find_best_split_for(root_node)
+
+
+def test__is_splittable(concrete_node_splitter, root_node):
+    concrete_node_splitter.find_best_split_for(root_node)
+    concrete_node_splitter.is_splittable(root_node)
