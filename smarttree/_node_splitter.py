@@ -1,5 +1,3 @@
-from collections import namedtuple
-
 import pandas as pd
 
 from ._column_splitter import (
@@ -13,13 +11,6 @@ from ._constants import (
     NumericalNanModeOption,
 )
 from ._tree_node import TreeNode
-
-SplitResult = namedtuple(
-    typename="SplitResult",
-    field_names=[
-        "inf_gain", "split_type", "split_feature_name", "feature_values", "child_masks"
-    ],
-)
 
 
 class NodeSplitter:
@@ -104,30 +95,14 @@ class NodeSplitter:
         if node.num_samples < self.min_samples_split:
             return False
 
-        split_result = self.find_best_split(node)
-        if split_result.inf_gain < self.min_impurity_decrease:
+        self.find_best_split_for(node)
+        if node.information_gain < self.min_impurity_decrease:
             return False
         else:
-            node.split_result = split_result
             return True
 
-    def find_best_split(self, node: TreeNode) -> SplitResult:
-        """
-        Finds the best tree node split, if it exists.
-
-        Parameters:
-            node: TreeNode
-              The tree node to find best split.
-
-        Returns:
-            Tuple `(inf_gain, split_type, split_feature_name, feature_values,
-            child_masks)`.
-              inf_gain: information gain of the split.
-              split_type: split type.
-              split_feature_name: the feature by which it is best to split the input set.
-              feature_values: feature values corresponding to child nodes.
-              child_masks: list of child masks.
-        """
+    def find_best_split_for(self, node: TreeNode) -> None:
+        """Finds the best tree node split, if it exists."""
         best_inf_gain = float("-inf")
         best_split_type = None
         best_split_feature_name = None
@@ -153,10 +128,8 @@ class NodeSplitter:
                 best_feature_values = feature_values
                 best_child_masks = child_masks
 
-        return SplitResult(
-            inf_gain=best_inf_gain,
-            split_type=best_split_type,
-            split_feature_name=best_split_feature_name,
-            feature_values=best_feature_values,
-            child_masks=best_child_masks,
-        )
+        node.information_gain = best_inf_gain
+        node.split_type = best_split_type
+        node.split_feature_name = best_split_feature_name
+        node.feature_values = best_feature_values
+        node.child_masks = best_child_masks

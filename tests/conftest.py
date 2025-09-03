@@ -156,7 +156,11 @@ def root_node(X, y):
         num_samples=y.apply(lambda x: True).sum(),
         depth=0,
         mask=y.apply(lambda x: True),
+        hierarchy=dict(),
         available_feature_names=X.columns.tolist(),
+        impurity=0.37,  # TODO: посмотреть настоящий
+        distribution=[199, 199, 197],
+        label="доброкачественная опухоль",
     )
 
 
