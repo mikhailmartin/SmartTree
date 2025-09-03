@@ -1,4 +1,4 @@
-from typing import NamedTuple
+from typing import Literal, NamedTuple
 
 import pandas as pd
 
@@ -13,6 +13,17 @@ from ._constants import (
     NumericalNanModeOption,
 )
 from ._tree_node import TreeNode
+
+
+SplitTypeOption = Literal["numerical", "categorical", "rank"]
+
+
+class NodeSplitResult(NamedTuple):
+    information_gain: float
+    split_type: str
+    split_feature_name: str
+    feature_values: list[list[str]]
+    child_masks: list[pd.Series]
 
 
 class NodeSplitter:
@@ -51,7 +62,7 @@ class NodeSplitter:
 
         self.leaf_counter: int = 0
 
-        self.feature_split_type: dict = dict()
+        self.feature_split_type: dict[str, SplitTypeOption] = dict()
         for feature in self.numerical_feature_names:
             self.feature_split_type[feature] = "numerical"
         for feature in self.categorical_feature_names:
@@ -110,18 +121,19 @@ class NodeSplitter:
             split_type = self.feature_split_type[split_feature_name]
             match split_type:
                 case "numerical":
-                    inf_gain, feature_values, child_masks = \
-                        self.numerical_column_splitter.split(node.mask, split_feature_name)
+                    split_result = self.numerical_column_splitter.split(node.mask, split_feature_name)
                 case "categorical":
-                    inf_gain, feature_values, child_masks = \
-                        self.categorical_column_splitter.split(node.mask, split_feature_name, self.leaf_counter)
+                    split_result = self.categorical_column_splitter.split(node.mask, split_feature_name, self.leaf_counter)
                 case "rank":
-                    inf_gain, feature_values, child_masks = \
-                        self.rank_column_splitter.split(node.mask, split_feature_name)
+                    split_result = self.rank_column_splitter.split(node.mask, split_feature_name)
 
-            if best_split_result.information_gain < inf_gain:
+            if best_split_result.information_gain < split_result.information_gain:
                 best_split_result = NodeSplitResult(
-                    inf_gain, split_type, split_feature_name, feature_values, child_masks
+                    split_result.information_gain,
+                    split_type,
+                    split_feature_name,
+                    split_result.feature_values,
+                    split_result.child_masks,
                 )
 
         node.information_gain = best_split_result.information_gain
@@ -129,11 +141,3 @@ class NodeSplitter:
         node.split_feature_name = best_split_result.split_feature_name
         node.feature_values = best_split_result.feature_values
         node.child_masks = best_split_result.child_masks
-
-
-class NodeSplitResult(NamedTuple):
-    information_gain: float
-    split_type: str
-    split_feature_name: str
-    feature_values: list[list[str]]
-    child_masks: list[pd.Series]

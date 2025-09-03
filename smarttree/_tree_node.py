@@ -25,8 +25,8 @@ class TreeNode:
         information_gain: float | None = None,
         split_type: str | None = None,
         split_feature_name: str | None = None,
-        feature_values=None,
-        child_masks=None,
+        feature_values: list | None = None,
+        child_masks: list | None = None,
 
         # set by Builder.build()
         feature_value=None,  # TODO аннотация
