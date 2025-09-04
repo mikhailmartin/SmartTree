@@ -6,6 +6,7 @@ import pytest
 from smarttree import BaseSmartDecisionTree
 from smarttree._tree_node import TreeNode
 
+
 NUMERICAL_FEATURE_NAMES = [
     "2. Возраст",
     "4. Если имеете супруга или партнера, как долго вы живете вместе (в годах)?",

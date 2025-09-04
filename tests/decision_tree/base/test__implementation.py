@@ -5,6 +5,7 @@ import pytest
 
 from smarttree import BaseSmartDecisionTree
 
+
 IMPLEMENTATION_PARAMETRIZATION = {
     "argnames": "method_call",
     "argvalues": [

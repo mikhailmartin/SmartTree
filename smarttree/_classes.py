@@ -22,7 +22,7 @@ from smarttree._node_splitter import NodeSplitter
 from smarttree._renderer import Renderer
 from smarttree._tree_node import TreeNode
 
-from ._check import check__params, check__data
+from ._check import check__data, check__params
 
 
 class BaseSmartDecisionTree:
