@@ -602,12 +602,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
 
         verbose: {'critical', 'error', 'warning', 'info', 'debug'} or int, default="warning"
           Controls the level of decision tree verbosity.
-
-          - If 'critical'
-          - If 'error'
-          - If 'warning'
-          - If 'info'
-          - If 'debug'
     """
 
     def __init__(
