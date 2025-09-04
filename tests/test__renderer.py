@@ -2,7 +2,7 @@ from smarttree import SmartDecisionTreeClassifier
 
 
 def test__render(X, y):
-    tree = SmartDecisionTreeClassifier()
+    tree = SmartDecisionTreeClassifier(max_depth=5)
     tree.fit(X, y)
     tree.render(
         rounded=True,

@@ -87,6 +87,7 @@ class BaseSmartDecisionTree:
         self.__check__numerical_nan_mode()
         self.__check__categorical_nan_mode()
         self.__check__categorical_nan_filler()
+        self.__check__init_params()
 
         # mutate
         if self.__numerical_feature_names is None:
@@ -332,18 +333,19 @@ class BaseSmartDecisionTree:
                 f" The current value of `categorical_nan_filler` is {self.__categorical_nan_filler!r}."
             )
 
-    def __check_init_params(self) -> None:
-        # TODO: finish this part
-        # if (
-        #     (isinstance(min_samples_split, int) and isinstance(min_samples_leaf, int))
-        #     and min_samples_split < 2 * min_samples_leaf
-        # ):
-        #     raise ValueError(
-        #         '`min_samples_split` должен быть строго в 2 раза больше'
-        #         ' `min_samples_leaf`. Текущее значение `min_samples_split` ='
-        #         f' {min_samples_split}, `min_samples_leaf` = {min_samples_leaf}.'
-        #     )
-        ...
+    def __check__init_params(self) -> None:
+        if (
+            (
+                isinstance(self.__min_samples_split, int)
+                and isinstance(self.__min_samples_leaf, int)
+            )
+            and self.__min_samples_split < 2 * self.__min_samples_leaf
+        ):
+            raise ValueError(
+                "`min_samples_split` must be strictly 2 times greater than"
+                " `min_samples_leaf`. Current values of `min_samples_split` is"
+                f" {self.__min_samples_split}, of `min_samples_leaf` is {self.__min_samples_leaf}."
+            )
 
     @property
     def criterion(self) -> ClassificationCriterionOption:

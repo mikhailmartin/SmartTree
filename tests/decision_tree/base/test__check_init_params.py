@@ -557,3 +557,31 @@ def test_init_params__categorical_nan_mode(categorical_nan_mode, expected):
 def test_init_param__categorical_nan_filler(categorical_nan_filler, expected):
     with expected:
         SmartDecisionTreeClassifier(categorical_nan_filler=categorical_nan_filler)
+
+
+@pytest.mark.parametrize(
+    ("min_samples_split", "min_samples_leaf", "expected"),
+    [
+        (2, 1, does_not_raise()),
+        (
+            2,
+            2,
+            raises(
+                ValueError,
+                match=(
+                    "`min_samples_split` must be strictly 2 times greater than"
+                    " `min_samples_leaf`. Current values of `min_samples_split` is"
+                    " 2, of `min_samples_leaf` is 2."
+                ),
+            ),
+        ),
+    ],
+    ids=["valid", "invalid"],
+)
+def test_init_params__min_samples_split__min_samples_leaf(
+    min_samples_split, min_samples_leaf, expected
+):
+    with expected:
+        SmartDecisionTreeClassifier(
+            min_samples_split=min_samples_split, min_samples_leaf=min_samples_leaf
+        )
