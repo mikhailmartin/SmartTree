@@ -1,66 +1,45 @@
+from dataclasses import dataclass, field
 from typing import Self
 
 import pandas as pd
 
 
+@dataclass(slots=True)
 class TreeNode:
     """Decision Tree Node."""
-    def __init__(
-        self,
-        number: int,
-        num_samples: int,
-        depth: int,
-        mask: pd.Series,
-        hierarchy: dict[str: str | list[str]],
-        available_feature_names: list[str],
 
-        impurity: float,
-        distribution: list[int],  # classification
-        label: str,  # classification
+    number: int
+    num_samples: int
+    depth: int = field(repr=False)
+    mask: pd.Series = field(repr=False)
+    hierarchy: dict[str: str | list[str]] = field(repr=False)
+    available_feature_names: list[str] = field(repr=False)
 
-        is_leaf: bool = True,
-        childs: list[Self] | None = None,
+    distribution: list[int]  # classification
+    impurity: float
+    label: str  # classification
 
-        # set by NodeSplitter.find_best_split_for()
-        information_gain: float | None = None,
-        split_type: str | None = None,
-        split_feature_name: str | None = None,
-        feature_values: list | None = None,
-        child_masks: list | None = None,
+    is_leaf: bool = field(init=False, repr=False)
+    childs: list[Self] = field(init=False, repr=False)
 
-        # set by Builder.build()
-        feature_value=None,  # TODO аннотация
-    ) -> None:
+    # set by NodeSplitter.find_best_split_for()
+    information_gain: float = field(init=False, repr=False)
+    split_type: str = field(init=False, repr=False)
+    split_feature_name: str = field(init=False, repr=False)
+    feature_values: list = field(init=False, repr=False)
+    child_masks: list = field(init=False, repr=False)
 
-        self.number = number
-        self.num_samples = num_samples
-        self.depth = depth
-        self.mask = mask
-        self.hierarchy = hierarchy
-        self.available_feature_names = available_feature_names
+    # set by Builder.build()
+    feature_value: list[str] = field(init=False, repr=False)
 
-        self.impurity = impurity
-        self.distribution = distribution
-        self.label = label
+    def __post_init__(self) -> None:
+        self.is_leaf = True
+        self.childs = []
 
-        self.is_leaf = is_leaf
-        self.childs = [] if childs is None else childs
+        self.information_gain = float("-inf")
+        self.split_type = ""
+        self.split_feature_name = ""
+        self.feature_values = []
+        self.child_masks = []
 
-        self.information_gain = information_gain
-        self.split_type = split_type
-        self.split_feature_name = split_feature_name
-        self.feature_values = feature_values
-        self.child_masks = child_masks
-
-        self.feature_value = feature_value
-
-    def __repr__(self) -> str:
-        representation = [
-            f"node_number={self.number}",
-            f"num_samples={self.num_samples}",
-            f"distribution={self.distribution}",
-            f"impurity={self.impurity}",
-            f"label={self.label!r}",
-        ]
-
-        return f"{self.__class__.__name__}({', '.join(representation)})"
+        self.feature_value = []
