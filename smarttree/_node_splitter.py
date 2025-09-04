@@ -113,21 +113,21 @@ class NodeSplitter:
     def find_best_split_for(self, node: TreeNode) -> None:
         """Finds the best tree node split, if it exists."""
         best_split_result = NodeSplitResult(float("-inf"), "", "", [], [])
-        for split_feature_name in node.available_feature_names:
-            split_type = self.feature_split_type[split_feature_name]
+        for feature_name in node.available_feature_names:
+            split_type = self.feature_split_type[feature_name]
             match split_type:
                 case "numerical":
-                    split_result = self.num_col_splitter.split(node.mask, split_feature_name)
+                    split_result = self.num_col_splitter.split(node, feature_name)
                 case "categorical":
-                    split_result = self.cat_col_splitter.split(node.mask, split_feature_name, self.leaf_counter)
+                    split_result = self.cat_col_splitter.split(node, feature_name, self.leaf_counter)
                 case "rank":
-                    split_result = self.rank_col_splitter.split(node.mask, split_feature_name)
+                    split_result = self.rank_col_splitter.split(node, feature_name)
 
             if best_split_result.information_gain < split_result.information_gain:
                 best_split_result = NodeSplitResult(
                     split_result.information_gain,
                     split_type,
-                    split_feature_name,
+                    feature_name,
                     split_result.feature_values,
                     split_result.child_masks,
                 )

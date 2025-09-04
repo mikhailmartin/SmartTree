@@ -68,28 +68,28 @@ class Builder:
             len(splittable_leaf_nodes) > 0
             and self.splitter.leaf_counter < self.max_leaf_nodes
         ):
-            best_node = splittable_leaf_nodes.pop()
-            feature_importances[best_node.split_feature_name] += best_node.information_gain
+            node = splittable_leaf_nodes.pop()
+            feature_importances[node.split_feature_name] += node.information_gain
 
-            for child_mask, feature_value in zip(best_node.child_masks, best_node.feature_values):
+            for child_mask, feature_value in zip(node.child_masks, node.feature_values):
                 # add opened features
-                if best_node.split_feature_name in best_node.hierarchy:
-                    value = best_node.hierarchy.pop(best_node.split_feature_name)
+                if node.split_feature_name in node.hierarchy:
+                    value = node.hierarchy.pop(node.split_feature_name)
                     if isinstance(value, list):  # list[str]
-                        best_node.available_feature_names.extend(value)
+                        node.available_feature_names.extend(value)
                     else:  # str
-                        best_node.available_feature_names.append(value)
+                        node.available_feature_names.append(value)
 
                 child_node = self.create_node(
                     mask=child_mask,
-                    hierarchy=best_node.hierarchy,
-                    available_feature_names=best_node.available_feature_names,
-                    depth=best_node.depth + 1,
+                    hierarchy=node.hierarchy,
+                    available_feature_names=node.available_feature_names,
+                    depth=node.depth + 1,
                 )
                 child_node.feature_value = feature_value
                 self.splitter.leaf_counter += 1
 
-                best_node.childs.append(child_node)
+                node.childs.append(child_node)
                 self.splitter.find_best_split_for(child_node)
                 if self.splitter.is_splittable(child_node):
                     bisect.insort(
@@ -98,7 +98,7 @@ class Builder:
                         key=lambda x: x.information_gain,
                     )
 
-            best_node.is_leaf = False
+            node.is_leaf = False
             self.splitter.leaf_counter -= 1
 
         return root, feature_importances
