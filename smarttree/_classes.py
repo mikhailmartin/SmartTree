@@ -559,8 +559,11 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         rank_feature_names: list[str] or str, default=None
           List of rank feature names.
 
-        hierarchy: dict, default=None
-          ...
+        hierarchy: dict[str, str | list[str]], default=None
+          A hierarchical dependency between features that determines the order
+          in which they can be used for splitting nodes in the decision tree.
+          If provided, the algorithm will respect these dependencies when
+          selecting features for splits.
 
         numerical_nan_mode: {'include', 'min', 'max'}, default='include'
           The mode of handling missing values in a numerical feature.
