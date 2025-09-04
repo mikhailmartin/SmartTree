@@ -175,21 +175,7 @@ class NumericalColumnSplitter(BaseColumnSplitter):
         self.numerical_nan_mode = numerical_nan_mode
 
     def split(self, node: TreeNode, split_feature_name: str) -> ColumnSplitResult:
-        """
-        Finds the best tree node split by set numerical feature, if it exists.
-
-        Parameters:
-            node: TreeNode
-              TODO.
-            split_feature_name: str
-              The name of the set numerical feature by which to find the best split.
-
-        Returns:
-            Tuple `(inf_gain, feature_values, child_masks)`.
-              inf_gain: information gain of the split.
-              feature_values: feature values corresponding to child nodes.
-              child_masks: boolean masks of child nodes.
-        """
+        """Finds the best tree node split by set numerical feature, if it exists."""
         use_including_na = (
             self.numerical_nan_mode == "include"
             # and there are samples with missing values
@@ -283,23 +269,7 @@ class CategoricalColumnSplitter(BaseColumnSplitter):
         split_feature_name: str,
         leaf_counter: int,
     ) -> ColumnSplitResult:
-        """
-        Split a node according to a categorical feature in the best way.
-
-        Parameters:
-            node: TreeNode
-              TODO.
-            split_feature_name: str
-              feature according to which node should be split.
-            leaf_counter: int
-              TODO.
-
-        Returns:
-            Tuple `(inf_gain, feature_values, child_masks)`.
-              inf_gain: information gain of the split.
-              feature_values: feature values corresponding to child nodes.
-              child_masks: boolean masks of child nodes.
-        """
+        """Split a node according to a categorical feature in the best way."""
         available_feature_values = self.X.loc[node.mask, split_feature_name].unique()
 
         if (
@@ -345,18 +315,8 @@ class CategoricalColumnSplitter(BaseColumnSplitter):
         feature_values: list[list],
     ) -> tuple[float, list[pd.Series]]:
         """
-        Split a node according to a categorical feature according to the
-        defined feature values.
-
-        Parameters:
-            parent_mask: boolean mask of split node.
-            split_feature_name: feature according to which node should be split.
-            feature_values: feature values corresponding to child nodes.
-
-        Returns:
-            Tuple `(inf_gain, child_masks)`.
-              inf_gain: information gain of the split.
-              child_masks: boolean masks of child nodes.
+        Split a node according to a categorical feature according to
+        the defined feature values.
         """
         mask_na = parent_mask & self.X[split_feature_name].isna()
 
@@ -377,10 +337,7 @@ class CategoricalColumnSplitter(BaseColumnSplitter):
         self,
         collection: list,
     ) -> Generator[list[list[list]], None, None]:
-        """
-        References:
-            https://en.wikipedia.org/wiki/Partition_of_a_set
-        """
+        """Reference: https://en.wikipedia.org/wiki/Partition_of_a_set."""
         if len(collection) == 1:
             yield [collection]
             return
