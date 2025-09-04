@@ -101,16 +101,29 @@ class NodeSplitter:
         )
 
     def is_splittable(self, node: TreeNode) -> bool:
-        """Checks whether a tree node can be split."""
+        """
+        Checks whether a tree node can be split.
+
+        If all conditions are met, the split information is stored in the node.
+        """
         if node.depth >= self.max_depth:
             return False
 
         if node.num_samples < self.min_samples_split:
             return False
 
-        return node.information_gain >= self.min_impurity_decrease
+        split_result = self.find_best_split_for(node)
+        if split_result.information_gain >= self.min_impurity_decrease:
+            node.information_gain = split_result.information_gain
+            node.split_type = split_result.split_type
+            node.split_feature_name = split_result.split_feature_name
+            node.feature_values = split_result.feature_values
+            node.child_masks = split_result.child_masks
+            return True
+        else:
+            return False
 
-    def find_best_split_for(self, node: TreeNode) -> None:
+    def find_best_split_for(self, node: TreeNode) -> NodeSplitResult:
         """Finds the best tree node split, if it exists."""
         best_split_result = NodeSplitResult(float("-inf"), "", "", [], [])
         for feature_name in node.available_feature_names:
@@ -132,8 +145,4 @@ class NodeSplitter:
                     split_result.child_masks,
                 )
 
-        node.information_gain = best_split_result.information_gain
-        node.split_type = best_split_result.split_type
-        node.split_feature_name = best_split_result.split_feature_name
-        node.feature_values = best_split_result.feature_values
-        node.child_masks = best_split_result.child_masks
+        return best_split_result
