@@ -542,7 +542,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
           A node wil be split if this split induces a decrease of the impurity
           greater than or equal to this value.
 
-          The weighted impurity decrease equation is the following::
+          The weighted impurity decrease equation is the following:
 
             N_t / N * (impurity - N_t_R / N_t * right_impurity
                                 - N_t_L / N_t * left_impurity)
