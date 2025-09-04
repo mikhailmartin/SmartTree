@@ -10,19 +10,18 @@ import pandas as pd
 from graphviz import Digraph
 from sklearn.metrics import accuracy_score
 
-from smarttree._builder import Builder
-from smarttree._constants import (
+from ._builder import Builder
+from ._check import check__data, check__params
+from ._constants import (
     CategoricalNanModeOption,
     ClassificationCriterionOption,
     NumericalNanModeOption,
     VerboseOption,
 )
-from smarttree._exceptions import NotFittedError
-from smarttree._node_splitter import NodeSplitter
-from smarttree._renderer import Renderer
-from smarttree._tree_node import TreeNode
-
-from ._check import check__data, check__params
+from ._exceptions import NotFittedError
+from ._node_splitter import NodeSplitter
+from ._renderer import Renderer
+from ._tree_node import TreeNode
 
 
 class BaseSmartDecisionTree:
