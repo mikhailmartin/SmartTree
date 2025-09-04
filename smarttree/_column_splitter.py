@@ -58,27 +58,35 @@ class BaseColumnSplitter(ABC):
         Calculates information gain of the split.
 
         Parameters:
-            parent_mask: boolean mask of parent node.
-            child_masks: list of boolean masks of child nodes.
-            nan_mode: missing values handling node.
+            parent_mask: pd.Series
+              boolean mask of parent node.
+            child_masks: pd.Series
+              list of boolean masks of child nodes.
+            nan_mode: str, default=None
+              missing values handling node.
               If 'include', then turn on normalization of child nodes impurity.
 
         Returns:
-            information gain.
+            float: information gain.
 
         References:
             https://scikit-learn.org/stable/modules/generated/sklearn.tree.DecisionTreeClassifier.html
 
         Formula in LaTeX:
-            \text{Information Gain} = \frac{N_{\text{parent}}}{N} * \Big(\text{impurity}_{\text{parent}} - \sum^C_{i=1}{\frac{N_{\text{child}_i}}{N_{\text{parent}}}} * \text{impurity}_{\text{child}_i} \Big)
-            where
-            \text{Information Gain} - information fain;
-            N - the number of samples in the entire training set;
-            N_{\text{parent}} - the number of samples in the parent node;
-            \text{impurity}_{\text{parent}} - the parent node impurity;
-            С - the number of child nodes;
-            N_{\text{child}_i} - the number of samples in the child node;
-            \text{impurity}_{\text{child}_i} - the child node impurity.
+            \begin{align*}
+            \text{Information Gain} = \frac{N_{\text{parent}}}{N} \cdot \Biggl( & \text{impurity}_{\text{parent}} - \\
+            & \sum^C_{i=1} \frac{N_{\text{child}_i}}{N_{\text{parent}}} \cdot \text{impurity}_{\text{child}_i} \Biggr)
+            \end{align*}
+            where:
+            \begin{itemize}
+                \item $\text{Information Gain}$ — information gain;
+                \item $N$ — the number of samples in the entire training set;
+                \item $N_{\text{parent}}$ — the number of samples in the parent node;
+                \item $\text{impurity}_{\text{parent}}$ — the parent node impurity;
+                \item $C$ — the number of child nodes;
+                \item $N_{\text{child}_i}$ — the number of samples in the child node;
+                \item $\text{impurity}_{\text{child}_i}$ — the child node impurity.
+            \end{itemize}
         """
         N = self.y.shape[0]
         N_parent = parent_mask.sum()
