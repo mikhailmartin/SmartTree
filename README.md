@@ -2,7 +2,7 @@
 
 ## linter
 ```commandline
-isort . --diff
+isort --diff --check smarttree/ tests/
 ```
 
 ## testing

@@ -33,7 +33,11 @@ jobs:
         run: |
           poetry install --no-interaction --no-root --with test
           poetry run pip install -e .
+      - name: Check import formatting with isort
+        run: |
+          source $VENV
+          poetry run python -m isort --diff --check smarttree/ tests/
       - name: Test with pytest
         run: |
           source $VENV
-          pytest tests/
+          poetry run pytest tests/
