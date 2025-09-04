@@ -22,6 +22,8 @@ from smarttree._node_splitter import NodeSplitter
 from smarttree._renderer import Renderer
 from smarttree._tree_node import TreeNode
 
+from ._check import check__params, check__data
+
 
 class BaseSmartDecisionTree:
     """Base class for smart decision trees."""
@@ -49,6 +51,23 @@ class BaseSmartDecisionTree:
         self.logger = logging.getLogger()
         self.logger.setLevel(verbose)
 
+        check__params(
+            criterion=criterion,
+            max_depth=max_depth,
+            min_samples_split=min_samples_split,
+            min_samples_leaf=min_samples_leaf,
+            max_leaf_nodes=max_leaf_nodes,
+            min_impurity_decrease=min_impurity_decrease,
+            max_childs=max_childs,
+            numerical_feature_names=numerical_feature_names,
+            categorical_feature_names=categorical_feature_names,
+            rank_feature_names=rank_feature_names,
+            hierarchy=hierarchy,
+            numerical_nan_mode=numerical_nan_mode,
+            categorical_nan_mode=categorical_nan_mode,
+            categorical_nan_filler=categorical_nan_filler,
+        )
+
         # criteria for limiting branching
         self.__criterion = criterion
         self.__max_depth = max_depth
@@ -71,23 +90,6 @@ class BaseSmartDecisionTree:
         self._root: TreeNode | None = None
         self._feature_importances: dict = dict()
         self._fill_numerical_nan_values: dict = dict()
-
-        # check
-        self.__check__criterion()
-        self.__check__max_depth()
-        self.__check__min_samples_split()
-        self.__check__min_samples_leaf()
-        self.__check__max_leaf_nodes()
-        self.__check__min_impurity_decrease()
-        self.__check__max_childs()
-        self.__check__numerical_feature_names()
-        self.__check__categorical_feature_names()
-        self.__check__rank_feature_names()
-        self.__check__hierarchy()
-        self.__check__numerical_nan_mode()
-        self.__check__categorical_nan_mode()
-        self.__check__categorical_nan_filler()
-        self.__check__init_params()
 
         # mutate
         if self.__numerical_feature_names is None:
@@ -128,223 +130,6 @@ class BaseSmartDecisionTree:
             self.logger.debug(
                 f"[{self.__class__.__name__}] [Debug] `hierarchy`"
                 f" is set to {self.__hierarchy}."
-            )
-
-    def __check__criterion(self) -> None:
-        if self.__criterion not in ("entropy", "gini", "log_loss"):
-            raise ValueError(
-                "`criterion` mist be Literal['entropy', 'log_loss', 'gini']."
-                f" The current value of `criterion` is {self.__criterion!r}."
-            )
-
-    def __check__max_depth(self) -> None:
-        if (
-            self.__max_depth is not None
-            and (not isinstance(self.__max_depth, int) or self.__max_depth <= 0)
-        ):
-            raise ValueError(
-                "`max_depth` must be an integer and strictly greater than 0."
-                f" The current value of `max_depth` is {self.__max_depth!r}."
-            )
-
-    def __check__min_samples_split(self) -> None:
-        if (
-            not isinstance(self.__min_samples_split, (int, float))
-            or (
-                isinstance(self.__min_samples_split, int)
-                and self.__min_samples_split < 2
-            )
-            or (
-                isinstance(self.__min_samples_split, float)
-                and (self.__min_samples_split <= 0 or self.__min_samples_split >= 1)
-            )
-        ):
-            raise ValueError(
-                "`min_samples_split` must be an integer and lie in the range"
-                " [2, +inf), or float and lie in the range (0, 1)."
-                f" The current value of `min_samples_split` is"
-                f" {self.__min_samples_split!r}."
-            )
-
-    def __check__min_samples_leaf(self) -> None:
-        if (
-            not isinstance(self.__min_samples_leaf, (int, float))
-            or (
-                isinstance(self.__min_samples_leaf, int)
-                and self.__min_samples_leaf < 1
-            )
-            or (
-                isinstance(self.__min_samples_leaf, float)
-                and (self.__min_samples_leaf <= 0 or self.__min_samples_leaf >= 1)
-            )
-        ):
-            raise ValueError(
-                "`min_samples_leaf` must be an integer and lie in the range"
-                " [1, +inf), or float and lie in the range (0, 1)."
-                f" The current value of `min_samples_leaf` is"
-                f" {self.__min_samples_leaf!r}."
-            )
-
-    def __check__max_leaf_nodes(self) -> None:
-        if (
-            self.__max_leaf_nodes is not None
-            and (
-                not isinstance(self.__max_leaf_nodes, int) or self.__max_leaf_nodes < 2
-            )
-        ):
-            raise ValueError(
-                "`max_leaf_nodes` must be an integer and strictly greater than 2."
-                f" The current value of `max_leaf_nodes` is {self.__max_leaf_nodes!r}."
-            )
-
-    def __check__min_impurity_decrease(self) -> None:
-        # TODO: could impurity_decrease be greater 1?
-        if (
-            not isinstance(self.__min_impurity_decrease, float)
-            or self.__min_impurity_decrease < 0
-        ):
-            raise ValueError(
-                "`min_impurity_decrease` must be float and non-negative."
-                f" The current value of `min_impurity_decrease` is {self.__min_impurity_decrease!r}."
-            )
-
-    def __check__max_childs(self) -> None:
-        if (
-            self.__max_childs is not None
-            and (
-                not isinstance(self.__max_childs, int) or self.__max_childs < 2
-            )
-        ):
-            raise ValueError(
-                "`max_childs` must be integer and strictly greater than 2."
-                f" The current value of `max_childs` is {self.__max_childs!r}."
-            )
-
-    def __check__numerical_feature_names(self) -> None:
-        if isinstance(self.__numerical_feature_names, list):
-            for numerical_feature_name in self.__numerical_feature_names:
-                if not isinstance(numerical_feature_name, str):
-                    raise ValueError(
-                        "If `numerical_feature_names` is a list, it must consists of"
-                        " strings."
-                        f" The element {numerical_feature_name} of the list isnt a"
-                        " string."
-                    )
-        elif not (
-            isinstance(self.__numerical_feature_names, str)
-            or self.__numerical_feature_names is None
-        ):
-            raise ValueError(
-                "`numerical_feature_names` must be a string or list of strings."
-                f" The current value of `numerical_feature_names` is"
-                f" {self.__numerical_feature_names!r}."
-            )
-
-    def __check__categorical_feature_names(self) -> None:
-        if isinstance(self.__categorical_feature_names, list):
-            for categorical_feature_name in self.__categorical_feature_names:
-                if not isinstance(categorical_feature_name, str):
-                    raise ValueError(
-                        "If `categorical_feature_names` is a list, it must consists of"
-                        " strings."
-                        f" The element {categorical_feature_name} of the list isnt a"
-                        " string."
-                    )
-        elif not (
-            isinstance(self.__categorical_feature_names, str)
-            or self.__categorical_feature_names is None
-        ):
-            raise ValueError(
-                "`categorical_feature_names` must be a string or list of strings."
-                f" The current value of `categorical_feature_names` is"
-                f" {self.__categorical_feature_names!r}."
-            )
-
-    def __check__rank_feature_names(self) -> None:
-        if isinstance(self.__rank_feature_names, dict):
-            for rank_feature_name, value_list in self.__rank_feature_names.items():
-                if not isinstance(rank_feature_name, str):
-                    raise ValueError(
-                        "Keys in `rank_feature_names` must be a strings."
-                        f" The key {rank_feature_name} isnt a string."
-                    )
-                if not isinstance(value_list, list):
-                    raise ValueError(
-                        "Values in `rank_feature_names` must be lists."
-                        f" The value {value_list} of the key {rank_feature_name} isnt a"
-                        " list."
-                    )
-        elif self.__rank_feature_names is not None:
-            raise ValueError(
-                "`rank_feature_names` must be a dictionary"
-                " {rang feature name: list of its ordered values}."
-            )
-
-    def __check__hierarchy(self) -> None:
-        common_message = (
-            "`hierarchy` must be a dictionary"
-            " {opening feature: opened feature / list of opened features}."
-        )
-
-        if isinstance(self.__hierarchy, dict):
-            for key, value in self.__hierarchy.items():
-                if not isinstance(key, str):
-                    raise ValueError(
-                        common_message
-                        + f" Value {key!r} of opening feature isnt a string."
-                    )
-                if not isinstance(value, (str, list)):
-                    raise ValueError(
-                        common_message
-                        + f" Value {value} of opened feature(s) isnt a string (list of"
-                        " strings)."
-                    )
-                if isinstance(value, list):
-                    for elem in value:
-                        if not isinstance(elem, str):
-                            raise ValueError(
-                                common_message
-                                + f" Value {elem} of opened feature isnt a string."
-                            )
-        elif self.__hierarchy is not None:
-            raise ValueError(
-                common_message
-                + f" The current value of `hierarchy` is {self.__hierarchy!r}."
-            )
-
-    def __check__numerical_nan_mode(self) -> None:
-        if self.__numerical_nan_mode not in ["include", "min", "max"]:
-            raise ValueError(
-                "`numerical_nan_mode` must be Literal['include', 'min', 'max']."
-                f" The current value of `numerical_nan_mode` is {self.__numerical_nan_mode!r}."
-            )
-
-    def __check__categorical_nan_mode(self) -> None:
-        if self.__categorical_nan_mode not in ["include", "as_category"]:
-            raise ValueError(
-                "`categorical_nan_mode` must be Literal['include', 'as_category']."
-                f" The current value of `categorical_nan_mode` is {self.__categorical_nan_mode!r}."
-            )
-
-    def __check__categorical_nan_filler(self) -> None:
-        if not isinstance(self.__categorical_nan_filler, str):
-            raise ValueError(
-                "`categorical_nan_filler` must be a string."
-                f" The current value of `categorical_nan_filler` is {self.__categorical_nan_filler!r}."
-            )
-
-    def __check__init_params(self) -> None:
-        if (
-            (
-                isinstance(self.__min_samples_split, int)
-                and isinstance(self.__min_samples_leaf, int)
-            )
-            and self.__min_samples_split < 2 * self.__min_samples_leaf
-        ):
-            raise ValueError(
-                "`min_samples_split` must be strictly 2 times greater than"
-                " `min_samples_leaf`. Current values of `min_samples_split` is"
-                f" {self.__min_samples_split}, of `min_samples_leaf` is {self.__min_samples_leaf}."
             )
 
     @property
@@ -474,14 +259,16 @@ class BaseSmartDecisionTree:
             return self
 
         valid_params = self.get_params(deep=True)
-        valid_params = ", ".join(valid_params.keys())
 
         for param, value in params.items():
             if param not in valid_params:
                 raise ValueError(
                     f"Invalid parameter `{param}` for estimator {self.__class__.__name__}."
-                    f" Valid parameters are: {valid_params}."
+                    f" Valid parameters are: {', '.join(valid_params.keys())}."
                 )
+        check__params(**params)
+
+        for param, value in params.items():
             setattr(self, f"_{self.__class__.__bases__[0].__name__}__{param}", value)
 
         return self
@@ -691,16 +478,16 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         Build a decision tree classifier from the training set (X, y).
 
         Parameters:
-            X: The training input samples.
-            y: The target values.
+            X: pd.DataFrame
+              The training input samples.
+            y: pd.Series
+              The target values.
         """
-        self.__check_fit_data(X, y)
+        check__data(X, y)
+        self.__check_fit_data(X)
 
         ################################################################################
-        if self.max_depth is None:
-            max_depth = float("+inf")
-        else:
-            max_depth = self.max_depth
+        max_depth = float("+inf") if self.max_depth is None else self.max_depth
 
         if isinstance(self.min_samples_split, float):
             min_samples_split = math.ceil(self.min_samples_split * X.shape[0])
@@ -717,10 +504,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         else:
             max_leaf_nodes = self.max_leaf_nodes
 
-        if self.max_childs is None:
-            max_childs = float("+inf")
-        else:
-            max_childs = self.max_childs
+        max_childs = float("+inf") if self.max_childs is None else self.max_childs
 
         unsetted_features_set = set(X.columns) - (
             set(self.numerical_feature_names)
@@ -808,15 +592,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
 
         self._is_fitted = True
 
-    def __check_fit_data(self, X, y):
-        if not isinstance(X, pd.DataFrame):
-            raise ValueError("X must be a pandas.DataFrame.")
-
-        if not isinstance(y, pd.Series):
-            raise ValueError("y must be a pandas.Series.")
-
-        if X.shape[0] != y.shape[0]:
-            raise ValueError("X and y must be the equal length.")
+    def __check_fit_data(self, X: pd.DataFrame):
 
         for num_feature_name in self.numerical_feature_names:
             if num_feature_name not in X.columns:
@@ -844,10 +620,11 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         Predict class for samples in X.
 
         Parameters:
-            X: The input samples.
+            X: pd.DataFrame | pd.Series
+              The input samples.
 
         Returns:
-            The predicted classes.
+            list[str] | str: The predicted classes.
         """
         self._check_is_fitted()
 
@@ -866,12 +643,14 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         a leaf.
 
         Parameters:
-            X: The input samples.
+            X: pd.DataFrame
+              The input samples.
 
         Returns:
             The class probabilities of the input samples. The order of the
             classes corresponds to that in the attribute :term:`class_names`.
         """
+        check__data(X)
         self._check_is_fitted()
 
         X = self.__preprocess(X)
@@ -892,7 +671,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         """
         X = X.copy()
 
-        if self.numerical_nan_mode in ["min", "max"]:
+        if self.numerical_nan_mode in ("min", "max"):
             for num_feature in self.numerical_feature_names:
                 X.fillna(self._fill_numerical_nan_values[num_feature], inplace=True)
 
@@ -966,15 +745,23 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
 
         return y_pred_proba, samples
 
+    def score(
+        self,
+        X: pd.DataFrame,
+        y: pd.Series,
+        sample_weight: pd.Series | None = None,
+    ) -> float:
+        """Returns the accuracy metric."""
+        check__data(X, y)
+        self._check_is_fitted()
+
+        self.__check_score_data(X, y, sample_weight)
+
+        score = accuracy_score(y, self.predict(X), sample_weight=sample_weight)
+
+        return score
+
     def __check_score_data(self, X, y, sample_weight):
-        if not isinstance(X, pd.DataFrame):
-            raise ValueError("X must be a pandas.DataFrame.")
-
-        if not isinstance(y, pd.Series):
-            raise ValueError("y must be a pandas.Series.")
-
-        if X.shape[0] != y.shape[0]:
-            raise ValueError("X and y must be the equal length.")
 
         fitted_features_set = set(self._feature_names)
         X_features_set = set(X.columns)
@@ -1007,21 +794,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             # TODO: same order of features
 
             raise ValueError("\n".join(message))
-
-    def score(
-        self,
-        X: pd.DataFrame,
-        y: pd.Series,
-        sample_weight: pd.Series | None = None,
-    ) -> float:
-        """Returns the accuracy metric."""
-        self._check_is_fitted()
-
-        self.__check_score_data(X, y, sample_weight)
-
-        score = accuracy_score(y, self.predict(X), sample_weight=sample_weight)
-
-        return score
 
     @lru_cache
     def render(
