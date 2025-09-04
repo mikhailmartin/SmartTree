@@ -15,10 +15,7 @@ def numerical_column_splitter(X, y) -> NumericalColumnSplitter:
     )
 
 
-def test__split(numerical_column_splitter, y):
+def test__split(numerical_column_splitter, root_node):
 
-    parent_mask = y.apply(lambda x: True)
     split_feature_name = "2. Возраст"
-    inf_gain, feature_values, child_masks = numerical_column_splitter.split(
-        parent_mask, split_feature_name
-    )
+    split_result = numerical_column_splitter.split(root_node, split_feature_name)

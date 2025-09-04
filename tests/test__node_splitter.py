@@ -1,7 +1,6 @@
 import pytest
 
 from smarttree._node_splitter import NodeSplitter
-from smarttree._tree_node import TreeNode
 
 
 @pytest.fixture(scope="module")
@@ -26,18 +25,10 @@ def concrete_node_splitter(
     )
 
 
-def test__is_splittable(concrete_node_splitter, X, y):
-    node = TreeNode(
-        number=0,
-        samples=X.shape[0],
-        depth=0,
-        mask=y.apply(lambda x: True),
-        available_feature_names=X.columns.tolist(),
-    )
-    concrete_node_splitter.is_splittable(node)
+def test__find_best_split(concrete_node_splitter, root_node):
+    concrete_node_splitter.find_best_split_for(root_node)
 
 
-def test__find_best_split(concrete_node_splitter, X, y):
-    parent_mask = y.apply(lambda x: True)
-    available_feature_names = X.columns.tolist()
-    concrete_node_splitter.find_best_split(parent_mask, available_feature_names)
+def test__is_splittable(concrete_node_splitter, root_node):
+    concrete_node_splitter.find_best_split_for(root_node)
+    concrete_node_splitter.is_splittable(root_node)

@@ -944,7 +944,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
                     # if there is no such branch TODO
                     distribution = np.array(node.distribution)
                     y_pred_proba = distribution / distribution.sum()
-                    samples = node.samples
+                    samples = node.num_samples
 
             else:
                 assert False
@@ -953,7 +953,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         else:
             distribution = np.array(node.distribution)
             y_pred_proba = distribution / distribution.sum()
-            samples = node.samples
+            samples = node.num_samples
 
         return y_pred_proba, samples
 

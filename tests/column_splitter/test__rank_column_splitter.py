@@ -23,10 +23,7 @@ def rank_column_splitter(X, y) -> RankColumnSplitter:
     )
 
 
-def test__split(rank_column_splitter, y):
+def test__split(rank_column_splitter, root_node):
 
-    parent_mask = y.apply(lambda x: True)
     split_feature_name = "5. В какой семье Вы выросли?"
-    inf_gain, feature_values, child_masks = rank_column_splitter.split(
-        parent_mask, split_feature_name
-    )
+    split_result = rank_column_splitter.split(root_node, split_feature_name)

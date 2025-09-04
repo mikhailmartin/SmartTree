@@ -17,11 +17,10 @@ def categorical_column_splitter(X, y) -> CategoricalColumnSplitter:
     )
 
 
-def test__split(categorical_column_splitter, y):
+def test__split(categorical_column_splitter, root_node):
 
-    parent_mask = y.apply(lambda x: True)
     split_feature_name = "3. Семейное положение"
     leaf_counter = 0
-    inf_gain, feature_values, child_masks = categorical_column_splitter.split(
-        parent_mask, split_feature_name, leaf_counter
+    split_result = categorical_column_splitter.split(
+        root_node, split_feature_name, leaf_counter
     )
