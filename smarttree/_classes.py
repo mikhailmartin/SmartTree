@@ -755,13 +755,13 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         check__data(X, y)
         self._check_is_fitted()
 
-        self.__check_score_data(X, y, sample_weight)
+        self.__check_score_data(X)
 
         score = accuracy_score(y, self.predict(X), sample_weight=sample_weight)
 
         return score
 
-    def __check_score_data(self, X, y, sample_weight):
+    def __check_score_data(self, X: pd.DataFrame):
 
         fitted_features_set = set(self._feature_names)
         X_features_set = set(X.columns)
