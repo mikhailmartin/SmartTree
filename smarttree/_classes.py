@@ -542,7 +542,17 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
           A node wil be split if this split induces a decrease of the impurity
           greater than or equal to this value.
 
-          ...
+          The weighted impurity decrease equation is the following::
+
+            N_t / N * (impurity - N_t_R / N_t * right_impurity
+                                - N_t_L / N_t * left_impurity)
+
+          where ``N`` is the total number of samples, ``N_t`` is the number of
+          samples at the current node, ``N_t_L`` is the number of samples in the
+          left child, and ``N_t_R`` is the number of samples in the right child.
+
+          ``N``, ``N_t``, ``N_t_R`` and ``N_t_L`` all refer to the weighted sum,
+          if ``sample_weight`` is passed.
 
         max_childs: int, default=None
           When choosing a categorical split, `max_childs` limits the maximum
