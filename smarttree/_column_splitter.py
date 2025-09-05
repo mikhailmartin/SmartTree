@@ -317,20 +317,21 @@ class CategoricalColumnSplitter(BaseColumnSplitter):
         Split a node according to a categorical feature according to
         the defined feature values.
         """
-        mask_na = parent_mask & self.dataset.X[split_feature_name].isna()
+        mask_na = parent_mask & self.dataset.mask_na[split_feature_name]
 
         child_masks = []
-        for list_ in feature_values:
-            child_mask = parent_mask & (self.dataset.X[split_feature_name].isin(list_) | mask_na)
+        for partition in feature_values:
+            partition_mask = self.dataset.X[split_feature_name].isin(partition)
+            child_mask = parent_mask & (partition_mask | mask_na)
             if child_mask.sum() < self.min_samples_leaf:
                 return float("-inf"), []
             child_masks.append(child_mask)
 
-        inf_gain = self.information_gain(
+        information_gain = self.information_gain(
             parent_mask, child_masks, nan_mode=self.categorical_nan_mode
         )
 
-        return inf_gain, child_masks
+        return information_gain, child_masks
 
     def cat_partitions(
         self,
