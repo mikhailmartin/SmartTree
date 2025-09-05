@@ -15,7 +15,7 @@ from ._tree_node import TreeNode
 
 class ColumnSplitResult(NamedTuple):
     information_gain: float
-    feature_values: list[list[str]]
+    feature_values: list[list]
     child_masks: list[pd.Series]
 
 
@@ -338,7 +338,7 @@ class CategoricalColumnSplitter(BaseColumnSplitter):
     def cat_partitions(
         self,
         collection: list,
-    ) -> Generator[list[list[list]], None, None]:
+    ) -> Generator[list[list], None, None]:
         """Reference: https://en.wikipedia.org/wiki/Partition_of_a_set."""
         if len(collection) == 1:
             yield [collection]
