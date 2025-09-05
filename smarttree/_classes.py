@@ -77,7 +77,12 @@ class BaseSmartDecisionTree:
         self.__max_childs = max_childs
         self.__hierarchy = hierarchy
 
-        self.__numerical_feature_names = numerical_feature_names
+        if numerical_feature_names is None:
+            self.__numerical_feature_names = []
+        elif isinstance(numerical_feature_names, str):
+            self.__numerical_feature_names = [numerical_feature_names]
+        else:
+            self.__numerical_feature_names = numerical_feature_names
         self.__categorical_feature_names = categorical_feature_names
         self.__rank_feature_names = rank_feature_names
         self._feature_names: list[str] = []
@@ -91,19 +96,6 @@ class BaseSmartDecisionTree:
         self._fill_numerical_nan_values: dict = dict()
 
         # mutate
-        if self.__numerical_feature_names is None:
-            self.__numerical_feature_names = []
-            self.logger.debug(
-                f"[{self.__class__.__name__}] [Debug] `numerical_feature_names`"
-                f" is set to {self.__numerical_feature_names}."
-            )
-        elif isinstance(numerical_feature_names, str):
-            self.__numerical_feature_names = [self.__numerical_feature_names]
-            self.logger.debug(
-                f"[{self.__class__.__name__}] [Debug] `numerical_feature_names`"
-                f" is set to {self.__numerical_feature_names}."
-            )
-
         if self.__categorical_feature_names is None:
             self.__categorical_feature_names = []
             self.logger.debug(
