@@ -83,7 +83,14 @@ class BaseSmartDecisionTree:
             self.__numerical_feature_names = [numerical_feature_names]
         else:
             self.__numerical_feature_names = numerical_feature_names
-        self.__categorical_feature_names = categorical_feature_names
+
+        if categorical_feature_names is None:
+            self.__categorical_feature_names = []
+        elif isinstance(categorical_feature_names, str):
+            self.__categorical_feature_names = [categorical_feature_names]
+        else:
+            self.__categorical_feature_names = categorical_feature_names
+
         self.__rank_feature_names = rank_feature_names
         self._feature_names: list[str] = []
         self.__numerical_nan_mode = numerical_nan_mode
@@ -96,19 +103,6 @@ class BaseSmartDecisionTree:
         self._fill_numerical_nan_values: dict = dict()
 
         # mutate
-        if self.__categorical_feature_names is None:
-            self.__categorical_feature_names = []
-            self.logger.debug(
-                f"[{self.__class__.__name__}] [Debug] `categorical_feature_names`"
-                f" is set to {self.__categorical_feature_names}."
-            )
-        elif isinstance(self.__categorical_feature_names, str):
-            self.__categorical_feature_names = [self.__categorical_feature_names]
-            self.logger.debug(
-                f"[{self.__class__.__name__}] [Debug] `categorical_feature_names`"
-                f" is set to {self.__categorical_feature_names}."
-            )
-
         if self.__rank_feature_names is None:
             self.__rank_feature_names = dict()
             self.logger.debug(
