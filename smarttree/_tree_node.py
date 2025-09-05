@@ -12,7 +12,7 @@ class TreeNode:
     num_samples: int
     depth: int = field(repr=False)
     mask: pd.Series = field(repr=False)
-    hierarchy: dict[str: str | list[str]] = field(repr=False)
+    hierarchy: dict[str, str | list[str]] = field(repr=False)
     available_feature_names: list[str] = field(repr=False)
 
     distribution: list[int]  # classification
