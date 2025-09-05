@@ -42,13 +42,11 @@ class Builder:
         available_feature_names = self.X.columns.tolist()
         # remove those features that cannot be considered yet
         for value in hierarchy.values():
-            if isinstance(value, str):
-                available_feature_names.remove(value)
-            elif isinstance(value, list):
+            if isinstance(value, list):
                 for feature_name in value:
                     available_feature_names.remove(feature_name)
-            else:
-                assert False
+            else:  # str
+                available_feature_names.remove(value)
 
         root = self.create_node(
             mask=self.y.apply(lambda x: True),
