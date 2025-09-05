@@ -10,6 +10,7 @@ from ._constants import (
     ClassificationCriterionOption,
     NumericalNanModeOption,
 )
+from ._dataset import Dataset
 from ._tree_node import TreeNode
 
 
@@ -29,8 +30,7 @@ class BaseColumnSplitter(ABC):
         min_samples_split: int,
         min_samples_leaf: int,
     ) -> None:
-        self.X = X
-        self.y = y
+        self.dataset = Dataset(X, y)
         self.criterion = criterion
         self.min_samples_split = min_samples_split
         self.min_samples_leaf = min_samples_leaf
@@ -40,9 +40,6 @@ class BaseColumnSplitter(ABC):
                 self.impurity = self.gini_index
             case "entropy" | "log_loss":
                 self.impurity = self.entropy
-
-        if self.criterion in ("gini", "entropy", "log_loss"):
-            self.class_names = sorted(self.y.unique())
 
     @abstractmethod
     def split(self, *args, **kwargs) -> ColumnSplitResult:
@@ -88,7 +85,7 @@ class BaseColumnSplitter(ABC):
                 \item $\text{impurity}_{\text{child}_i}$ — the child node impurity.
             \end{itemize}
         """
-        N = self.y.shape[0]
+        N = self.dataset.size
         N_parent = parent_mask.sum()
 
         impurity_parent = self.impurity(parent_mask)
@@ -124,8 +121,8 @@ class BaseColumnSplitter(ABC):
         N = mask.sum()
 
         gini_index = 1
-        for label in self.class_names:
-            N_i = (mask & (self.y == label)).sum()
+        for label in self.dataset.class_names:
+            N_i = (mask & (self.dataset.y == label)).sum()
             p_i = N_i / N
             gini_index -= pow(p_i, 2)
 
@@ -145,8 +142,8 @@ class BaseColumnSplitter(ABC):
         N = mask.sum()
 
         entropy = 0
-        for label in self.class_names:
-            N_i = (mask & (self.y == label)).sum()
+        for label in self.dataset.class_names:
+            N_i = (mask & (self.dataset.y == label)).sum()
             if N_i != 0:
                 p_i = N_i / N
                 entropy -= p_i * math.log2(p_i)
@@ -179,26 +176,26 @@ class NumericalColumnSplitter(BaseColumnSplitter):
         use_including_na = (
             self.numerical_nan_mode == "include"
             # and there are samples with missing values
-            and (node.mask & self.X[split_feature_name].isna()).sum()
+            and (node.mask & self.dataset.X[split_feature_name].isna()).sum()
         )
 
         if use_including_na:
-            mask_notna = node.mask & self.X[split_feature_name].notna()
+            mask_notna = node.mask & self.dataset.X[split_feature_name].notna()
             # if split by feature value is not possible
             if mask_notna.sum() <= 1:
                 return ColumnSplitResult(float("-inf"), [], [])
-            mask_na = node.mask & self.X[split_feature_name].isna()
+            mask_na = node.mask & self.dataset.X[split_feature_name].isna()
 
-            points = self.X.loc[mask_notna, split_feature_name].to_numpy()
+            points = self.dataset.X.loc[mask_notna, split_feature_name].to_numpy()
         else:
-            points = self.X.loc[node.mask, split_feature_name].to_numpy()
+            points = self.dataset.X.loc[node.mask, split_feature_name].to_numpy()
 
         thresholds = self.get_thresholds(points)
 
         best_split_result = ColumnSplitResult(float("-inf"), [], [])
         for threshold in thresholds:
-            mask_less = node.mask & (self.X[split_feature_name] <= threshold)
-            mask_more = node.mask & (self.X[split_feature_name] > threshold)
+            mask_less = node.mask & (self.dataset.X[split_feature_name] <= threshold)
+            mask_more = node.mask & (self.dataset.X[split_feature_name] > threshold)
 
             if use_including_na:
                 mask_less = mask_less | mask_na
@@ -270,7 +267,7 @@ class CategoricalColumnSplitter(BaseColumnSplitter):
         leaf_counter: int,
     ) -> ColumnSplitResult:
         """Split a node according to a categorical feature in the best way."""
-        cat_col: pd.Series = self.X.loc[node.mask, split_feature_name]  # type: ignore
+        cat_col: pd.Series = self.dataset.X.loc[node.mask, split_feature_name]  # type: ignore
         available_feature_values = cat_col.unique()
 
         if (
@@ -320,11 +317,11 @@ class CategoricalColumnSplitter(BaseColumnSplitter):
         Split a node according to a categorical feature according to
         the defined feature values.
         """
-        mask_na = parent_mask & self.X[split_feature_name].isna()
+        mask_na = parent_mask & self.dataset.X[split_feature_name].isna()
 
         child_masks = []
         for list_ in feature_values:
-            child_mask = parent_mask & (self.X[split_feature_name].isin(list_) | mask_na)
+            child_mask = parent_mask & (self.dataset.X[split_feature_name].isin(list_) | mask_na)
             if child_mask.sum() < self.min_samples_leaf:
                 return float("-inf"), []
             child_masks.append(child_mask)
@@ -399,8 +396,8 @@ class RankColumnSplitter(BaseColumnSplitter):
         """
         feature_values_left, feature_values_right = feature_values
 
-        mask_left = parent_mask & self.X[split_feature_name].isin(feature_values_left)
-        mask_right = parent_mask & self.X[split_feature_name].isin(feature_values_right)
+        mask_left = parent_mask & self.dataset.X[split_feature_name].isin(feature_values_left)
+        mask_right = parent_mask & self.dataset.X[split_feature_name].isin(feature_values_right)
 
         if (
             mask_left.sum() < self.min_samples_leaf
