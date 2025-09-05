@@ -75,7 +75,7 @@ class BaseSmartDecisionTree:
         self.__max_leaf_nodes = max_leaf_nodes
         self.__min_impurity_decrease = min_impurity_decrease
         self.__max_childs = max_childs
-        self.__hierarchy = hierarchy
+        self.__hierarchy = dict() if hierarchy is None else hierarchy
 
         if numerical_feature_names is None:
             self.__numerical_feature_names = []
@@ -105,14 +105,6 @@ class BaseSmartDecisionTree:
         self._root: TreeNode | None = None
         self._feature_importances: dict = dict()
         self._fill_numerical_nan_values: dict = dict()
-
-        # mutate
-        if self.__hierarchy is None:
-            self.__hierarchy = dict()
-            self.logger.debug(
-                f"[{self.__class__.__name__}] [Debug] `hierarchy`"
-                f" is set to {self.__hierarchy}."
-            )
 
     @property
     def criterion(self) -> ClassificationCriterionOption:
