@@ -202,7 +202,7 @@ class BaseSmartDecisionTree:
         X: pd.DataFrame,
         y: pd.Series,
         sample_weight: pd.Series | None = None,
-    ) -> float:
+    ) -> float | np.floating:
         raise NotImplementedError
 
     def get_params(
@@ -725,7 +725,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         X: pd.DataFrame,
         y: pd.Series,
         sample_weight: pd.Series | None = None,
-    ) -> float:
+    ) -> float | np.floating:
         """Returns the accuracy metric."""
         check__data(X, y)
         self._check_is_fitted()
