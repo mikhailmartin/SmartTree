@@ -278,7 +278,8 @@ class CategoricalColumnSplitter(BaseColumnSplitter):
             and pd.isna(available_feature_values).any()  # if contains missing values
         ):
             available_feature_values = available_feature_values[
-                ~pd.isna(available_feature_values)]
+                ~pd.isna(available_feature_values)
+            ]
         if len(available_feature_values) <= 1:
             return ColumnSplitResult(float("-inf"), [], [])
         available_feature_values = sorted(available_feature_values)
