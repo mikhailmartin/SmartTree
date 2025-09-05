@@ -170,6 +170,7 @@ class BaseSmartDecisionTree:
     @property
     def tree(self) -> TreeNode:
         self._check_is_fitted()
+        assert self._root is not None
         return self._root
 
     @property
