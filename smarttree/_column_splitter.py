@@ -15,7 +15,7 @@ from ._tree_node import TreeNode
 
 class ColumnSplitResult(NamedTuple):
     information_gain: float
-    feature_values: list[list[str]]
+    feature_values: list[list]
     child_masks: list[pd.Series]
 
 
@@ -270,21 +270,23 @@ class CategoricalColumnSplitter(BaseColumnSplitter):
         leaf_counter: int,
     ) -> ColumnSplitResult:
         """Split a node according to a categorical feature in the best way."""
-        available_feature_values = self.X.loc[node.mask, split_feature_name].unique()
+        cat_col: pd.Series = self.X.loc[node.mask, split_feature_name]  # type: ignore
+        available_feature_values = cat_col.unique()
 
         if (
             self.categorical_nan_mode == "include"
             and pd.isna(available_feature_values).any()  # if contains missing values
         ):
             available_feature_values = available_feature_values[
-                ~pd.isna(available_feature_values)]
+                ~pd.isna(available_feature_values)
+            ]
         if len(available_feature_values) <= 1:
             return ColumnSplitResult(float("-inf"), [], [])
-        available_feature_values = sorted(available_feature_values)
+        available_feature_values = sorted(available_feature_values)  # type: ignore
 
         # get list of all possible partitions
         partitions = []
-        for partition in self.cat_partitions(available_feature_values):
+        for partition in self.cat_partitions(available_feature_values):  # type: ignore
             # if partitions is not really partitions
             if len(partition) < 2:
                 continue
@@ -336,7 +338,7 @@ class CategoricalColumnSplitter(BaseColumnSplitter):
     def cat_partitions(
         self,
         collection: list,
-    ) -> Generator[list[list[list]], None, None]:
+    ) -> Generator[list[list], None, None]:
         """Reference: https://en.wikipedia.org/wiki/Partition_of_a_set."""
         if len(collection) == 1:
             yield [collection]

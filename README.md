@@ -3,6 +3,7 @@
 ## linter
 ```commandline
 isort --diff --check smarttree/ tests/
+mypy smarttree/
 ```
 
 ## testing

@@ -75,11 +75,27 @@ class BaseSmartDecisionTree:
         self.__max_leaf_nodes = max_leaf_nodes
         self.__min_impurity_decrease = min_impurity_decrease
         self.__max_childs = max_childs
-        self.__hierarchy = hierarchy
+        self.__hierarchy = dict() if hierarchy is None else hierarchy
 
-        self.__numerical_feature_names = numerical_feature_names
-        self.__categorical_feature_names = categorical_feature_names
-        self.__rank_feature_names = rank_feature_names
+        if numerical_feature_names is None:
+            self.__numerical_feature_names = []
+        elif isinstance(numerical_feature_names, str):
+            self.__numerical_feature_names = [numerical_feature_names]
+        else:
+            self.__numerical_feature_names = numerical_feature_names
+
+        if categorical_feature_names is None:
+            self.__categorical_feature_names = []
+        elif isinstance(categorical_feature_names, str):
+            self.__categorical_feature_names = [categorical_feature_names]
+        else:
+            self.__categorical_feature_names = categorical_feature_names
+
+        if rank_feature_names is None:
+            self.__rank_feature_names = dict()
+        else:
+            self.__rank_feature_names = rank_feature_names
+
         self._feature_names: list[str] = []
         self.__numerical_nan_mode = numerical_nan_mode
         self.__categorical_nan_mode = categorical_nan_mode
@@ -89,47 +105,6 @@ class BaseSmartDecisionTree:
         self._root: TreeNode | None = None
         self._feature_importances: dict = dict()
         self._fill_numerical_nan_values: dict = dict()
-
-        # mutate
-        if self.__numerical_feature_names is None:
-            self.__numerical_feature_names = []
-            self.logger.debug(
-                f"[{self.__class__.__name__}] [Debug] `numerical_feature_names`"
-                f" is set to {self.__numerical_feature_names}."
-            )
-        elif isinstance(numerical_feature_names, str):
-            self.__numerical_feature_names = [self.__numerical_feature_names]
-            self.logger.debug(
-                f"[{self.__class__.__name__}] [Debug] `numerical_feature_names`"
-                f" is set to {self.__numerical_feature_names}."
-            )
-
-        if self.__categorical_feature_names is None:
-            self.__categorical_feature_names = []
-            self.logger.debug(
-                f"[{self.__class__.__name__}] [Debug] `categorical_feature_names`"
-                f" is set to {self.__categorical_feature_names}."
-            )
-        elif isinstance(self.__categorical_feature_names, str):
-            self.__categorical_feature_names = [self.__categorical_feature_names]
-            self.logger.debug(
-                f"[{self.__class__.__name__}] [Debug] `categorical_feature_names`"
-                f" is set to {self.__categorical_feature_names}."
-            )
-
-        if self.__rank_feature_names is None:
-            self.__rank_feature_names = dict()
-            self.logger.debug(
-                f"[{self.__class__.__name__}] [Debug] `rank_feature_names`"
-                f" is set to {self.__rank_feature_names}."
-            )
-
-        if self.__hierarchy is None:
-            self.__hierarchy = dict()
-            self.logger.debug(
-                f"[{self.__class__.__name__}] [Debug] `hierarchy`"
-                f" is set to {self.__hierarchy}."
-            )
 
     @property
     def criterion(self) -> ClassificationCriterionOption:
@@ -195,6 +170,7 @@ class BaseSmartDecisionTree:
     @property
     def tree(self) -> TreeNode:
         self._check_is_fitted()
+        assert self._root is not None
         return self._root
 
     @property
@@ -214,11 +190,11 @@ class BaseSmartDecisionTree:
             )
 
     @abstractmethod
-    def predict(self, X: pd.DataFrame | pd.Series) -> list[str] | str:
+    def predict(self, X: pd.DataFrame) -> list[str]:
         raise NotImplementedError
 
     @abstractmethod
-    def predict_proba(self, X: pd.DataFrame) -> np.array:
+    def predict_proba(self, X: pd.DataFrame) -> np.ndarray:
         raise NotImplementedError
 
     @abstractmethod
@@ -226,7 +202,7 @@ class BaseSmartDecisionTree:
         X: pd.DataFrame,
         y: pd.Series,
         sample_weight: pd.Series | None = None,
-    ) -> float:
+    ) -> float | np.floating:
         raise NotImplementedError
 
     def get_params(
@@ -614,16 +590,16 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
                     " which isnt present in the training data."
                 )
 
-    def predict(self, X: pd.DataFrame | pd.Series) -> list[str] | str:
+    def predict(self, X: pd.DataFrame) -> list[str]:
         """
         Predict class for samples in X.
 
         Parameters:
-            X: pd.DataFrame | pd.Series
+            X: pd.DataFrame
               The input samples.
 
         Returns:
-            list[str] | str: The predicted classes.
+            list[str]: The predicted classes.
         """
         self._check_is_fitted()
 
@@ -634,7 +610,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
 
         return y_pred
 
-    def predict_proba(self, X: pd.DataFrame) -> np.array:
+    def predict_proba(self, X: pd.DataFrame) -> np.ndarray:
         """
         Predict class probabilities of the input samples X.
 
@@ -655,7 +631,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         X = self.__preprocess(X)
 
         y_pred_proba = np.array([
-            self.__predict_proba(self._root, point)[0]
+            self.__predict_proba(self.tree, point)[0]
             for _, point in X.iterrows()
         ])
 
@@ -749,7 +725,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         X: pd.DataFrame,
         y: pd.Series,
         sample_weight: pd.Series | None = None,
-    ) -> float:
+    ) -> float | np.floating:
         """Returns the accuracy metric."""
         check__data(X, y)
         self._check_is_fitted()

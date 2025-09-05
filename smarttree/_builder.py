@@ -16,7 +16,7 @@ class Builder:
         y: pd.Series,
         criterion: ClassificationCriterionOption,
         splitter: NodeSplitter,
-        max_leaf_nodes: int,
+        max_leaf_nodes: int | float,
         hierarchy: dict[str, str | list[str]],
     ) -> None:
         self.X = X
@@ -37,18 +37,16 @@ class Builder:
 
         self.node_counter: int = 0
 
-    def build(self) -> TreeNode:
+    def build(self) -> tuple[TreeNode, defaultdict[str, float]]:
         hierarchy = self.hierarchy.copy()
         available_feature_names = self.X.columns.tolist()
         # remove those features that cannot be considered yet
         for value in hierarchy.values():
-            if isinstance(value, str):
-                available_feature_names.remove(value)
-            elif isinstance(value, list):
+            if isinstance(value, list):
                 for feature_name in value:
                     available_feature_names.remove(feature_name)
-            else:
-                assert False
+            else:  # str
+                available_feature_names.remove(value)
 
         root = self.create_node(
             mask=self.y.apply(lambda x: True),
@@ -58,7 +56,7 @@ class Builder:
         )
 
         splittable_leaf_nodes: list[TreeNode] = []
-        feature_importances = defaultdict(float)
+        feature_importances: defaultdict[str, float] = defaultdict(float)
 
         if self.splitter.is_splittable(root):
             splittable_leaf_nodes.append(root)
@@ -93,7 +91,7 @@ class Builder:
                     bisect.insort(
                         splittable_leaf_nodes,
                         child_node,
-                        key=lambda x: x.information_gain,
+                        key=lambda n: n.information_gain,
                     )
 
             node.is_leaf = False

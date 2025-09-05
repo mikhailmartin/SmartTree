@@ -37,6 +37,10 @@ jobs:
         run: |
           source $VENV
           poetry run python -m isort --diff --check smarttree/ tests/
+      - name: Check types with mypy
+        run: |
+          source $VENV
+          poetry run mypy smarttree/ --ignore-missing-imports
       - name: Test with pytest
         run: |
           source $VENV
