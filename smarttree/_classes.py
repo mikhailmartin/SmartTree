@@ -190,7 +190,7 @@ class BaseSmartDecisionTree:
             )
 
     @abstractmethod
-    def predict(self, X: pd.DataFrame | pd.Series) -> list[str] | str:
+    def predict(self, X: pd.DataFrame) -> list[str]:
         raise NotImplementedError
 
     @abstractmethod
@@ -590,16 +590,16 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
                     " which isnt present in the training data."
                 )
 
-    def predict(self, X: pd.DataFrame | pd.Series) -> list[str] | str:
+    def predict(self, X: pd.DataFrame) -> list[str]:
         """
         Predict class for samples in X.
 
         Parameters:
-            X: pd.DataFrame | pd.Series
+            X: pd.DataFrame
               The input samples.
 
         Returns:
-            list[str] | str: The predicted classes.
+            list[str]: The predicted classes.
         """
         self._check_is_fitted()
 
