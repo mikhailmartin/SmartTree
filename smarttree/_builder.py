@@ -16,7 +16,7 @@ class Builder:
         y: pd.Series,
         criterion: ClassificationCriterionOption,
         splitter: NodeSplitter,
-        max_leaf_nodes: int,
+        max_leaf_nodes: int | float,
         hierarchy: dict[str, str | list[str]],
     ) -> None:
         self.X = X
