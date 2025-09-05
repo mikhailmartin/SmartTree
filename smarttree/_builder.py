@@ -58,7 +58,7 @@ class Builder:
         )
 
         splittable_leaf_nodes: list[TreeNode] = []
-        feature_importances = defaultdict(float)
+        feature_importances: defaultdict[str, float] = defaultdict(float)
 
         if self.splitter.is_splittable(root):
             splittable_leaf_nodes.append(root)
