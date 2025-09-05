@@ -631,7 +631,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         X = self.__preprocess(X)
 
         y_pred_proba = np.array([
-            self.__predict_proba(self._root, point)[0]
+            self.__predict_proba(self.tree, point)[0]
             for _, point in X.iterrows()
         ])
 
