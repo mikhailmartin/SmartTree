@@ -282,11 +282,11 @@ class CategoricalColumnSplitter(BaseColumnSplitter):
             ]
         if len(available_feature_values) <= 1:
             return ColumnSplitResult(float("-inf"), [], [])
-        available_feature_values = sorted(available_feature_values)
+        available_feature_values = sorted(available_feature_values)  # type: ignore
 
         # get list of all possible partitions
         partitions = []
-        for partition in self.cat_partitions(available_feature_values):
+        for partition in self.cat_partitions(available_feature_values):  # type: ignore
             # if partitions is not really partitions
             if len(partition) < 2:
                 continue
