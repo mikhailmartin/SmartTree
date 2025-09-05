@@ -91,7 +91,7 @@ class Builder:
                     bisect.insort(
                         splittable_leaf_nodes,
                         child_node,
-                        key=lambda x: x.information_gain,
+                        key=lambda n: n.information_gain,
                     )
 
             node.is_leaf = False
