@@ -37,7 +37,7 @@ class Builder:
 
         self.node_counter: int = 0
 
-    def build(self) -> TreeNode:
+    def build(self) -> tuple[TreeNode, defaultdict[str, float]]:
         hierarchy = self.hierarchy.copy()
         available_feature_names = self.X.columns.tolist()
         # remove those features that cannot be considered yet
