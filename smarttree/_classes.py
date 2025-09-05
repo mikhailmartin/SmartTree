@@ -91,7 +91,11 @@ class BaseSmartDecisionTree:
         else:
             self.__categorical_feature_names = categorical_feature_names
 
-        self.__rank_feature_names = rank_feature_names
+        if rank_feature_names is None:
+            self.__rank_feature_names = dict()
+        else:
+            self.__rank_feature_names = rank_feature_names
+
         self._feature_names: list[str] = []
         self.__numerical_nan_mode = numerical_nan_mode
         self.__categorical_nan_mode = categorical_nan_mode
@@ -103,13 +107,6 @@ class BaseSmartDecisionTree:
         self._fill_numerical_nan_values: dict = dict()
 
         # mutate
-        if self.__rank_feature_names is None:
-            self.__rank_feature_names = dict()
-            self.logger.debug(
-                f"[{self.__class__.__name__}] [Debug] `rank_feature_names`"
-                f" is set to {self.__rank_feature_names}."
-            )
-
         if self.__hierarchy is None:
             self.__hierarchy = dict()
             self.logger.debug(
