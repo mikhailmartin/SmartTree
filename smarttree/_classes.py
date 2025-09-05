@@ -634,7 +634,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
 
         return y_pred
 
-    def predict_proba(self, X: pd.DataFrame) -> np.array:
+    def predict_proba(self, X: pd.DataFrame) -> np.ndarray:
         """
         Predict class probabilities of the input samples X.
 
