@@ -270,7 +270,8 @@ class CategoricalColumnSplitter(BaseColumnSplitter):
         leaf_counter: int,
     ) -> ColumnSplitResult:
         """Split a node according to a categorical feature in the best way."""
-        available_feature_values = self.X.loc[node.mask, split_feature_name].unique()
+        cat_col: pd.Series = self.X.loc[node.mask, split_feature_name]  # type: ignore
+        available_feature_values = cat_col.unique()
 
         if (
             self.categorical_nan_mode == "include"
