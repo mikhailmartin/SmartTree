@@ -51,18 +51,18 @@ class Renderer:
         """
         node_name = f"node {node.number}"
 
-        node_content = [f"Node {node.number}"]
+        node_content_buffer = [f"Node {node.number}"]
         if node.split_feature_name:
-            node_content.append(f"{node.split_feature_name}")
+            node_content_buffer.append(f"{node.split_feature_name}")
         if show_impurity:
-            node_content.append(f"{self.criterion} = {node.impurity:.2f}")
+            node_content_buffer.append(f"{self.criterion} = {node.impurity:.2f}")
         if show_num_samples:
-            node_content.append(f"samples = {node.num_samples}")
+            node_content_buffer.append(f"samples = {node.num_samples}")
         if show_distribution:
-            node_content.append(f"distribution = {node.distribution}")
+            node_content_buffer.append(f"distribution = {node.distribution}")
         if show_label:
-            node_content.append(f"label = {node.label}")
-        node_content = "\n".join(node_content)
+            node_content_buffer.append(f"label = {node.label}")
+        node_content = "\n".join(node_content_buffer)
 
         self.graph.node(name=node_name, label=node_content)
 
