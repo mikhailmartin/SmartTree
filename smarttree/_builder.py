@@ -112,7 +112,7 @@ class Builder:
             num_samples=mask.sum(),
             distribution=self.distribution(mask),
             impurity=self.impurity(mask),
-            label=self.y[mask].value_counts().index[0],
+            label=self.y[mask].mode()[0],
             depth=depth,
             mask=mask,
             hierarchy=hierarchy.copy(),
