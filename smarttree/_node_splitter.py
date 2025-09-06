@@ -70,8 +70,6 @@ class NodeSplitter:
         for feature in self.rank_feature_names:
             self.feature_split_type[feature] = "rank"
 
-        self.class_names: list[str] = sorted(y.unique())  # TODO
-
         self.num_col_splitter = NumericalColumnSplitter(
             dataset=self.dataset,
             criterion=self.criterion,
