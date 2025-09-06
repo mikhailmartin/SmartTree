@@ -21,7 +21,7 @@ def concrete_node_splitter(
         categorical_feature_names=categorical_feature_names,
         rank_feature_names=rank_feature_names,
         numerical_nan_mode="min",
-        categorical_nan_mode="include",
+        categorical_nan_mode="as_category",
     )
 
 

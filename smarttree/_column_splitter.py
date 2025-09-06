@@ -1,5 +1,6 @@
 import math
 from abc import ABC, abstractmethod
+from copy import deepcopy
 from typing import Generator, NamedTuple
 
 import numpy as np
@@ -101,7 +102,7 @@ class BaseColumnSplitter(ABC):
             impurity_child_i = self.impurity(child_mask_i)
             weighted_impurity_childs += (N_child_i / N_parent) * impurity_child_i
 
-        if nan_mode == "include":
+        if nan_mode == "include_all":
             norm_coef = N_parent / N_childs
             weighted_impurity_childs *= norm_coef
 
@@ -275,23 +276,23 @@ class CategoricalColumnSplitter(BaseColumnSplitter):
             return ColumnSplitResult(NO_INFORMATION_GAIN, [], [])
 
         best_split_result = ColumnSplitResult(NO_INFORMATION_GAIN, [], [])
-        for cat_partition in self.cat_partitions(categories):  # type: ignore
+        for cat_partitions in self.cat_partitions(categories):  # type: ignore
             # if partitions is not really partitions
-            if len(cat_partition) <= 1:
+            if len(cat_partitions) <= 1:
                 continue
             # limitation of branching
-            if len(cat_partition) > self.max_childs:
+            if len(cat_partitions) > self.max_childs:
                 continue
             # if the number of leaves exceeds the limit after splitting
-            if leaf_counter + len(cat_partition) > self.max_leaf_nodes:
+            if leaf_counter + len(cat_partitions) > self.max_leaf_nodes:
                 continue
 
             information_gain, child_masks = self.__cat_split(
-                node.mask, split_feature_name, cat_partition
+                node.mask, split_feature_name, cat_partitions
             )
             if best_split_result.information_gain < information_gain:
                 best_split_result = ColumnSplitResult(
-                    information_gain, cat_partition, child_masks
+                    information_gain, cat_partitions, child_masks
                 )
 
         return best_split_result
@@ -311,16 +312,50 @@ class CategoricalColumnSplitter(BaseColumnSplitter):
         child_masks = []
         for partition in feature_values:
             partition_mask = self.dataset.X[split_feature_name].isin(partition)
-            child_mask = parent_mask & (partition_mask | mask_na)  # include
-            if child_mask.sum() < self.min_samples_leaf:
-                return NO_INFORMATION_GAIN, []
+            child_mask = parent_mask & partition_mask
             child_masks.append(child_mask)
 
-        information_gain = self.information_gain(
-            parent_mask, child_masks, nan_mode=self.categorical_nan_mode
-        )
+        if self.categorical_nan_mode == "as_category":
+            information_gain = self.information_gain(parent_mask, child_masks)
+            return information_gain, child_masks
 
-        return information_gain, child_masks
+        elif self.categorical_nan_mode == "include_all":
+            for i, child_mask in enumerate(child_masks):
+                child_masks[i] = child_mask | (parent_mask & mask_na)  # update
+                if child_masks[i].sum() < self.min_samples_leaf:
+                    return NO_INFORMATION_GAIN, []
+
+            information_gain = self.information_gain(
+                parent_mask, child_masks, nan_mode=self.categorical_nan_mode
+            )
+
+            return information_gain, child_masks
+
+        elif self.categorical_nan_mode == "include_best":
+            candidates = []
+            origin_child_masks = child_masks
+            for i, child_mask in enumerate(origin_child_masks):
+                child_masks = deepcopy(origin_child_masks)
+                child_masks[i] = child_mask | (parent_mask & mask_na)  # update
+                for child_mask in child_masks:
+                    if child_mask.sum() < self.min_samples_leaf:
+                        break
+                else:
+                    candidates.append(child_masks)
+
+            best_information_gain = NO_INFORMATION_GAIN
+            best_child_masks = []
+            for child_masks in candidates:
+                information_gain = self.information_gain(parent_mask, child_masks)
+                if best_information_gain < information_gain:
+                    best_information_gain = information_gain
+                    best_child_masks = child_masks
+
+            return best_information_gain, best_child_masks
+
+        else:
+            assert False
+
 
     def cat_partitions(
         self,
