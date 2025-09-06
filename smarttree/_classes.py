@@ -648,10 +648,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
                 distribution_parent = np.array([0., 0., 0.])
                 samples_parent = 0
                 for child in node.childs:
-                    (
-                        y_pred_proba_child,
-                        samples_child,
-                    ) = self.__predict_proba(child, point)
+                    y_pred_proba_child, samples_child = self.__predict_proba(child, point)
                     distribution_child = y_pred_proba_child * samples_child
                     distribution_parent += distribution_child
                     samples_parent += samples_child
