@@ -516,20 +516,21 @@ def test_init_params__numerical_nan_mode(numerical_nan_mode, expected):
 @pytest.mark.parametrize(
     ("categorical_nan_mode", "expected"),
     [
-        ("include", does_not_raise()),
         ("as_category", does_not_raise()),
+        ("include_all", does_not_raise()),
+        ("include_best", does_not_raise()),
         (
             "smth",
             raises(
                 ValueError,
                 match=re.escape(
-                    "`categorical_nan_mode` must be Literal['include', 'as_category']."
+                    "`categorical_nan_mode` must be Literal['as_category', 'include_all', 'include_best']."
                     " The current value of `categorical_nan_mode` is 'smth'."
                 ),
             ),
         ),
     ],
-    ids=["include", "as_category", "invalid"],
+    ids=["as_category", "include_all", "include_best", "invalid"],
 )
 def test_init_params__categorical_nan_mode(categorical_nan_mode, expected):
     with expected:

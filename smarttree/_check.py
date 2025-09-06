@@ -258,9 +258,9 @@ def _check__numerical_nan_mode(numerical_nan_mode):
 
 
 def _check__categorical_nan_mode(categorical_nan_mode):
-    if categorical_nan_mode not in ("include", "as_category"):
+    if categorical_nan_mode not in ("as_category", "include_all", "include_best"):
         raise ValueError(
-            "`categorical_nan_mode` must be Literal['include', 'as_category']."
+            "`categorical_nan_mode` must be Literal['as_category', 'include_all', 'include_best']."
             f" The current value of `categorical_nan_mode` is {categorical_nan_mode!r}."
         )
 
