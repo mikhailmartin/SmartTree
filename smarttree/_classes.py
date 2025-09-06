@@ -93,7 +93,7 @@ class BaseSmartDecisionTree:
         else:
             self.__rank_feature_names = rank_feature_names
 
-        self._feature_names: list[str] = []
+        self._all_feature_names: list[str] = []
         self.__numerical_nan_mode = numerical_nan_mode
         self.__categorical_nan_mode = categorical_nan_mode
         self.__categorical_nan_filler = categorical_nan_filler
@@ -147,9 +147,9 @@ class BaseSmartDecisionTree:
         return self.__rank_feature_names
 
     @property
-    def feature_names(self) -> list[str]:
+    def all_feature_names(self) -> list[str]:
         self._check_is_fitted()
-        return self._feature_names
+        return self._all_feature_names
 
     @property
     def hierarchy(self) -> dict[str, str | list[str]]:
@@ -459,8 +459,13 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             y: pd.Series
               The target values.
         """
-        check__data(X, y)
-        self.__check_fit_data(X)
+        check__data(
+            X=X,
+            y=y,
+            numerical_feature_names=self.numerical_feature_names,
+            categorical_feature_names=self.categorical_feature_names,
+            rank_feature_names=self.rank_feature_names,
+        )
 
         ################################################################################
         max_depth = float("+inf") if self.max_depth is None else self.max_depth
@@ -534,7 +539,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             categorical_nan_mode=self.categorical_nan_mode,
         )
 
-        self._feature_names = X.columns.tolist()
+        self._all_feature_names = X.columns.tolist()
         self.__classes = sorted(y.unique())
 
         if self.numerical_nan_mode in ("min", "max"):
@@ -562,29 +567,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
 
         self._is_fitted = True
 
-    def __check_fit_data(self, X: pd.DataFrame):
-
-        for num_feature_name in self.numerical_feature_names:
-            if num_feature_name not in X.columns:
-                raise ValueError(
-                    f"`numerical_feature_names` contain feature {num_feature_name},"
-                    " which isnt present in the training data."
-                )
-
-        for cat_feature_name in self.categorical_feature_names:
-            if cat_feature_name not in X.columns:
-                raise ValueError(
-                    f"`categorical_feature_names` contain feature {cat_feature_name},"
-                    " which isnt present in the training data."
-                )
-
-        for rank_feature_name in self.rank_feature_names.keys():
-            if rank_feature_name not in X.columns:
-                raise ValueError(
-                    f"`rank_feature_names` contain feature {rank_feature_name},"
-                    " which isnt present in the training data."
-                )
-
     def predict(self, X: pd.DataFrame) -> list[str]:
         """
         Predict class for samples in X.
@@ -596,8 +578,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         Returns:
             list[str]: The predicted classes.
         """
-        self._check_is_fitted()
-
         y_pred_proba_s = self.predict_proba(X)
         y_pred = [
             self.__classes[y_pred_proba.argmax()] for y_pred_proba in y_pred_proba_s
@@ -620,8 +600,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             The class probabilities of the input samples. The order of the
             classes corresponds to that in the attribute :term:`class_names`.
         """
-        check__data(X)
-        self._check_is_fitted()
+        check__data(X=X, all_feature_names=self.all_feature_names)
 
         X = self.__preprocess(X)
 
@@ -683,10 +662,8 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
                 threshold = float(node.childs[0].feature_value[0][3:])
                 if point[node.split_feature_name] <= threshold:
                     y_pred_proba, samples = self.__predict_proba(node.childs[0], point)
-                elif point[node.split_feature_name] > threshold:
-                    y_pred_proba, samples = self.__predict_proba(node.childs[1], point)
                 else:
-                    assert False
+                    y_pred_proba, samples = self.__predict_proba(node.childs[1], point)
 
             elif (
                 node.split_feature_name in self.categorical_feature_names
@@ -723,48 +700,11 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         sample_weight: pd.Series | None = None,
     ) -> float | np.floating:
         """Returns the accuracy metric."""
-        check__data(X, y)
-        self._check_is_fitted()
-
-        self.__check_score_data(X)
+        check__data(X=X, y=y, all_feature_names=self.all_feature_names)
 
         score = accuracy_score(y, self.predict(X), sample_weight=sample_weight)
 
         return score
-
-    def __check_score_data(self, X: pd.DataFrame):
-
-        fitted_features_set = set(self._feature_names)
-        X_features_set = set(X.columns)
-        if fitted_features_set != X_features_set:
-            message = [
-                "The feature names should match those that were passed during fit."
-            ]
-
-            unexpected_names = sorted(X_features_set - fitted_features_set)
-            missing_names = sorted(fitted_features_set - X_features_set)
-
-            def add_names(names: list[str]) -> str:
-                output = []
-                max_n_names = 5
-                for i, name in enumerate(names):
-                    if i >= max_n_names:
-                        output.append("- ...")
-                        break
-                    output.append(f"- {name}")
-                return "\n".join(output)
-
-            if unexpected_names:
-                message.append("Feature names unseen at fit time:")
-                message.append(add_names(unexpected_names))
-
-            if missing_names:
-                message.append("Feature names seen at fit time, yet now missing:")
-                message.append(add_names(missing_names))
-
-            # TODO: same order of features
-
-            raise ValueError("\n".join(message))
 
     @lru_cache
     def render(
