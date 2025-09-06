@@ -284,18 +284,18 @@ class CategoricalColumnSplitter(BaseColumnSplitter):
 
         # get list of all possible partitions
         partitions = []
-        for partition in self.cat_partitions(available_feature_values):  # type: ignore
+        for cat_partition in self.cat_partitions(available_feature_values):  # type: ignore
             # if partitions is not really partitions
-            if len(partition) < 2:
+            if len(cat_partition) < 2:
                 continue
             # limitation of branching
-            if len(partition) > self.max_childs:
+            if len(cat_partition) > self.max_childs:
                 continue
             # if the number of leaves exceeds the limit after splitting
-            if leaf_counter + len(partition) > self.max_leaf_nodes:
+            if leaf_counter + len(cat_partition) > self.max_leaf_nodes:
                 continue
 
-            partitions.append(partition)
+            partitions.append(cat_partition)
 
         best_split_result = ColumnSplitResult(NO_INFORMATION_GAIN, [], [])
         for feature_values in partitions:
