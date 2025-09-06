@@ -405,9 +405,9 @@ class RankColumnSplitter(BaseColumnSplitter):
 
         child_masks = [mask_left, mask_right]
 
-        inf_gain = self.information_gain(parent_mask, child_masks)
+        information_gain = self.information_gain(parent_mask, child_masks)
 
-        return inf_gain, child_masks
+        return information_gain, child_masks
 
     @staticmethod
     def rank_partitions(collection: list) -> Generator[tuple[list, list], None, None]:
