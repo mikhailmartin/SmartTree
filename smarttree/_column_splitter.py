@@ -277,7 +277,7 @@ class CategoricalColumnSplitter(BaseColumnSplitter):
         best_split_result = ColumnSplitResult(NO_INFORMATION_GAIN, [], [])
         for cat_partition in self.cat_partitions(categories):  # type: ignore
             # if partitions is not really partitions
-            if len(cat_partition) < 2:
+            if len(cat_partition) <= 1:
                 continue
             # limitation of branching
             if len(cat_partition) > self.max_childs:

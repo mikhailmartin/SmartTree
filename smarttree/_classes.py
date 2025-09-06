@@ -350,14 +350,15 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
           - If 'max', missing values are filled with maximum value of
             a numerical feature in training data.
 
-        categorical_nan_mode: {'include', 'as_category'}, default='include'
+        categorical_nan_mode: {'as_category', 'include_all', 'include_best'}, default='as_category'
           The mode of handling missing values in a categorical feature.
 
-          - If 'include': While training samples with missing values are
-            included into all child nodes. While predicting decision is
-            weighted mean of all decisions in child nodes.
           - If 'as_category': While training and predicting missing values
             will be filled with `categorical_nan_filler`.
+          - If 'include_all': While training samples with missing values are
+            included into all child nodes. While predicting decision is
+            weighted mean of all decisions in child nodes.
+          - If 'include_best': TODO.
 
         categorical_nan_filler: str, default='missing_value'
           If `categorical_nan_mode` is set to "as_category", then during
@@ -383,7 +384,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         rank_feature_names: dict[str, list] | None = None,
         hierarchy: dict[str, str | list[str]] | None = None,
         numerical_nan_mode: NumericalNanModeOption = "min",
-        categorical_nan_mode: CategoricalNanModeOption = "include",
+        categorical_nan_mode: CategoricalNanModeOption = "as_category",
         categorical_nan_filler: str = "missing_value",
         verbose: VerboseOption = "WARNING",
     ) -> None:
@@ -440,7 +441,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             repr_.append(f"hierarchy={self.hierarchy}")
         if self.numerical_nan_mode != "min":
             repr_.append(f"numerical_nan_mode={self.numerical_nan_mode!r}")
-        if self.categorical_nan_mode != "include":
+        if self.categorical_nan_mode != "as_category":
             repr_.append(f"categorical_nan_mode={self.categorical_nan_mode!r}")
         if self.categorical_nan_filler != "missing_value":
             repr_.append(f"categorical_nan_filler={self.categorical_nan_filler!r}")
