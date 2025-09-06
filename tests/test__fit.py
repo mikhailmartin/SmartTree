@@ -76,7 +76,7 @@ def test__fit():
     tree = SmartDecisionTreeClassifier()
     tree.fit(X_, y_)
 
-    assert tree.feature_names == [
+    assert tree.all_feature_names == [
         "2. Возраст", "3. Семейное положение", "5. В какой семье Вы выросли?"
     ]
     assert tree.classes_ == [

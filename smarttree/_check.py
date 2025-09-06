@@ -2,6 +2,7 @@ import pandas as pd
 
 
 def check__params(
+    *,
     criterion=None,
     max_depth=None,
     min_samples_split=None,
@@ -273,11 +274,13 @@ def _check__categorical_nan_filler(categorical_nan_filler):
 
 
 def check__data(
+    *,
     X=None,
     y=None,
     numerical_feature_names=None,
     categorical_feature_names=None,
     rank_feature_names=None,
+    all_feature_names=None,
 ):
     if X is not None:
         _check__X(X)
@@ -296,6 +299,9 @@ def check__data(
 
     if rank_feature_names is not None:
         _check__rank_feature_names_in(X, rank_feature_names)
+
+    if all_feature_names is not None:
+        _check_all_feature_names_in(X, all_feature_names)
 
 
 def _check__X(X):
@@ -338,3 +344,38 @@ def _check__rank_feature_names_in(X, rank_feature_names):
                 f"`rank_feature_names` contain feature {rank_feature_name},"
                 " which isnt present in the training data."
             )
+
+
+def _check_all_feature_names_in(X, all_feature_names):
+
+    fitted_features_set = set(all_feature_names)
+    X_features_set = set(X.columns)
+    if fitted_features_set != X_features_set:
+        message = [
+            "The feature names should match those that were passed during fit."
+        ]
+
+        unexpected_names = sorted(X_features_set - fitted_features_set)
+        missing_names = sorted(fitted_features_set - X_features_set)
+
+        def add_names(names: list[str]) -> str:
+            output = []
+            max_n_names = 5
+            for i, name in enumerate(names):
+                if i >= max_n_names:
+                    output.append("- ...")
+                    break
+                output.append(f"- {name}")
+            return "\n".join(output)
+
+        if unexpected_names:
+            message.append("Feature names unseen at fit time:")
+            message.append(add_names(unexpected_names))
+
+        if missing_names:
+            message.append("Feature names seen at fit time, yet now missing:")
+            message.append(add_names(missing_names))
+
+        # TODO: same order of features
+
+        raise ValueError("\n".join(message))

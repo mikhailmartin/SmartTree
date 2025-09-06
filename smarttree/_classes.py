@@ -93,7 +93,7 @@ class BaseSmartDecisionTree:
         else:
             self.__rank_feature_names = rank_feature_names
 
-        self._feature_names: list[str] = []
+        self._all_feature_names: list[str] = []
         self.__numerical_nan_mode = numerical_nan_mode
         self.__categorical_nan_mode = categorical_nan_mode
         self.__categorical_nan_filler = categorical_nan_filler
@@ -147,9 +147,9 @@ class BaseSmartDecisionTree:
         return self.__rank_feature_names
 
     @property
-    def feature_names(self) -> list[str]:
+    def all_feature_names(self) -> list[str]:
         self._check_is_fitted()
-        return self._feature_names
+        return self._all_feature_names
 
     @property
     def hierarchy(self) -> dict[str, str | list[str]]:
@@ -539,7 +539,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             categorical_nan_mode=self.categorical_nan_mode,
         )
 
-        self._feature_names = X.columns.tolist()
+        self._all_feature_names = X.columns.tolist()
         self.__classes = sorted(y.unique())
 
         if self.numerical_nan_mode in ("min", "max"):
@@ -578,8 +578,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         Returns:
             list[str]: The predicted classes.
         """
-        self._check_is_fitted()
-
         y_pred_proba_s = self.predict_proba(X)
         y_pred = [
             self.__classes[y_pred_proba.argmax()] for y_pred_proba in y_pred_proba_s
@@ -602,8 +600,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             The class probabilities of the input samples. The order of the
             classes corresponds to that in the attribute :term:`class_names`.
         """
-        check__data(X)
-        self._check_is_fitted()
+        check__data(X=X, all_feature_names=self.all_feature_names)
 
         X = self.__preprocess(X)
 
@@ -705,48 +702,11 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         sample_weight: pd.Series | None = None,
     ) -> float | np.floating:
         """Returns the accuracy metric."""
-        check__data(X, y)
-        self._check_is_fitted()
-
-        self.__check_score_data(X)
+        check__data(X=X, y=y, all_feature_names=self.all_feature_names)
 
         score = accuracy_score(y, self.predict(X), sample_weight=sample_weight)
 
         return score
-
-    def __check_score_data(self, X: pd.DataFrame):
-
-        fitted_features_set = set(self._feature_names)
-        X_features_set = set(X.columns)
-        if fitted_features_set != X_features_set:
-            message = [
-                "The feature names should match those that were passed during fit."
-            ]
-
-            unexpected_names = sorted(X_features_set - fitted_features_set)
-            missing_names = sorted(fitted_features_set - X_features_set)
-
-            def add_names(names: list[str]) -> str:
-                output = []
-                max_n_names = 5
-                for i, name in enumerate(names):
-                    if i >= max_n_names:
-                        output.append("- ...")
-                        break
-                    output.append(f"- {name}")
-                return "\n".join(output)
-
-            if unexpected_names:
-                message.append("Feature names unseen at fit time:")
-                message.append(add_names(unexpected_names))
-
-            if missing_names:
-                message.append("Feature names seen at fit time, yet now missing:")
-                message.append(add_names(missing_names))
-
-            # TODO: same order of features
-
-            raise ValueError("\n".join(message))
 
     @lru_cache
     def render(
