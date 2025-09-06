@@ -12,6 +12,7 @@ from ._constants import (
     ClassificationCriterionOption,
     NumericalNanModeOption,
 )
+from ._dataset import Dataset
 from ._tree_node import TreeNode
 
 
@@ -45,8 +46,8 @@ class NodeSplitter:
         numerical_nan_mode: NumericalNanModeOption,
         categorical_nan_mode: CategoricalNanModeOption,
     ) -> None:
-        self.X = X
-        self.y = y
+
+        self.dataset = Dataset(X, y)
         self.criterion = criterion
         self.max_depth = max_depth
         self.min_samples_split = min_samples_split
@@ -70,20 +71,15 @@ class NodeSplitter:
         for feature in self.rank_feature_names:
             self.feature_split_type[feature] = "rank"
 
-        self.class_names: list[str] = sorted(y.unique())
-
-        # column splitters
         self.num_col_splitter = NumericalColumnSplitter(
-            X=self.X,
-            y=self.y,
+            dataset=self.dataset,
             criterion=self.criterion,
             min_samples_split=self.min_samples_split,
             min_samples_leaf=self.min_samples_leaf,
             numerical_nan_mode=self.numerical_nan_mode,
         )
         self.cat_col_splitter = CategoricalColumnSplitter(
-            X=self.X,
-            y=self.y,
+            dataset=self.dataset,
             criterion=self.criterion,
             min_samples_split=self.min_samples_split,
             min_samples_leaf=self.min_samples_leaf,
@@ -92,8 +88,7 @@ class NodeSplitter:
             max_childs=self.max_childs,
         )
         self.rank_col_splitter = RankColumnSplitter(
-            X=self.X,
-            y=self.y,
+            dataset=self.dataset,
             criterion=self.criterion,
             min_samples_split=self.min_samples_split,
             min_samples_leaf=self.min_samples_leaf,
