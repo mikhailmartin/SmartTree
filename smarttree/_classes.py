@@ -47,9 +47,6 @@ class BaseSmartDecisionTree:
         verbose: VerboseOption = "WARNING",
     ) -> None:
 
-        self.logger = logging.getLogger()
-        self.logger.setLevel(verbose)
-
         check__params(
             criterion=criterion,
             max_depth=max_depth,
@@ -100,6 +97,9 @@ class BaseSmartDecisionTree:
         self.__numerical_nan_mode = numerical_nan_mode
         self.__categorical_nan_mode = categorical_nan_mode
         self.__categorical_nan_filler = categorical_nan_filler
+
+        self.logger = logging.getLogger()
+        self.logger.setLevel(verbose)
 
         self._is_fitted: bool = False
         self._root: TreeNode | None = None
