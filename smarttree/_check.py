@@ -18,54 +18,54 @@ def check__params(
     categorical_nan_filler=None,
 ):
     if criterion is not None:
-        check__criterion(criterion)
+        _check__criterion(criterion)
 
     if max_depth is not None:
-        check__max_depth(max_depth)
+        _check__max_depth(max_depth)
 
     if min_samples_split is not None:
-        check__min_samples_split(min_samples_split)
+        _check__min_samples_split(min_samples_split)
 
     if min_samples_leaf is not None:
-        check__min_samples_leaf(min_samples_leaf)
+        _check__min_samples_leaf(min_samples_leaf)
 
     if min_samples_split is not None and min_samples_leaf is not None:
-        check__min_samples_split__and__min_samples_leaf(
+        _check__min_samples_split__and__min_samples_leaf(
             min_samples_split, min_samples_leaf
         )
 
     if max_leaf_nodes is not None:
-        check__max_leaf_nodes(max_leaf_nodes)
+        _check__max_leaf_nodes(max_leaf_nodes)
 
     if min_impurity_decrease is not None:
-        check__min_impurity_decrease(min_impurity_decrease)
+        _check__min_impurity_decrease(min_impurity_decrease)
 
     if max_childs is not None:
-        check__max_childs(max_childs)
+        _check__max_childs(max_childs)
 
     if numerical_feature_names is not None:
-        check__numerical_feature_names(numerical_feature_names)
+        _check__numerical_feature_names(numerical_feature_names)
 
     if categorical_feature_names is not None:
-        check__categorical_feature_names(categorical_feature_names)
+        _check__categorical_feature_names(categorical_feature_names)
 
     if rank_feature_names is not None:
-        check__rank_feature_names(rank_feature_names)
+        _check__rank_feature_names(rank_feature_names)
 
     if hierarchy is not None:
-        check__hierarchy(hierarchy)
+        _check__hierarchy(hierarchy)
 
     if numerical_nan_mode is not None:
-        check__numerical_nan_mode(numerical_nan_mode)
+        _check__numerical_nan_mode(numerical_nan_mode)
 
     if categorical_nan_mode is not None:
-        check__categorical_nan_mode(categorical_nan_mode)
+        _check__categorical_nan_mode(categorical_nan_mode)
 
     if categorical_nan_filler is not None:
-        check__categorical_nan_filler(categorical_nan_filler)
+        _check__categorical_nan_filler(categorical_nan_filler)
 
 
-def check__criterion(criterion):
+def _check__criterion(criterion):
     if criterion not in ("entropy", "gini", "log_loss"):
         raise ValueError(
             "`criterion` mist be Literal['entropy', 'log_loss', 'gini']."
@@ -73,7 +73,7 @@ def check__criterion(criterion):
         )
 
 
-def check__max_depth(max_depth):
+def _check__max_depth(max_depth):
     if not isinstance(max_depth, int) or max_depth <= 0:
         raise ValueError(
             "`max_depth` must be an integer and strictly greater than 0."
@@ -81,7 +81,7 @@ def check__max_depth(max_depth):
         )
 
 
-def check__min_samples_split(min_samples_split):
+def _check__min_samples_split(min_samples_split):
     if (
         not isinstance(min_samples_split, (int, float))
         or (
@@ -100,7 +100,7 @@ def check__min_samples_split(min_samples_split):
         )
 
 
-def check__min_samples_leaf(min_samples_leaf):
+def _check__min_samples_leaf(min_samples_leaf):
     if (
         not isinstance(min_samples_leaf, (int, float))
         or (isinstance(min_samples_leaf, int) and min_samples_leaf < 1)
@@ -116,7 +116,7 @@ def check__min_samples_leaf(min_samples_leaf):
         )
 
 
-def check__min_samples_split__and__min_samples_leaf(
+def _check__min_samples_split__and__min_samples_leaf(
     min_samples_split, min_samples_leaf
 ) -> None:
     same_type = (
@@ -133,7 +133,7 @@ def check__min_samples_split__and__min_samples_leaf(
         )
 
 
-def check__max_leaf_nodes(max_leaf_nodes):
+def _check__max_leaf_nodes(max_leaf_nodes):
     if not isinstance(max_leaf_nodes, int) or max_leaf_nodes < 2:
         raise ValueError(
             "`max_leaf_nodes` must be an integer and strictly greater than 2."
@@ -141,7 +141,7 @@ def check__max_leaf_nodes(max_leaf_nodes):
         )
 
 
-def check__min_impurity_decrease(min_impurity_decrease):
+def _check__min_impurity_decrease(min_impurity_decrease):
     # TODO: could impurity_decrease be greater 1?
     if not isinstance(min_impurity_decrease, float) or min_impurity_decrease < 0:
         raise ValueError(
@@ -150,7 +150,7 @@ def check__min_impurity_decrease(min_impurity_decrease):
         )
 
 
-def check__max_childs(max_childs) -> None:
+def _check__max_childs(max_childs) -> None:
     if not isinstance(max_childs, int) or max_childs < 2:
         raise ValueError(
             "`max_childs` must be integer and strictly greater than 2."
@@ -158,7 +158,7 @@ def check__max_childs(max_childs) -> None:
         )
 
 
-def check__numerical_feature_names(numerical_feature_names):
+def _check__numerical_feature_names(numerical_feature_names):
     if isinstance(numerical_feature_names, list):
         for numerical_feature_name in numerical_feature_names:
             if not isinstance(numerical_feature_name, str):
@@ -176,7 +176,7 @@ def check__numerical_feature_names(numerical_feature_names):
         )
 
 
-def check__categorical_feature_names(categorical_feature_names):
+def _check__categorical_feature_names(categorical_feature_names):
     if isinstance(categorical_feature_names, list):
         for categorical_feature_name in categorical_feature_names:
             if not isinstance(categorical_feature_name, str):
@@ -194,7 +194,7 @@ def check__categorical_feature_names(categorical_feature_names):
         )
 
 
-def check__rank_feature_names(rank_feature_names):
+def _check__rank_feature_names(rank_feature_names):
     if isinstance(rank_feature_names, dict):
         for rank_feature_name, value_list in rank_feature_names.items():
             if not isinstance(rank_feature_name, str):
@@ -215,7 +215,7 @@ def check__rank_feature_names(rank_feature_names):
         )
 
 
-def check__hierarchy(hierarchy):
+def _check__hierarchy(hierarchy):
     common_message = (
         "`hierarchy` must be a dictionary"
         " {opening feature: opened feature / list of opened features}."
@@ -248,7 +248,7 @@ def check__hierarchy(hierarchy):
         )
 
 
-def check__numerical_nan_mode(numerical_nan_mode):
+def _check__numerical_nan_mode(numerical_nan_mode):
     if numerical_nan_mode not in ("include", "min", "max"):
         raise ValueError(
             "`numerical_nan_mode` must be Literal['include', 'min', 'max']."
@@ -256,7 +256,7 @@ def check__numerical_nan_mode(numerical_nan_mode):
         )
 
 
-def check__categorical_nan_mode(categorical_nan_mode):
+def _check__categorical_nan_mode(categorical_nan_mode):
     if categorical_nan_mode not in ("include", "as_category"):
         raise ValueError(
             "`categorical_nan_mode` must be Literal['include', 'as_category']."
@@ -264,7 +264,7 @@ def check__categorical_nan_mode(categorical_nan_mode):
         )
 
 
-def check__categorical_nan_filler(categorical_nan_filler):
+def _check__categorical_nan_filler(categorical_nan_filler):
     if not isinstance(categorical_nan_filler, str):
         raise ValueError(
             "`categorical_nan_filler` must be a string."
@@ -274,25 +274,25 @@ def check__categorical_nan_filler(categorical_nan_filler):
 
 def check__data(X=None, y=None):
     if X is not None:
-        check__X(X)
+        _check__X(X)
 
     if y is not None:
-        check__y(y)
+        _check__y(y)
 
     if X is not None and y is not None:
-        check__X_and_y(X, y)
+        _check__X_and_y(X, y)
 
 
-def check__X(X):
+def _check__X(X):
     if not isinstance(X, pd.DataFrame):
         raise ValueError("X must be a pandas.DataFrame.")
 
 
-def check__y(y):
+def _check__y(y):
     if not isinstance(y, pd.Series):
         raise ValueError("y must be a pandas.Series.")
 
 
-def check__X_and_y(X, y):
+def _check__X_and_y(X, y):
     if X.shape[0] != y.shape[0]:
         raise ValueError("X and y must be the equal length.")
