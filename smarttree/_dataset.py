@@ -1,0 +1,18 @@
+from dataclasses import dataclass
+
+import pandas as pd
+
+
+@dataclass
+class Dataset:
+
+    X: pd.DataFrame
+    y: pd.Series
+
+    def __post_init__(self) -> None:
+        self.class_names = sorted(self.y.unique())
+        self.mask_na = {column: self.X[column].isna() for column in self.X.columns}
+
+    @property
+    def size(self) -> int:
+        return self.X.shape[0]

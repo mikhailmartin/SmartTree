@@ -176,15 +176,15 @@ class NumericalColumnSplitter(BaseColumnSplitter):
         use_including_na = (
             self.numerical_nan_mode == "include"
             # and there are samples with missing values
-            and (node.mask & self.dataset.X[split_feature_name].isna()).sum()
+            and (node.mask & self.dataset.mask_na[split_feature_name]).sum()
         )
 
         if use_including_na:
-            mask_notna = node.mask & self.dataset.X[split_feature_name].notna()
+            mask_notna = node.mask & ~self.dataset.mask_na[split_feature_name]
             # if split by feature value is not possible
             if mask_notna.sum() <= 1:
                 return ColumnSplitResult(float("-inf"), [], [])
-            mask_na = node.mask & self.dataset.X[split_feature_name].isna()
+            mask_na = node.mask & self.dataset.mask_na[split_feature_name]
 
             points = self.dataset.X.loc[mask_notna, split_feature_name].to_numpy()
         else:
