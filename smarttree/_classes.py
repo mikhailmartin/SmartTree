@@ -662,10 +662,8 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
                 threshold = float(node.childs[0].feature_value[0][3:])
                 if point[node.split_feature_name] <= threshold:
                     y_pred_proba, samples = self.__predict_proba(node.childs[0], point)
-                elif point[node.split_feature_name] > threshold:
-                    y_pred_proba, samples = self.__predict_proba(node.childs[1], point)
                 else:
-                    assert False
+                    y_pred_proba, samples = self.__predict_proba(node.childs[1], point)
 
             elif (
                 node.split_feature_name in self.categorical_feature_names
