@@ -190,8 +190,8 @@ def test_repr_tree__numerical_nan_mode(numerical_nan_mode, expected):
 @pytest.mark.parametrize(
     ("categorical_nan_mode", "expected"),
     [
-        ("include", f"{CLASS_NAME}()"),
-        ("as_category", f"{CLASS_NAME}(categorical_nan_mode='as_category')"),
+        ("as_category", f"{CLASS_NAME}()"),
+        ("include_all", f"{CLASS_NAME}(categorical_nan_mode='include_all')"),
     ],
     ids=["default value", "not default value"],
 )

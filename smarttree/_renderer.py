@@ -11,7 +11,7 @@ class Renderer:
             node_attr["style"] = "rounded"
         self.graph = Digraph(name="decision tree", node_attr=node_attr)
 
-        self.criterion= criterion
+        self.criterion = criterion
 
     def render(
         self,

@@ -1,5 +1,6 @@
 import math
 from abc import ABC, abstractmethod
+from copy import deepcopy
 from typing import Generator, NamedTuple
 
 import numpy as np
@@ -12,6 +13,9 @@ from ._constants import (
 )
 from ._dataset import Dataset
 from ._tree_node import TreeNode
+
+
+NO_INFORMATION_GAIN = float("-inf")
 
 
 class ColumnSplitResult(NamedTuple):
@@ -61,7 +65,7 @@ class BaseColumnSplitter(ABC):
               list of boolean masks of child nodes.
             nan_mode: str, default=None
               missing values handling node.
-              If 'include', then turn on normalization of child nodes impurity.
+              - If 'include', then turn on normalization of child nodes impurity.
 
         Returns:
             float: information gain.
@@ -98,7 +102,7 @@ class BaseColumnSplitter(ABC):
             impurity_child_i = self.impurity(child_mask_i)
             weighted_impurity_childs += (N_child_i / N_parent) * impurity_child_i
 
-        if nan_mode == "include":
+        if nan_mode == "include_all":
             norm_coef = N_parent / N_childs
             weighted_impurity_childs *= norm_coef
 
@@ -182,7 +186,7 @@ class NumericalColumnSplitter(BaseColumnSplitter):
             mask_notna = node.mask & ~self.dataset.mask_na[split_feature_name]
             # if split by feature value is not possible
             if mask_notna.sum() <= 1:
-                return ColumnSplitResult(float("-inf"), [], [])
+                return ColumnSplitResult(NO_INFORMATION_GAIN, [], [])
             mask_na = node.mask & self.dataset.mask_na[split_feature_name]
 
             points = self.dataset.X.loc[mask_notna, split_feature_name].to_numpy()
@@ -191,7 +195,7 @@ class NumericalColumnSplitter(BaseColumnSplitter):
 
         thresholds = self.get_thresholds(points)
 
-        best_split_result = ColumnSplitResult(float("-inf"), [], [])
+        best_split_result = ColumnSplitResult(NO_INFORMATION_GAIN, [], [])
         for threshold in thresholds:
             mask_less = node.mask & (self.dataset.X[split_feature_name] <= threshold)
             mask_more = node.mask & (self.dataset.X[split_feature_name] > threshold)
@@ -265,42 +269,30 @@ class CategoricalColumnSplitter(BaseColumnSplitter):
         leaf_counter: int,
     ) -> ColumnSplitResult:
         """Split a node according to a categorical feature in the best way."""
-        cat_col: pd.Series = self.dataset.X.loc[node.mask, split_feature_name]  # type: ignore
-        available_feature_values = cat_col.unique()
+        category_column: pd.Series = self.dataset.X.loc[node.mask, split_feature_name]  # type: ignore
+        categories = category_column.dropna().unique().tolist()
 
-        if (
-            self.categorical_nan_mode == "include"
-            and pd.isna(available_feature_values).any()  # if contains missing values
-        ):
-            available_feature_values = available_feature_values[
-                ~pd.isna(available_feature_values)
-            ]
-        if len(available_feature_values) <= 1:
-            return ColumnSplitResult(float("-inf"), [], [])
-        available_feature_values = sorted(available_feature_values)  # type: ignore
+        if len(categories) <= 1:
+            return ColumnSplitResult(NO_INFORMATION_GAIN, [], [])
 
-        # get list of all possible partitions
-        partitions = []
-        for partition in self.cat_partitions(available_feature_values):  # type: ignore
+        best_split_result = ColumnSplitResult(NO_INFORMATION_GAIN, [], [])
+        for cat_partitions in self.cat_partitions(categories):  # type: ignore
             # if partitions is not really partitions
-            if len(partition) < 2:
+            if len(cat_partitions) <= 1:
                 continue
             # limitation of branching
-            if len(partition) > self.max_childs:
+            if len(cat_partitions) > self.max_childs:
                 continue
             # if the number of leaves exceeds the limit after splitting
-            if leaf_counter + len(partition) > self.max_leaf_nodes:
+            if leaf_counter + len(cat_partitions) > self.max_leaf_nodes:
                 continue
 
-            partitions.append(partition)
-
-        best_split_result = ColumnSplitResult(float("-inf"), [], [])
-        for feature_values in partitions:
-            inf_gain, child_masks = \
-                self.__cat_split(node.mask, split_feature_name, feature_values)
-            if best_split_result.information_gain < inf_gain:
+            information_gain, child_masks = self.__cat_split(
+                node.mask, split_feature_name, cat_partitions
+            )
+            if best_split_result.information_gain < information_gain:
                 best_split_result = ColumnSplitResult(
-                    inf_gain, feature_values, child_masks
+                    information_gain, cat_partitions, child_masks
                 )
 
         return best_split_result
@@ -320,16 +312,50 @@ class CategoricalColumnSplitter(BaseColumnSplitter):
         child_masks = []
         for partition in feature_values:
             partition_mask = self.dataset.X[split_feature_name].isin(partition)
-            child_mask = parent_mask & (partition_mask | mask_na)
-            if child_mask.sum() < self.min_samples_leaf:
-                return float("-inf"), []
+            child_mask = parent_mask & partition_mask
             child_masks.append(child_mask)
 
-        information_gain = self.information_gain(
-            parent_mask, child_masks, nan_mode=self.categorical_nan_mode
-        )
+        if self.categorical_nan_mode == "as_category":
+            information_gain = self.information_gain(parent_mask, child_masks)
+            return information_gain, child_masks
 
-        return information_gain, child_masks
+        elif self.categorical_nan_mode == "include_all":
+            for i, child_mask in enumerate(child_masks):
+                child_masks[i] = child_mask | (parent_mask & mask_na)  # update
+                if child_masks[i].sum() < self.min_samples_leaf:
+                    return NO_INFORMATION_GAIN, []
+
+            information_gain = self.information_gain(
+                parent_mask, child_masks, nan_mode=self.categorical_nan_mode
+            )
+
+            return information_gain, child_masks
+
+        elif self.categorical_nan_mode == "include_best":
+            candidates = []
+            origin_child_masks = child_masks
+            for i, child_mask in enumerate(origin_child_masks):
+                child_masks = deepcopy(origin_child_masks)
+                child_masks[i] = child_mask | (parent_mask & mask_na)  # update
+                for child_mask in child_masks:
+                    if child_mask.sum() < self.min_samples_leaf:
+                        break
+                else:
+                    candidates.append(child_masks)
+
+            best_information_gain = NO_INFORMATION_GAIN
+            best_child_masks = []
+            for child_masks in candidates:
+                information_gain = self.information_gain(parent_mask, child_masks)
+                if best_information_gain < information_gain:
+                    best_information_gain = information_gain
+                    best_child_masks = child_masks
+
+            return best_information_gain, best_child_masks
+
+        else:
+            assert False
+
 
     def cat_partitions(
         self,
@@ -371,7 +397,7 @@ class RankColumnSplitter(BaseColumnSplitter):
         """Split a node according to a rank feature in the best way."""
         available_feature_values = self.rank_feature_names[split_feature_name]
 
-        best_split_result = ColumnSplitResult(float("-inf"), [], [])
+        best_split_result = ColumnSplitResult(NO_INFORMATION_GAIN, [], [])
         for feature_values in self.rank_partitions(available_feature_values):
             inf_gain, child_masks = \
                 self.__rank_split(node.mask, split_feature_name, feature_values)
@@ -401,13 +427,13 @@ class RankColumnSplitter(BaseColumnSplitter):
             mask_left.sum() < self.min_samples_leaf
             or mask_right.sum() < self.min_samples_leaf
         ):
-            return float("-inf"), []
+            return NO_INFORMATION_GAIN, []
 
         child_masks = [mask_left, mask_right]
 
-        inf_gain = self.information_gain(parent_mask, child_masks)
+        information_gain = self.information_gain(parent_mask, child_masks)
 
-        return inf_gain, child_masks
+        return information_gain, child_masks
 
     @staticmethod
     def rank_partitions(collection: list) -> Generator[tuple[list, list], None, None]:

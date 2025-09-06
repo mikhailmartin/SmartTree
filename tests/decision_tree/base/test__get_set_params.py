@@ -45,7 +45,7 @@ def test__get_params(concrete_smart_tree):
         ({"rank_feature_names": {"rank_feature": ["1", "2", "3"]}}, does_not_raise()),
         ({"hierarchy": {"num_feature": "rank_feature"}}, does_not_raise()),
         ({"numerical_nan_mode": "max"}, does_not_raise()),
-        ({"categorical_nan_mode": "include"}, does_not_raise()),
+        ({"categorical_nan_mode": "as_category"}, does_not_raise()),
         ({"categorical_nan_filler": "NaN"}, does_not_raise()),
         (
             {"aboba": "aboba"},
