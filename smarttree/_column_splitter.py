@@ -24,13 +24,12 @@ class BaseColumnSplitter(ABC):
 
     def __init__(
         self,
-        X: pd.DataFrame,
-        y: pd.Series,
+        dataset: Dataset,
         criterion: ClassificationCriterionOption,
         min_samples_split: int,
         min_samples_leaf: int,
     ) -> None:
-        self.dataset = Dataset(X, y)
+        self.dataset = dataset
         self.criterion = criterion
         self.min_samples_split = min_samples_split
         self.min_samples_leaf = min_samples_leaf
@@ -49,7 +48,7 @@ class BaseColumnSplitter(ABC):
         self,
         parent_mask: pd.Series,
         child_masks: list[pd.Series],
-        nan_mode: str | None = None,
+        nan_mode: str | None = None,  # TODO
     ) -> float:
         r"""
         Calculates information gain of the split.
@@ -155,16 +154,14 @@ class NumericalColumnSplitter(BaseColumnSplitter):
 
     def __init__(
         self,
-        X: pd.DataFrame,
-        y: pd.Series,
-        criterion,
+        dataset: Dataset,
+        criterion: ClassificationCriterionOption,
         min_samples_split: int,
         min_samples_leaf: int,
         numerical_nan_mode: NumericalNanModeOption,
     ) -> None:
         super().__init__(
-            X=X,
-            y=y,
+            dataset=dataset,
             criterion=criterion,
             min_samples_split=min_samples_split,
             min_samples_leaf=min_samples_leaf,
@@ -240,8 +237,7 @@ class CategoricalColumnSplitter(BaseColumnSplitter):
 
     def __init__(
         self,
-        X: pd.DataFrame,
-        y: pd.Series,
+        dataset: Dataset,
         criterion: ClassificationCriterionOption,
         min_samples_split: int,
         min_samples_leaf: int,
@@ -250,8 +246,7 @@ class CategoricalColumnSplitter(BaseColumnSplitter):
         categorical_nan_mode: CategoricalNanModeOption,
     ) -> None:
         super().__init__(
-            X=X,
-            y=y,
+            dataset=dataset,
             criterion=criterion,
             min_samples_split=min_samples_split,
             min_samples_leaf=min_samples_leaf,
@@ -354,16 +349,14 @@ class CategoricalColumnSplitter(BaseColumnSplitter):
 class RankColumnSplitter(BaseColumnSplitter):
     def __init__(
         self,
-        X: pd.DataFrame,
-        y: pd.Series,
-        criterion,
+        dataset: Dataset,
+        criterion: ClassificationCriterionOption,
         min_samples_split: int,
         min_samples_leaf: int,
         rank_feature_names: dict[str, list],
     ) -> None:
         super().__init__(
-            X=X,
-            y=y,
+            dataset=dataset,
             criterion=criterion,
             min_samples_split=min_samples_split,
             min_samples_leaf=min_samples_leaf,

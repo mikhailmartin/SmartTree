@@ -1,13 +1,13 @@
 import pytest
 
 from smarttree._column_splitter import CategoricalColumnSplitter
+from smarttree._dataset import Dataset
 
 
 @pytest.fixture(scope="module")
 def categorical_column_splitter(X, y) -> CategoricalColumnSplitter:
     return CategoricalColumnSplitter(
-        X=X,
-        y=y,
+        dataset=Dataset(X, y),
         criterion="gini",
         min_samples_split=2,
         min_samples_leaf=1,
