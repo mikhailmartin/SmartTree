@@ -387,6 +387,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         categorical_nan_filler: str = "missing_value",
         verbose: VerboseOption = "WARNING",
     ) -> None:
+
         super().__init__(
             criterion=criterion,
             max_depth=max_depth,

@@ -29,6 +29,7 @@ class BaseColumnSplitter(ABC):
         min_samples_split: int,
         min_samples_leaf: int,
     ) -> None:
+
         self.dataset = dataset
         self.criterion = criterion
         self.min_samples_split = min_samples_split
@@ -160,6 +161,7 @@ class NumericalColumnSplitter(BaseColumnSplitter):
         min_samples_leaf: int,
         numerical_nan_mode: NumericalNanModeOption,
     ) -> None:
+
         super().__init__(
             dataset=dataset,
             criterion=criterion,
@@ -245,6 +247,7 @@ class CategoricalColumnSplitter(BaseColumnSplitter):
         max_childs: int | float,
         categorical_nan_mode: CategoricalNanModeOption,
     ) -> None:
+
         super().__init__(
             dataset=dataset,
             criterion=criterion,
@@ -355,6 +358,7 @@ class RankColumnSplitter(BaseColumnSplitter):
         min_samples_leaf: int,
         rank_feature_names: dict[str, list],
     ) -> None:
+
         super().__init__(
             dataset=dataset,
             criterion=criterion,

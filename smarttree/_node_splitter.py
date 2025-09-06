@@ -46,6 +46,7 @@ class NodeSplitter:
         numerical_nan_mode: NumericalNanModeOption,
         categorical_nan_mode: CategoricalNanModeOption,
     ) -> None:
+
         self.dataset = Dataset(X, y)
         self.criterion = criterion
         self.max_depth = max_depth
