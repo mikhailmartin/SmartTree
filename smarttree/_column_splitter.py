@@ -64,7 +64,7 @@ class BaseColumnSplitter(ABC):
               list of boolean masks of child nodes.
             nan_mode: str, default=None
               missing values handling node.
-              If 'include', then turn on normalization of child nodes impurity.
+              - If 'include', then turn on normalization of child nodes impurity.
 
         Returns:
             float: information gain.
@@ -268,23 +268,14 @@ class CategoricalColumnSplitter(BaseColumnSplitter):
         leaf_counter: int,
     ) -> ColumnSplitResult:
         """Split a node according to a categorical feature in the best way."""
-        cat_col: pd.Series = self.dataset.X.loc[node.mask, split_feature_name]  # type: ignore
-        available_feature_values = cat_col.unique()
+        category_column: pd.Series = self.dataset.X.loc[node.mask, split_feature_name]  # type: ignore
+        categories = category_column.dropna().unique().tolist()
 
-        if (
-            self.categorical_nan_mode == "include"
-            and pd.isna(available_feature_values).any()  # if contains missing values
-        ):
-            available_feature_values = available_feature_values[
-                ~pd.isna(available_feature_values)
-            ]
-        if len(available_feature_values) <= 1:
+        if len(categories) <= 1:
             return ColumnSplitResult(NO_INFORMATION_GAIN, [], [])
-        available_feature_values = sorted(available_feature_values)  # type: ignore
 
-        # get list of all possible partitions
-        partitions = []
-        for cat_partition in self.cat_partitions(available_feature_values):  # type: ignore
+        best_split_result = ColumnSplitResult(NO_INFORMATION_GAIN, [], [])
+        for cat_partition in self.cat_partitions(categories):  # type: ignore
             # if partitions is not really partitions
             if len(cat_partition) < 2:
                 continue
@@ -295,15 +286,12 @@ class CategoricalColumnSplitter(BaseColumnSplitter):
             if leaf_counter + len(cat_partition) > self.max_leaf_nodes:
                 continue
 
-            partitions.append(cat_partition)
-
-        best_split_result = ColumnSplitResult(NO_INFORMATION_GAIN, [], [])
-        for feature_values in partitions:
-            inf_gain, child_masks = \
-                self.__cat_split(node.mask, split_feature_name, feature_values)
-            if best_split_result.information_gain < inf_gain:
+            information_gain, child_masks = self.__cat_split(
+                node.mask, split_feature_name, cat_partition
+            )
+            if best_split_result.information_gain < information_gain:
                 best_split_result = ColumnSplitResult(
-                    inf_gain, feature_values, child_masks
+                    information_gain, cat_partition, child_masks
                 )
 
         return best_split_result
@@ -323,7 +311,7 @@ class CategoricalColumnSplitter(BaseColumnSplitter):
         child_masks = []
         for partition in feature_values:
             partition_mask = self.dataset.X[split_feature_name].isin(partition)
-            child_mask = parent_mask & (partition_mask | mask_na)
+            child_mask = parent_mask & (partition_mask | mask_na)  # include
             if child_mask.sum() < self.min_samples_leaf:
                 return NO_INFORMATION_GAIN, []
             child_masks.append(child_mask)
