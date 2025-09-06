@@ -31,7 +31,7 @@ from smarttree._constants import (
     ],
     ids=["gini", "entropy", "log_loss", "invalid"]
 )
-def test_init_param__criterion(criterion, expected):
+def test__check_param__criterion(criterion, expected):
     with expected:
         criterion: ClassificationCriterionOption
         SmartDecisionTreeClassifier(criterion=criterion)
@@ -75,7 +75,7 @@ def test_init_param__criterion(criterion, expected):
     ],
     ids=["None", "2", "negative", "float", "str"],
 )
-def test_init_param__max_depth(max_depth, expected):
+def test__check_param__max_depth(max_depth, expected):
     with expected:
         SmartDecisionTreeClassifier(max_depth=max_depth)
 
@@ -132,7 +132,7 @@ def test_init_param__max_depth(max_depth, expected):
     ],
     ids=["int(2)", "int(1)", "float(0.5)", "float(0.0)", "float(1.0)", "str"],
 )
-def test_init_param__min_samples_split(min_samples_split, expected):
+def test__check_param__min_samples_split(min_samples_split, expected):
     with expected:
         SmartDecisionTreeClassifier(min_samples_split=min_samples_split)
 
@@ -189,7 +189,7 @@ def test_init_param__min_samples_split(min_samples_split, expected):
     ],
     ids=["int(1)", "int(0)", "float(0.5)", "float(0.0)", "float(1.0)", "str"],
 )
-def test_init_params__min_samples_leaf(min_samples_leaf, expected):
+def test__check_params__min_samples_leaf(min_samples_leaf, expected):
     with expected:
         SmartDecisionTreeClassifier(min_samples_leaf=min_samples_leaf)
 
@@ -231,7 +231,7 @@ def test_init_params__min_samples_leaf(min_samples_leaf, expected):
     ],
     ids=["float", "2", "1", "str"],
 )
-def test_init_params__max_leaf_nodes(max_leaf_nodes, expected):
+def test__check_params__max_leaf_nodes(max_leaf_nodes, expected):
     with expected:
         SmartDecisionTreeClassifier(max_leaf_nodes=max_leaf_nodes)
 
@@ -263,7 +263,7 @@ def test_init_params__max_leaf_nodes(max_leaf_nodes, expected):
     ],
     ids=["float(0.0)", "float(negative)", "str"]
 )
-def test_init_params__min_impurity_decrease(min_impurity_decrease, expected):
+def test__check_params__min_impurity_decrease(min_impurity_decrease, expected):
     with expected:
         SmartDecisionTreeClassifier(min_impurity_decrease=min_impurity_decrease)
 
@@ -306,7 +306,7 @@ def test_init_params__min_impurity_decrease(min_impurity_decrease, expected):
     ],
     ids=["None", "2", "float", "1", "str"],
 )
-def test_init_params__max_childs(max_childs, expected):
+def test__check_params__max_childs(max_childs, expected):
     with expected:
         SmartDecisionTreeClassifier(max_childs=max_childs)
 
@@ -340,7 +340,7 @@ def test_init_params__max_childs(max_childs, expected):
     ],
     ids=["None", "str", "list[str]", "float", "list[float]"],
 )
-def test_init_params__numerical_feature_names(numerical_feature_names, expected):
+def test__check_params__numerical_feature_names(numerical_feature_names, expected):
     with expected:
         SmartDecisionTreeClassifier(numerical_feature_names=numerical_feature_names)
 
@@ -374,7 +374,7 @@ def test_init_params__numerical_feature_names(numerical_feature_names, expected)
     ],
     ids=["None", "str", "list[str]", "float", "list[float]"],
 )
-def test_init_params__categorical_feature_names(categorical_feature_names, expected):
+def test__check_params__categorical_feature_names(categorical_feature_names, expected):
     with expected:
         SmartDecisionTreeClassifier(categorical_feature_names=categorical_feature_names)
 
@@ -417,7 +417,7 @@ def test_init_params__categorical_feature_names(categorical_feature_names, expec
     ],
     ids=["None", "dict[str, list[str]", "int", "dict[int, list[str]]", "dict[str, str]"],
 )
-def test_init_params__rank_feature_names(rank_feature_names, expected):
+def test__check_params__rank_feature_names(rank_feature_names, expected):
     with expected:
         SmartDecisionTreeClassifier(rank_feature_names=rank_feature_names)
 
@@ -483,7 +483,7 @@ def test_init_params__rank_feature_names(rank_feature_names, expected):
         "dict[str, list[str | int]]",
     ],
 )
-def test_init_params__hierarchy(hierarchy, expected):
+def test__check_params__hierarchy(hierarchy, expected):
     with expected:
         SmartDecisionTreeClassifier(hierarchy=hierarchy)
 
@@ -507,7 +507,7 @@ def test_init_params__hierarchy(hierarchy, expected):
     ],
     ids=["include", "min", "max", "invalid"],
 )
-def test_init_params__numerical_nan_mode(numerical_nan_mode, expected):
+def test__check_params__numerical_nan_mode(numerical_nan_mode, expected):
     with expected:
         numerical_nan_mode: NumericalNanModeOption
         SmartDecisionTreeClassifier(numerical_nan_mode=numerical_nan_mode)
@@ -532,7 +532,7 @@ def test_init_params__numerical_nan_mode(numerical_nan_mode, expected):
     ],
     ids=["as_category", "include_all", "include_best", "invalid"],
 )
-def test_init_params__categorical_nan_mode(categorical_nan_mode, expected):
+def test__check_params__categorical_nan_mode(categorical_nan_mode, expected):
     with expected:
         categorical_nan_mode: CategoricalNanModeOption
         SmartDecisionTreeClassifier(categorical_nan_mode=categorical_nan_mode)
@@ -555,7 +555,7 @@ def test_init_params__categorical_nan_mode(categorical_nan_mode, expected):
     ],
     ids=["str", "int"],
 )
-def test_init_param__categorical_nan_filler(categorical_nan_filler, expected):
+def test__check_param__categorical_nan_filler(categorical_nan_filler, expected):
     with expected:
         SmartDecisionTreeClassifier(categorical_nan_filler=categorical_nan_filler)
 
@@ -579,7 +579,7 @@ def test_init_param__categorical_nan_filler(categorical_nan_filler, expected):
     ],
     ids=["valid", "invalid"],
 )
-def test_init_params__min_samples_split__min_samples_leaf(
+def test__check_params__min_samples_split__min_samples_leaf(
     min_samples_split, min_samples_leaf, expected
 ):
     with expected:
