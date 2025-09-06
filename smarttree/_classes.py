@@ -104,7 +104,7 @@ class BaseSmartDecisionTree:
         self._is_fitted: bool = False
         self._root: TreeNode | None = None
         self._feature_importances: dict = dict()
-        self._fill_numerical_nan_values: dict = dict()
+        self._numerical_nan_filler: dict[str, int | float] = dict()
 
     @property
     def criterion(self) -> ClassificationCriterionOption:
@@ -407,7 +407,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         self.__classes: list[str] = []
 
     @property
-    def classes_(self) -> list[str]:  # TODO: -> np.array
+    def classes_(self) -> list[str]:  # TODO: -> np.ndarray
         self._check_is_fitted()
         return self.__classes
 
@@ -536,21 +536,15 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         self._feature_names = X.columns.tolist()
         self.__classes = sorted(y.unique())
 
-        match self.numerical_nan_mode:
-            case "min":
-                for num_feature in numerical_feature_names:
-                    fill_nan_value = X[num_feature].min()
-                    self._fill_numerical_nan_values[num_feature] = fill_nan_value
-                    X[num_feature].fillna(fill_nan_value, inplace=True)
-            case "max":
-                for num_feature_name in numerical_feature_names:
-                    fill_nan_value = X[num_feature_name].max()
-                    self._fill_numerical_nan_values[fill_nan_value] = fill_nan_value
-                    X[num_feature_name].fillna(fill_nan_value, inplace=True)
+        if self.numerical_nan_mode in ("min", "max"):
+            for numerical_feature_name in numerical_feature_names:
+                if self.numerical_nan_mode == "min":
+                    nan_filler = X[numerical_feature_name].min()
+                else:
+                    nan_filler = X[numerical_feature_name].max()
+                self._numerical_nan_filler[numerical_feature_name] = nan_filler
 
-        if self.categorical_nan_mode == "as_category":
-            for cat_feature in categorical_feature_names:
-                X[cat_feature].fillna(self.categorical_nan_filler, inplace=True)
+        X = self.__preprocess(X)
 
         builder = Builder(
             X=X,
@@ -648,7 +642,8 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
 
         if self.numerical_nan_mode in ("min", "max"):
             for num_feature in self.numerical_feature_names:
-                X.fillna(self._fill_numerical_nan_values[num_feature], inplace=True)
+                nan_filler = self._numerical_nan_filler[num_feature]
+                X[num_feature].fillna(nan_filler, inplace=True)
 
         if self.categorical_nan_mode == "as_category":
             for cat_feature in self.categorical_feature_names:
