@@ -272,7 +272,13 @@ def _check__categorical_nan_filler(categorical_nan_filler):
         )
 
 
-def check__data(X=None, y=None):
+def check__data(
+    X=None,
+    y=None,
+    numerical_feature_names=None,
+    categorical_feature_names=None,
+    rank_feature_names=None,
+):
     if X is not None:
         _check__X(X)
 
@@ -281,6 +287,15 @@ def check__data(X=None, y=None):
 
     if X is not None and y is not None:
         _check__X_and_y(X, y)
+
+    if numerical_feature_names is not None:
+        _check__numerical_feature_names_in(X, numerical_feature_names)
+
+    if categorical_feature_names is not None:
+        _check__categorical_feature_names_in(X, categorical_feature_names)
+
+    if rank_feature_names is not None:
+        _check__rank_feature_names_in(X, rank_feature_names)
 
 
 def _check__X(X):
@@ -296,3 +311,30 @@ def _check__y(y):
 def _check__X_and_y(X, y):
     if X.shape[0] != y.shape[0]:
         raise ValueError("X and y must be the equal length.")
+
+
+def _check__numerical_feature_names_in(X, numerical_feature_names):
+    for numerical_feature_name in numerical_feature_names:
+        if numerical_feature_name not in X.columns:
+            raise ValueError(
+                f"`numerical_feature_names` contain feature {numerical_feature_name},"
+                " which isnt present in the training data."
+            )
+
+
+def _check__categorical_feature_names_in(X, categorical_feature_names):
+    for categorical_feature_name in categorical_feature_names:
+        if categorical_feature_name not in X.columns:
+            raise ValueError(
+                f"`categorical_feature_names` contain feature {categorical_feature_name},"
+                " which isnt present in the training data."
+            )
+
+
+def _check__rank_feature_names_in(X, rank_feature_names):
+    for rank_feature_name in rank_feature_names.keys():
+        if rank_feature_name not in X.columns:
+            raise ValueError(
+                f"`rank_feature_names` contain feature {rank_feature_name},"
+                " which isnt present in the training data."
+            )

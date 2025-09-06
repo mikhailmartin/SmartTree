@@ -459,8 +459,13 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             y: pd.Series
               The target values.
         """
-        check__data(X, y)
-        self.__check_fit_data(X)
+        check__data(
+            X=X,
+            y=y,
+            numerical_feature_names=self.numerical_feature_names,
+            categorical_feature_names=self.categorical_feature_names,
+            rank_feature_names=self.rank_feature_names,
+        )
 
         ################################################################################
         max_depth = float("+inf") if self.max_depth is None else self.max_depth
@@ -561,29 +566,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         self._feature_importances = feature_importances
 
         self._is_fitted = True
-
-    def __check_fit_data(self, X: pd.DataFrame):
-
-        for num_feature_name in self.numerical_feature_names:
-            if num_feature_name not in X.columns:
-                raise ValueError(
-                    f"`numerical_feature_names` contain feature {num_feature_name},"
-                    " which isnt present in the training data."
-                )
-
-        for cat_feature_name in self.categorical_feature_names:
-            if cat_feature_name not in X.columns:
-                raise ValueError(
-                    f"`categorical_feature_names` contain feature {cat_feature_name},"
-                    " which isnt present in the training data."
-                )
-
-        for rank_feature_name in self.rank_feature_names.keys():
-            if rank_feature_name not in X.columns:
-                raise ValueError(
-                    f"`rank_feature_names` contain feature {rank_feature_name},"
-                    " which isnt present in the training data."
-                )
 
     def predict(self, X: pd.DataFrame) -> list[str]:
         """
