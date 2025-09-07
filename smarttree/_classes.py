@@ -659,7 +659,8 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
                 # looking for the branch that needs to be followed
                 for child in node.childs:
                     # if found
-                    if child.feature_value == point[node.split_feature_name]:
+                    # TODO: очень не здорово искать подстроку
+                    if point[node.split_feature_name] in child.feature_value:
                         return self.__get_distribution(child, point)
                 else:
                     # if there is no such branch TODO
