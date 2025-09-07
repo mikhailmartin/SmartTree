@@ -1,4 +1,4 @@
-from typing import Literal, NamedTuple
+from typing import NamedTuple
 
 import pandas as pd
 
@@ -11,12 +11,10 @@ from ._constants import (
     CategoricalNanModeOption,
     ClassificationCriterionOption,
     NumericalNanModeOption,
+    SplitTypeOption,
 )
 from ._dataset import Dataset
 from ._tree_node import TreeNode
-
-
-SplitTypeOption = Literal["numerical", "categorical", "rank"]
 
 
 class NodeSplitResult(NamedTuple):
@@ -64,12 +62,12 @@ class NodeSplitter:
         self.leaf_counter: int = 0
 
         self.feature_split_type: dict[str, SplitTypeOption] = dict()
-        for feature in self.numerical_feature_names:
-            self.feature_split_type[feature] = "numerical"
-        for feature in self.categorical_feature_names:
-            self.feature_split_type[feature] = "categorical"
-        for feature in self.rank_feature_names:
-            self.feature_split_type[feature] = "rank"
+        for feature_name in self.numerical_feature_names:
+            self.feature_split_type[feature_name] = "numerical"
+        for feature_name in self.categorical_feature_names:
+            self.feature_split_type[feature_name] = "categorical"
+        for feature_name in self.rank_feature_names:
+            self.feature_split_type[feature_name] = "rank"
 
         self.num_col_splitter = NumericalColumnSplitter(
             dataset=self.dataset,
