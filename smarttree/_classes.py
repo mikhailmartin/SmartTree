@@ -522,6 +522,19 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             categorical_feature_names = self.categorical_feature_names
         ################################################################################
 
+        self._all_feature_names = X.columns.tolist()
+        self.__classes = sorted(y.unique())
+
+        if self.numerical_na_mode in ("min", "max"):
+            for numerical_feature_name in numerical_feature_names:
+                if self.numerical_na_mode == "min":
+                    na_filler = X[numerical_feature_name].min()
+                else:  # max
+                    na_filler = X[numerical_feature_name].max()
+                self._numerical_na_filler[numerical_feature_name] = na_filler
+
+        X = self.__preprocess(X)
+
         splitter = NodeSplitter(
             X=X,
             y=y,
@@ -538,19 +551,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             numerical_na_mode=self.numerical_na_mode,
             categorical_na_mode=self.categorical_na_mode,
         )
-
-        self._all_feature_names = X.columns.tolist()
-        self.__classes = sorted(y.unique())
-
-        if self.numerical_na_mode in ("min", "max"):
-            for numerical_feature_name in numerical_feature_names:
-                if self.numerical_na_mode == "min":
-                    na_filler = X[numerical_feature_name].min()
-                else:
-                    na_filler = X[numerical_feature_name].max()
-                self._numerical_na_filler[numerical_feature_name] = na_filler
-
-        X = self.__preprocess(X)
 
         builder = Builder(
             X=X,
