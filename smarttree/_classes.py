@@ -715,8 +715,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             Digraph: class containing a description of the graph structure of
             the tree for visualization.
         """
-        self._check_is_fitted()
-
         renderer = Renderer(criterion=self.criterion, rounded=rounded)
         graph = renderer.render(
             tree=self.tree,
