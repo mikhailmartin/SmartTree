@@ -1,7 +1,8 @@
 import os
 
-import pandas as pd
 import pytest
+import pandas as pd
+import numpy as np
 
 from smarttree import BaseSmartDecisionTree
 from smarttree._tree_node import TreeNode
@@ -156,8 +157,8 @@ def root_node(X, y):
         mask=y.apply(lambda x: True),
         hierarchy=dict(),
         available_feature_names=X.columns.tolist(),
-        impurity=0.37,  # TODO: посмотреть настоящий
-        distribution=[199, 199, 197],
+        impurity=0.67,
+        distribution=np.array([199, 199, 197]),
         label="доброкачественная опухоль",
     )
 
