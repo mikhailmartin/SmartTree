@@ -724,6 +724,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             show_num_samples=show_num_samples,
             show_distribution=show_distribution,
             show_label=show_label,
+            **kwargs,
         )
 
         return graph
