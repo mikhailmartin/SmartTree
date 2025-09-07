@@ -12,16 +12,16 @@ from sklearn.metrics import accuracy_score
 
 from ._builder import Builder
 from ._check import check__data, check__params
-from ._constants import (
-    CategoricalNanModeOption,
-    ClassificationCriterionOption,
-    NumericalNanModeOption,
-    VerboseOption,
-)
 from ._exceptions import NotFittedError
 from ._node_splitter import NodeSplitter
 from ._renderer import Renderer
 from ._tree_node import TreeNode
+from ._types import (
+    CategoricalNanModeType,
+    ClassificationCriterionType,
+    NumericalNanModeType,
+    VerboseType,
+)
 
 
 class BaseSmartDecisionTree:
@@ -30,7 +30,7 @@ class BaseSmartDecisionTree:
     def __init__(
         self,
         *,
-        criterion: ClassificationCriterionOption = "gini",
+        criterion: ClassificationCriterionType = "gini",
         max_depth: int | None = None,
         min_samples_split: int | float = 2,
         min_samples_leaf: int | float = 1,
@@ -41,10 +41,10 @@ class BaseSmartDecisionTree:
         categorical_feature_names: list[str] | str | None = None,
         rank_feature_names: dict[str, list] | None = None,
         hierarchy: dict[str, str | list[str]] | None = None,
-        numerical_nan_mode: NumericalNanModeOption = "min",
-        categorical_nan_mode: CategoricalNanModeOption = "as_category",
+        numerical_nan_mode: NumericalNanModeType = "min",
+        categorical_nan_mode: CategoricalNanModeType = "as_category",
         categorical_nan_filler: str = "missing_value",
-        verbose: VerboseOption = "WARNING",
+        verbose: VerboseType = "WARNING",
     ) -> None:
 
         check__params(
@@ -107,7 +107,7 @@ class BaseSmartDecisionTree:
         self._numerical_nan_filler: dict[str, int | float] = dict()
 
     @property
-    def criterion(self) -> ClassificationCriterionOption:
+    def criterion(self) -> ClassificationCriterionType:
         return self.__criterion
 
     @property
@@ -156,11 +156,11 @@ class BaseSmartDecisionTree:
         return self.__hierarchy
 
     @property
-    def numerical_nan_mode(self) -> NumericalNanModeOption:
+    def numerical_nan_mode(self) -> NumericalNanModeType:
         return self.__numerical_nan_mode
 
     @property
-    def categorical_nan_mode(self) -> CategoricalNanModeOption:
+    def categorical_nan_mode(self) -> CategoricalNanModeType:
         return self.__categorical_nan_mode
 
     @property
@@ -372,7 +372,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
     def __init__(
         self,
         *,
-        criterion: ClassificationCriterionOption = "gini",
+        criterion: ClassificationCriterionType = "gini",
         max_depth: int | None = None,
         min_samples_split: int | float = 2,
         min_samples_leaf: int | float = 1,
@@ -383,10 +383,10 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         categorical_feature_names: list[str] | str | None = None,
         rank_feature_names: dict[str, list] | None = None,
         hierarchy: dict[str, str | list[str]] | None = None,
-        numerical_nan_mode: NumericalNanModeOption = "min",
-        categorical_nan_mode: CategoricalNanModeOption = "as_category",
+        numerical_nan_mode: NumericalNanModeType = "min",
+        categorical_nan_mode: CategoricalNanModeType = "as_category",
         categorical_nan_filler: str = "missing_value",
-        verbose: VerboseOption = "WARNING",
+        verbose: VerboseType = "WARNING",
     ) -> None:
 
         super().__init__(

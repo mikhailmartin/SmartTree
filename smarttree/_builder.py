@@ -2,12 +2,12 @@ import bisect
 import math
 from collections import defaultdict
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
-from ._constants import ClassificationCriterionOption
 from ._node_splitter import NodeSplitter
 from ._tree_node import TreeNode
+from ._types import ClassificationCriterionType
 
 
 class Builder:
@@ -15,7 +15,7 @@ class Builder:
         self,
         X: pd.DataFrame,
         y: pd.Series,
-        criterion: ClassificationCriterionOption,
+        criterion: ClassificationCriterionType,
         splitter: NodeSplitter,
         max_leaf_nodes: int | float,
         hierarchy: dict[str, str | list[str]],

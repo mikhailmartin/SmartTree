@@ -1,8 +1,8 @@
 import os
 
-import pytest
-import pandas as pd
 import numpy as np
+import pandas as pd
+import pytest
 
 from smarttree import BaseSmartDecisionTree
 from smarttree._tree_node import TreeNode

@@ -7,14 +7,14 @@ from ._column_splitter import (
     NumericalColumnSplitter,
     RankColumnSplitter,
 )
-from ._constants import (
-    CategoricalNanModeOption,
-    ClassificationCriterionOption,
-    NumericalNanModeOption,
-    SplitTypeOption,
-)
 from ._dataset import Dataset
 from ._tree_node import TreeNode
+from ._types import (
+    CategoricalNanModeType,
+    ClassificationCriterionType,
+    NumericalNanModeType,
+    SplitTypeType,
+)
 
 
 class NodeSplitResult(NamedTuple):
@@ -31,7 +31,7 @@ class NodeSplitter:
         self,
         X: pd.DataFrame,
         y: pd.Series,
-        criterion: ClassificationCriterionOption,
+        criterion: ClassificationCriterionType,
         max_depth: int | float,
         min_samples_split: int,
         min_samples_leaf: int,
@@ -41,8 +41,8 @@ class NodeSplitter:
         numerical_feature_names: list[str],
         categorical_feature_names: list[str],
         rank_feature_names: dict[str, list],
-        numerical_nan_mode: NumericalNanModeOption,
-        categorical_nan_mode: CategoricalNanModeOption,
+        numerical_nan_mode: NumericalNanModeType,
+        categorical_nan_mode: CategoricalNanModeType,
     ) -> None:
 
         self.dataset = Dataset(X, y)
@@ -61,7 +61,7 @@ class NodeSplitter:
 
         self.leaf_counter: int = 0
 
-        self.feature_split_type: dict[str, SplitTypeOption] = dict()
+        self.feature_split_type: dict[str, SplitTypeType] = dict()
         for feature_name in self.numerical_feature_names:
             self.feature_split_type[feature_name] = "numerical"
         for feature_name in self.categorical_feature_names:

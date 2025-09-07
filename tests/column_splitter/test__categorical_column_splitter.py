@@ -1,8 +1,8 @@
 import pytest
 
 from smarttree._column_splitter import CategoricalColumnSplitter
-from smarttree._constants import CategoricalNanModeOption
 from smarttree._dataset import Dataset
+from smarttree._types import CategoricalNanModeType
 
 
 @pytest.mark.parametrize(
@@ -12,7 +12,7 @@ from smarttree._dataset import Dataset
 )
 def test__split(X, y, categorical_nan_mode, root_node):
 
-    categorical_nan_mode: CategoricalNanModeOption
+    categorical_nan_mode: CategoricalNanModeType
     categorical_column_splitter = CategoricalColumnSplitter(
         dataset=Dataset(X, y),
         criterion="gini",

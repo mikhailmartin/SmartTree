@@ -1,8 +1,8 @@
 from dataclasses import dataclass, field
 from typing import Self
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 
 @dataclass(slots=True)

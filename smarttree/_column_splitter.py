@@ -6,13 +6,13 @@ from typing import Generator, NamedTuple
 import numpy as np
 import pandas as pd
 
-from ._constants import (
-    CategoricalNanModeOption,
-    ClassificationCriterionOption,
-    NumericalNanModeOption,
-)
 from ._dataset import Dataset
 from ._tree_node import TreeNode
+from ._types import (
+    CategoricalNanModeType,
+    ClassificationCriterionType,
+    NumericalNanModeType,
+)
 
 
 NO_INFORMATION_GAIN = float("-inf")
@@ -29,7 +29,7 @@ class BaseColumnSplitter(ABC):
     def __init__(
         self,
         dataset: Dataset,
-        criterion: ClassificationCriterionOption,
+        criterion: ClassificationCriterionType,
         min_samples_split: int,
         min_samples_leaf: int,
     ) -> None:
@@ -160,10 +160,10 @@ class NumericalColumnSplitter(BaseColumnSplitter):
     def __init__(
         self,
         dataset: Dataset,
-        criterion: ClassificationCriterionOption,
+        criterion: ClassificationCriterionType,
         min_samples_split: int,
         min_samples_leaf: int,
-        numerical_nan_mode: NumericalNanModeOption,
+        numerical_nan_mode: NumericalNanModeType,
     ) -> None:
 
         super().__init__(
@@ -244,12 +244,12 @@ class CategoricalColumnSplitter(BaseColumnSplitter):
     def __init__(
         self,
         dataset: Dataset,
-        criterion: ClassificationCriterionOption,
+        criterion: ClassificationCriterionType,
         min_samples_split: int,
         min_samples_leaf: int,
         max_leaf_nodes: int | float,
         max_childs: int | float,
-        categorical_nan_mode: CategoricalNanModeOption,
+        categorical_nan_mode: CategoricalNanModeType,
     ) -> None:
 
         super().__init__(
@@ -379,7 +379,7 @@ class RankColumnSplitter(BaseColumnSplitter):
     def __init__(
         self,
         dataset: Dataset,
-        criterion: ClassificationCriterionOption,
+        criterion: ClassificationCriterionType,
         min_samples_split: int,
         min_samples_leaf: int,
         rank_feature_names: dict[str, list],

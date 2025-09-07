@@ -5,10 +5,10 @@ import pytest
 from pytest import raises
 
 from smarttree import SmartDecisionTreeClassifier
-from smarttree._constants import (
-    CategoricalNanModeOption,
-    ClassificationCriterionOption,
-    NumericalNanModeOption,
+from smarttree._types import (
+    CategoricalNanModeType,
+    ClassificationCriterionType,
+    NumericalNanModeType,
 )
 
 
@@ -33,7 +33,7 @@ from smarttree._constants import (
 )
 def test__check_param__criterion(criterion, expected):
     with expected:
-        criterion: ClassificationCriterionOption
+        criterion: ClassificationCriterionType
         SmartDecisionTreeClassifier(criterion=criterion)
 
 
@@ -509,7 +509,7 @@ def test__check_params__hierarchy(hierarchy, expected):
 )
 def test__check_params__numerical_nan_mode(numerical_nan_mode, expected):
     with expected:
-        numerical_nan_mode: NumericalNanModeOption
+        numerical_nan_mode: NumericalNanModeType
         SmartDecisionTreeClassifier(numerical_nan_mode=numerical_nan_mode)
 
 
@@ -534,7 +534,7 @@ def test__check_params__numerical_nan_mode(numerical_nan_mode, expected):
 )
 def test__check_params__categorical_nan_mode(categorical_nan_mode, expected):
     with expected:
-        categorical_nan_mode: CategoricalNanModeOption
+        categorical_nan_mode: CategoricalNanModeType
         SmartDecisionTreeClassifier(categorical_nan_mode=categorical_nan_mode)
 
 

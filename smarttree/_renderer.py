@@ -1,11 +1,11 @@
 from graphviz import Digraph
 
-from ._constants import ClassificationCriterionOption
 from ._tree_node import TreeNode
+from ._types import ClassificationCriterionType
 
 
 class Renderer:
-    def __init__(self, rounded: bool, criterion: ClassificationCriterionOption) -> None:
+    def __init__(self, rounded: bool, criterion: ClassificationCriterionType) -> None:
         node_attr = {"shape": "box"}
         if rounded:
             node_attr["style"] = "rounded"
