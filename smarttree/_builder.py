@@ -20,6 +20,7 @@ class Builder:
         max_leaf_nodes: int | float,
         hierarchy: dict[str, str | list[str]],
     ) -> None:
+
         self.X = X
         self.y = y
         self.criterion = criterion
