@@ -9,9 +9,9 @@ import pandas as pd
 from ._dataset import Dataset
 from ._tree_node import TreeNode
 from ._types import (
-    CategoricalNanModeType,
+    CategoricalNaModeType,
     ClassificationCriterionType,
-    NumericalNanModeType,
+    NumericalNaModeType,
 )
 
 
@@ -53,7 +53,7 @@ class BaseColumnSplitter(ABC):
         self,
         parent_mask: pd.Series,
         child_masks: list[pd.Series],
-        nan_mode: str | None = None,  # TODO
+        na_mode: str | None = None,  # TODO
     ) -> float:
         r"""
         Calculates information gain of the split.
@@ -63,7 +63,7 @@ class BaseColumnSplitter(ABC):
               boolean mask of parent node.
             child_masks: pd.Series
               list of boolean masks of child nodes.
-            nan_mode: str, default=None
+            na_mode: str, default=None
               missing values handling node.
               - If 'include', then turn on normalization of child nodes impurity.
 
@@ -102,7 +102,7 @@ class BaseColumnSplitter(ABC):
             impurity_child_i = self.impurity(child_mask_i)
             weighted_impurity_childs += (N_child_i / N_parent) * impurity_child_i
 
-        if nan_mode == "include_all":
+        if na_mode == "include_all":
             norm_coef = N_parent / N_childs
             weighted_impurity_childs *= norm_coef
 
@@ -163,7 +163,7 @@ class NumericalColumnSplitter(BaseColumnSplitter):
         criterion: ClassificationCriterionType,
         min_samples_split: int,
         min_samples_leaf: int,
-        numerical_nan_mode: NumericalNanModeType,
+        numerical_na_mode: NumericalNaModeType,
     ) -> None:
 
         super().__init__(
@@ -172,12 +172,12 @@ class NumericalColumnSplitter(BaseColumnSplitter):
             min_samples_split=min_samples_split,
             min_samples_leaf=min_samples_leaf,
         )
-        self.numerical_nan_mode = numerical_nan_mode
+        self.numerical_na_mode = numerical_na_mode
 
     def split(self, node: TreeNode, split_feature_name: str) -> ColumnSplitResult:
         """Finds the best tree node split by set numerical feature, if it exists."""
         use_including_na = (
-            self.numerical_nan_mode == "include"
+            self.numerical_na_mode == "include"
             # and there are samples with missing values
             and (node.mask & self.dataset.mask_na[split_feature_name]).sum()
         )
@@ -213,7 +213,7 @@ class NumericalColumnSplitter(BaseColumnSplitter):
             child_masks = [mask_less, mask_more]
 
             inf_gain = self.information_gain(
-                node.mask, child_masks, nan_mode=self.numerical_nan_mode
+                node.mask, child_masks, na_mode=self.numerical_na_mode
             )
 
             if best_split_result.information_gain < inf_gain:
@@ -249,7 +249,7 @@ class CategoricalColumnSplitter(BaseColumnSplitter):
         min_samples_leaf: int,
         max_leaf_nodes: int | float,
         max_childs: int | float,
-        categorical_nan_mode: CategoricalNanModeType,
+        categorical_na_mode: CategoricalNaModeType,
     ) -> None:
 
         super().__init__(
@@ -260,7 +260,7 @@ class CategoricalColumnSplitter(BaseColumnSplitter):
         )
         self.max_leaf_nodes = max_leaf_nodes
         self.max_childs = max_childs
-        self.categorical_nan_mode = categorical_nan_mode
+        self.categorical_na_mode = categorical_na_mode
 
     def split(
         self,
@@ -315,23 +315,23 @@ class CategoricalColumnSplitter(BaseColumnSplitter):
             child_mask = parent_mask & partition_mask
             child_masks.append(child_mask)
 
-        if self.categorical_nan_mode == "as_category":
+        if self.categorical_na_mode == "as_category":
             information_gain = self.information_gain(parent_mask, child_masks)
             return information_gain, child_masks
 
-        elif self.categorical_nan_mode == "include_all":
+        elif self.categorical_na_mode == "include_all":
             for i, child_mask in enumerate(child_masks):
                 child_masks[i] = child_mask | (parent_mask & mask_na)  # update
                 if child_masks[i].sum() < self.min_samples_leaf:
                     return NO_INFORMATION_GAIN, []
 
             information_gain = self.information_gain(
-                parent_mask, child_masks, nan_mode=self.categorical_nan_mode
+                parent_mask, child_masks, na_mode=self.categorical_na_mode
             )
 
             return information_gain, child_masks
 
-        elif self.categorical_nan_mode == "include_best":
+        elif self.categorical_na_mode == "include_best":
             candidates = []
             origin_child_masks = child_masks
             for i, child_mask in enumerate(origin_child_masks):

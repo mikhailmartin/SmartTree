@@ -10,9 +10,9 @@ from ._column_splitter import (
 from ._dataset import Dataset
 from ._tree_node import TreeNode
 from ._types import (
-    CategoricalNanModeType,
+    CategoricalNaModeType,
     ClassificationCriterionType,
-    NumericalNanModeType,
+    NumericalNaModeType,
     SplitTypeType,
 )
 
@@ -41,8 +41,8 @@ class NodeSplitter:
         numerical_feature_names: list[str],
         categorical_feature_names: list[str],
         rank_feature_names: dict[str, list],
-        numerical_nan_mode: NumericalNanModeType,
-        categorical_nan_mode: CategoricalNanModeType,
+        numerical_na_mode: NumericalNaModeType,
+        categorical_na_mode: CategoricalNaModeType,
     ) -> None:
 
         self.dataset = Dataset(X, y)
@@ -56,8 +56,8 @@ class NodeSplitter:
         self.numerical_feature_names = numerical_feature_names
         self.categorical_feature_names = categorical_feature_names
         self.rank_feature_names = rank_feature_names
-        self.numerical_nan_mode = numerical_nan_mode
-        self.categorical_nan_mode = categorical_nan_mode
+        self.numerical_na_mode = numerical_na_mode
+        self.categorical_na_mode = categorical_na_mode
 
         self.leaf_counter: int = 0
 
@@ -74,7 +74,7 @@ class NodeSplitter:
             criterion=self.criterion,
             min_samples_split=self.min_samples_split,
             min_samples_leaf=self.min_samples_leaf,
-            numerical_nan_mode=self.numerical_nan_mode,
+            numerical_na_mode=self.numerical_na_mode,
         )
         self.cat_col_splitter = CategoricalColumnSplitter(
             dataset=self.dataset,
@@ -82,7 +82,7 @@ class NodeSplitter:
             min_samples_split=self.min_samples_split,
             min_samples_leaf=self.min_samples_leaf,
             max_leaf_nodes=self.max_leaf_nodes,
-            categorical_nan_mode=self.categorical_nan_mode,
+            categorical_na_mode=self.categorical_na_mode,
             max_childs=self.max_childs,
         )
         self.rank_col_splitter = RankColumnSplitter(

@@ -17,9 +17,9 @@ DEFAULT_PARAMS_FROM_GET = {
     "categorical_feature_names": [],
     "rank_feature_names": {},
     "hierarchy": {},
-    "numerical_nan_mode": "min",
-    "categorical_nan_mode": "as_category",
-    "categorical_nan_filler": "missing_value",
+    "numerical_na_mode": "min",
+    "categorical_na_mode": "as_category",
+    "categorical_na_filler": "missing_value",
 }
 
 
@@ -44,9 +44,9 @@ def test__get_params(concrete_smart_tree):
         ({"categorical_feature_names": ["cat_feature"]}, does_not_raise()),
         ({"rank_feature_names": {"rank_feature": ["1", "2", "3"]}}, does_not_raise()),
         ({"hierarchy": {"num_feature": "rank_feature"}}, does_not_raise()),
-        ({"numerical_nan_mode": "max"}, does_not_raise()),
-        ({"categorical_nan_mode": "as_category"}, does_not_raise()),
-        ({"categorical_nan_filler": "NaN"}, does_not_raise()),
+        ({"numerical_na_mode": "max"}, does_not_raise()),
+        ({"categorical_na_mode": "as_category"}, does_not_raise()),
+        ({"categorical_na_filler": "NA"}, does_not_raise()),
         (
             {"aboba": "aboba"},
             pytest.raises(
@@ -56,8 +56,8 @@ def test__get_params(concrete_smart_tree):
                     " Valid parameters are: criterion, max_depth, min_samples_split,"
                     " min_samples_leaf, max_leaf_nodes, min_impurity_decrease,"
                     " max_childs, numerical_feature_names, categorical_feature_names,"
-                    " rank_feature_names, hierarchy, numerical_nan_mode,"
-                    " categorical_nan_mode, categorical_nan_filler."
+                    " rank_feature_names, hierarchy, numerical_na_mode,"
+                    " categorical_na_mode, categorical_na_filler."
                 ),
             ),
         ),
@@ -75,9 +75,9 @@ def test__get_params(concrete_smart_tree):
         "categorical_feature_names",
         "rank_feature_names",
         "hierarchy",
-        "numerical_nan_mode",
-        "categorical_nan_mode",
-        "categorical_nan_filler",
+        "numerical_na_mode",
+        "categorical_na_mode",
+        "categorical_na_filler",
         "invalid",
     ],
 )
