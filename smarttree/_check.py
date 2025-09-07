@@ -365,7 +365,7 @@ def _check_all_feature_names_in(X, all_feature_names):
                 if i >= max_n_names:
                     output.append("- ...")
                     break
-                output.append(f"- {name}")
+                output.append(f"- {name!r}")
             return "\n".join(output)
 
         if unexpected_names:
