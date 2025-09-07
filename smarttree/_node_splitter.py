@@ -1,4 +1,4 @@
-from typing import Literal, NamedTuple
+from typing import NamedTuple
 
 import pandas as pd
 
@@ -7,16 +7,14 @@ from ._column_splitter import (
     NumericalColumnSplitter,
     RankColumnSplitter,
 )
-from ._constants import (
-    CategoricalNanModeOption,
-    ClassificationCriterionOption,
-    NumericalNanModeOption,
-)
 from ._dataset import Dataset
 from ._tree_node import TreeNode
-
-
-SplitTypeOption = Literal["numerical", "categorical", "rank"]
+from ._types import (
+    CategoricalNaModeType,
+    ClassificationCriterionType,
+    NumericalNaModeType,
+    SplitTypeType,
+)
 
 
 class NodeSplitResult(NamedTuple):
@@ -33,7 +31,7 @@ class NodeSplitter:
         self,
         X: pd.DataFrame,
         y: pd.Series,
-        criterion: ClassificationCriterionOption,
+        criterion: ClassificationCriterionType,
         max_depth: int | float,
         min_samples_split: int,
         min_samples_leaf: int,
@@ -43,8 +41,8 @@ class NodeSplitter:
         numerical_feature_names: list[str],
         categorical_feature_names: list[str],
         rank_feature_names: dict[str, list],
-        numerical_nan_mode: NumericalNanModeOption,
-        categorical_nan_mode: CategoricalNanModeOption,
+        numerical_na_mode: NumericalNaModeType,
+        categorical_na_mode: CategoricalNaModeType,
     ) -> None:
 
         self.dataset = Dataset(X, y)
@@ -58,25 +56,25 @@ class NodeSplitter:
         self.numerical_feature_names = numerical_feature_names
         self.categorical_feature_names = categorical_feature_names
         self.rank_feature_names = rank_feature_names
-        self.numerical_nan_mode = numerical_nan_mode
-        self.categorical_nan_mode = categorical_nan_mode
+        self.numerical_na_mode = numerical_na_mode
+        self.categorical_na_mode = categorical_na_mode
 
         self.leaf_counter: int = 0
 
-        self.feature_split_type: dict[str, SplitTypeOption] = dict()
-        for feature in self.numerical_feature_names:
-            self.feature_split_type[feature] = "numerical"
-        for feature in self.categorical_feature_names:
-            self.feature_split_type[feature] = "categorical"
-        for feature in self.rank_feature_names:
-            self.feature_split_type[feature] = "rank"
+        self.feature_split_type: dict[str, SplitTypeType] = dict()
+        for feature_name in self.numerical_feature_names:
+            self.feature_split_type[feature_name] = "numerical"
+        for feature_name in self.categorical_feature_names:
+            self.feature_split_type[feature_name] = "categorical"
+        for feature_name in self.rank_feature_names:
+            self.feature_split_type[feature_name] = "rank"
 
         self.num_col_splitter = NumericalColumnSplitter(
             dataset=self.dataset,
             criterion=self.criterion,
             min_samples_split=self.min_samples_split,
             min_samples_leaf=self.min_samples_leaf,
-            numerical_nan_mode=self.numerical_nan_mode,
+            numerical_na_mode=self.numerical_na_mode,
         )
         self.cat_col_splitter = CategoricalColumnSplitter(
             dataset=self.dataset,
@@ -84,7 +82,7 @@ class NodeSplitter:
             min_samples_split=self.min_samples_split,
             min_samples_leaf=self.min_samples_leaf,
             max_leaf_nodes=self.max_leaf_nodes,
-            categorical_nan_mode=self.categorical_nan_mode,
+            categorical_na_mode=self.categorical_na_mode,
             max_childs=self.max_childs,
         )
         self.rank_col_splitter = RankColumnSplitter(

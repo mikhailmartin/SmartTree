@@ -12,16 +12,16 @@ from sklearn.metrics import accuracy_score
 
 from ._builder import Builder
 from ._check import check__data, check__params
-from ._constants import (
-    CategoricalNanModeOption,
-    ClassificationCriterionOption,
-    NumericalNanModeOption,
-    VerboseOption,
-)
 from ._exceptions import NotFittedError
 from ._node_splitter import NodeSplitter
 from ._renderer import Renderer
 from ._tree_node import TreeNode
+from ._types import (
+    CategoricalNaModeType,
+    ClassificationCriterionType,
+    NumericalNaModeType,
+    VerboseType,
+)
 
 
 class BaseSmartDecisionTree:
@@ -30,7 +30,7 @@ class BaseSmartDecisionTree:
     def __init__(
         self,
         *,
-        criterion: ClassificationCriterionOption = "gini",
+        criterion: ClassificationCriterionType = "gini",
         max_depth: int | None = None,
         min_samples_split: int | float = 2,
         min_samples_leaf: int | float = 1,
@@ -41,10 +41,10 @@ class BaseSmartDecisionTree:
         categorical_feature_names: list[str] | str | None = None,
         rank_feature_names: dict[str, list] | None = None,
         hierarchy: dict[str, str | list[str]] | None = None,
-        numerical_nan_mode: NumericalNanModeOption = "min",
-        categorical_nan_mode: CategoricalNanModeOption = "as_category",
-        categorical_nan_filler: str = "missing_value",
-        verbose: VerboseOption = "WARNING",
+        numerical_na_mode: NumericalNaModeType = "min",
+        categorical_na_mode: CategoricalNaModeType = "as_category",
+        categorical_na_filler: str = "missing_value",
+        verbose: VerboseType = "WARNING",
     ) -> None:
 
         check__params(
@@ -59,12 +59,11 @@ class BaseSmartDecisionTree:
             categorical_feature_names=categorical_feature_names,
             rank_feature_names=rank_feature_names,
             hierarchy=hierarchy,
-            numerical_nan_mode=numerical_nan_mode,
-            categorical_nan_mode=categorical_nan_mode,
-            categorical_nan_filler=categorical_nan_filler,
+            numerical_na_mode=numerical_na_mode,
+            categorical_na_mode=categorical_na_mode,
+            categorical_na_filler=categorical_na_filler,
         )
 
-        # criteria for limiting branching
         self.__criterion = criterion
         self.__max_depth = max_depth
         self.__min_samples_split = min_samples_split
@@ -94,9 +93,9 @@ class BaseSmartDecisionTree:
             self.__rank_feature_names = rank_feature_names
 
         self._all_feature_names: list[str] = []
-        self.__numerical_nan_mode = numerical_nan_mode
-        self.__categorical_nan_mode = categorical_nan_mode
-        self.__categorical_nan_filler = categorical_nan_filler
+        self.__numerical_na_mode = numerical_na_mode
+        self.__categorical_na_mode = categorical_na_mode
+        self.__categorical_na_filler = categorical_na_filler
 
         self.logger = logging.getLogger()
         self.logger.setLevel(verbose)
@@ -104,10 +103,10 @@ class BaseSmartDecisionTree:
         self._is_fitted: bool = False
         self._root: TreeNode | None = None
         self._feature_importances: dict = dict()
-        self._numerical_nan_filler: dict[str, int | float] = dict()
+        self._numerical_na_filler: dict[str, int | float] = dict()
 
     @property
-    def criterion(self) -> ClassificationCriterionOption:
+    def criterion(self) -> ClassificationCriterionType:
         return self.__criterion
 
     @property
@@ -156,16 +155,16 @@ class BaseSmartDecisionTree:
         return self.__hierarchy
 
     @property
-    def numerical_nan_mode(self) -> NumericalNanModeOption:
-        return self.__numerical_nan_mode
+    def numerical_na_mode(self) -> NumericalNaModeType:
+        return self.__numerical_na_mode
 
     @property
-    def categorical_nan_mode(self) -> CategoricalNanModeOption:
-        return self.__categorical_nan_mode
+    def categorical_na_mode(self) -> CategoricalNaModeType:
+        return self.__categorical_na_mode
 
     @property
-    def categorical_nan_filler(self) -> str:
-        return self.__categorical_nan_filler
+    def categorical_na_filler(self) -> str:
+        return self.__categorical_na_filler
 
     @property
     def tree(self) -> TreeNode:
@@ -222,9 +221,9 @@ class BaseSmartDecisionTree:
             "categorical_feature_names": self.categorical_feature_names,
             "rank_feature_names": self.rank_feature_names,
             "hierarchy": self.hierarchy,
-            "numerical_nan_mode": self.numerical_nan_mode,
-            "categorical_nan_mode": self.categorical_nan_mode,
-            "categorical_nan_filler": self.categorical_nan_filler,
+            "numerical_na_mode": self.numerical_na_mode,
+            "categorical_na_mode": self.categorical_na_mode,
+            "categorical_na_filler": self.categorical_na_filler,
         }
 
     def set_params(self, **params) -> Self:
@@ -339,7 +338,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
           If provided, the algorithm will respect these dependencies when
           selecting features for splits.
 
-        numerical_nan_mode: {'include', 'min', 'max'}, default='include'
+        numerical_na_mode: {'include', 'min', 'max'}, default='include'
           The mode of handling missing values in a numerical feature.
 
           - If 'include': While training samples with missing values are
@@ -350,20 +349,20 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
           - If 'max', missing values are filled with maximum value of
             a numerical feature in training data.
 
-        categorical_nan_mode: {'as_category', 'include_all', 'include_best'}, default='as_category'
+        categorical_na_mode: {'as_category', 'include_all', 'include_best'}, default='as_category'
           The mode of handling missing values in a categorical feature.
 
           - If 'as_category': While training and predicting missing values
-            will be filled with `categorical_nan_filler`.
+            will be filled with `categorical_na_filler`.
           - If 'include_all': While training samples with missing values are
             included into all child nodes. While predicting decision is
             weighted mean of all decisions in child nodes.
           - If 'include_best': TODO.
 
-        categorical_nan_filler: str, default='missing_value'
-          If `categorical_nan_mode` is set to "as_category", then during
+        categorical_na_filler: str, default='missing_value'
+          If `categorical_na_mode` is set to "as_category", then during
           training and predicting missing values will be filled with
-          `categorical_nan_filler`.
+          `categorical_na_filler`.
 
         verbose: {'critical', 'error', 'warning', 'info', 'debug'} or int, default="warning"
           Controls the level of decision tree verbosity.
@@ -372,7 +371,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
     def __init__(
         self,
         *,
-        criterion: ClassificationCriterionOption = "gini",
+        criterion: ClassificationCriterionType = "gini",
         max_depth: int | None = None,
         min_samples_split: int | float = 2,
         min_samples_leaf: int | float = 1,
@@ -383,10 +382,10 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         categorical_feature_names: list[str] | str | None = None,
         rank_feature_names: dict[str, list] | None = None,
         hierarchy: dict[str, str | list[str]] | None = None,
-        numerical_nan_mode: NumericalNanModeOption = "min",
-        categorical_nan_mode: CategoricalNanModeOption = "as_category",
-        categorical_nan_filler: str = "missing_value",
-        verbose: VerboseOption = "WARNING",
+        numerical_na_mode: NumericalNaModeType = "min",
+        categorical_na_mode: CategoricalNaModeType = "as_category",
+        categorical_na_filler: str = "missing_value",
+        verbose: VerboseType = "WARNING",
     ) -> None:
 
         super().__init__(
@@ -401,9 +400,9 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             categorical_feature_names=categorical_feature_names,
             rank_feature_names=rank_feature_names,
             hierarchy=hierarchy,
-            numerical_nan_mode=numerical_nan_mode,
-            categorical_nan_mode=categorical_nan_mode,
-            categorical_nan_filler=categorical_nan_filler,
+            numerical_na_mode=numerical_na_mode,
+            categorical_na_mode=categorical_na_mode,
+            categorical_na_filler=categorical_na_filler,
             verbose=verbose,
         )
         self.__classes: list[str] = []
@@ -439,12 +438,12 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             repr_.append(f"rank_feature_names={self.rank_feature_names}")
         if self.hierarchy:
             repr_.append(f"hierarchy={self.hierarchy}")
-        if self.numerical_nan_mode != "min":
-            repr_.append(f"numerical_nan_mode={self.numerical_nan_mode!r}")
-        if self.categorical_nan_mode != "as_category":
-            repr_.append(f"categorical_nan_mode={self.categorical_nan_mode!r}")
-        if self.categorical_nan_filler != "missing_value":
-            repr_.append(f"categorical_nan_filler={self.categorical_nan_filler!r}")
+        if self.numerical_na_mode != "min":
+            repr_.append(f"numerical_na_mode={self.numerical_na_mode!r}")
+        if self.categorical_na_mode != "as_category":
+            repr_.append(f"categorical_na_mode={self.categorical_na_mode!r}")
+        if self.categorical_na_filler != "missing_value":
+            repr_.append(f"categorical_na_filler={self.categorical_na_filler!r}")
 
         return (
             f"{self.__class__.__name__}({', '.join(repr_)})"
@@ -523,6 +522,19 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             categorical_feature_names = self.categorical_feature_names
         ################################################################################
 
+        self._all_feature_names = X.columns.tolist()
+        self.__classes = sorted(y.unique())
+
+        if self.numerical_na_mode in ("min", "max"):
+            for numerical_feature_name in numerical_feature_names:
+                if self.numerical_na_mode == "min":
+                    na_filler = X[numerical_feature_name].min()
+                else:  # max
+                    na_filler = X[numerical_feature_name].max()
+                self._numerical_na_filler[numerical_feature_name] = na_filler
+
+        X = self.__preprocess(X)
+
         splitter = NodeSplitter(
             X=X,
             y=y,
@@ -536,22 +548,9 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             numerical_feature_names=numerical_feature_names,
             categorical_feature_names=categorical_feature_names,
             rank_feature_names=self.rank_feature_names,
-            numerical_nan_mode=self.numerical_nan_mode,
-            categorical_nan_mode=self.categorical_nan_mode,
+            numerical_na_mode=self.numerical_na_mode,
+            categorical_na_mode=self.categorical_na_mode,
         )
-
-        self._all_feature_names = X.columns.tolist()
-        self.__classes = sorted(y.unique())
-
-        if self.numerical_nan_mode in ("min", "max"):
-            for numerical_feature_name in numerical_feature_names:
-                if self.numerical_nan_mode == "min":
-                    nan_filler = X[numerical_feature_name].min()
-                else:
-                    nan_filler = X[numerical_feature_name].max()
-                self._numerical_nan_filler[numerical_feature_name] = nan_filler
-
-        X = self.__preprocess(X)
 
         builder = Builder(
             X=X,
@@ -605,91 +604,60 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
 
         X = self.__preprocess(X)
 
+        distributions = [
+            self.__get_distribution(self.tree, point) for _, point in X.iterrows()
+        ]
         y_pred_proba = np.array([
-            self.__predict_proba(self.tree, point)[0]
-            for _, point in X.iterrows()
+            distribution / distribution.sum() for distribution in distributions
         ])
 
         return y_pred_proba
 
     def __preprocess(self, X: pd.DataFrame) -> pd.DataFrame:
-        """
-        Preprocesses data for prediction.
 
-        Fills in the missing values with the corresponding values according to
-        the `categorical_nan_mode` and `numerical_nan_mode`.
-        """
         X = X.copy()
 
-        if self.numerical_nan_mode in ("min", "max"):
+        if self.numerical_na_mode in ("min", "max"):
             for num_feature in self.numerical_feature_names:
-                nan_filler = self._numerical_nan_filler[num_feature]
-                X[num_feature].fillna(nan_filler, inplace=True)
+                na_filler = self._numerical_na_filler[num_feature]
+                X[num_feature].fillna(na_filler, inplace=True)
 
-        if self.categorical_nan_mode == "as_category":
+        if self.categorical_na_mode == "as_category":
             for cat_feature in self.categorical_feature_names:
-                X[cat_feature].fillna(self.categorical_nan_filler, inplace=True)
+                X[cat_feature].fillna(self.categorical_na_filler, inplace=True)
 
         return X
 
-    def __predict_proba(
-        self,
-        node: TreeNode,
-        point: pd.Series,
-    ) -> tuple[np.ndarray, int]:
-        """Predicts class for the sample."""
-        # if we haven't reached a leaf
-        if not node.is_leaf:
-            # but we in a node in which the split rule is set according to some feature,
-            # and the sample in this feature contains a missing value
-            if pd.isna(point[node.split_feature_name]):
-                # then we go to the child nodes for predictions, and then we weighted
-                # average them.
-                distribution_parent = np.array([0., 0., 0.])
-                samples_parent = 0
-                for child in node.childs:
-                    y_pred_proba_child, samples_child = self.__predict_proba(child, point)
-                    distribution_child = y_pred_proba_child * samples_child
-                    distribution_parent += distribution_child
-                    samples_parent += samples_child
-                y_pred_proba = distribution_parent / distribution_parent.sum()
-                samples = samples_parent
+    def __get_distribution(self, node: TreeNode, point: pd.Series) -> np.ndarray:
 
-            elif node.split_feature_name in self.numerical_feature_names:
-                # looking for the branch that needs to be followed
+        if node.is_leaf:
+            return node.distribution
+
+        else:
+            if pd.isna(point[node.split_feature_name]):
+                distribution = np.array([0, 0, 0], dtype="int")
+                for child in node.childs:
+                    distribution += self.__get_distribution(child, point)
+                return distribution
+
+            elif node.split_type == "numerical":
                 threshold = float(node.childs[0].feature_value[0][3:])
                 if point[node.split_feature_name] <= threshold:
-                    y_pred_proba, samples = self.__predict_proba(node.childs[0], point)
+                    return self.__get_distribution(node.childs[0], point)
                 else:
-                    y_pred_proba, samples = self.__predict_proba(node.childs[1], point)
+                    return self.__get_distribution(node.childs[1], point)
 
-            elif (
-                node.split_feature_name in self.categorical_feature_names
-                or node.split_feature_name in self.rank_feature_names
-            ):
-                # looking for the branch that needs to be followed
+            elif node.split_type in ("categorical", "rank"):
                 for child in node.childs:
-                    # if found
-                    if child.feature_value == point[node.split_feature_name]:
-                        y_pred_proba, samples = self.__predict_proba(child, point)
-                        # then we can finish the search
-                        break
+                    # TODO: очень не здорово искать подстроку
+                    if point[node.split_feature_name] in child.feature_value:
+                        return self.__get_distribution(child, point)
                 else:
                     # if there is no such branch TODO
-                    distribution = np.array(node.distribution)
-                    y_pred_proba = distribution / distribution.sum()
-                    samples = node.num_samples
+                    return node.distribution
 
             else:
                 assert False
-
-        # if we have reached a leaf
-        else:
-            distribution = np.array(node.distribution)
-            y_pred_proba = distribution / distribution.sum()
-            samples = node.num_samples
-
-        return y_pred_proba, samples
 
     def score(
         self,
@@ -738,8 +706,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             Digraph: class containing a description of the graph structure of
             the tree for visualization.
         """
-        self._check_is_fitted()
-
         renderer = Renderer(criterion=self.criterion, rounded=rounded)
         graph = renderer.render(
             tree=self.tree,
@@ -747,6 +713,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             show_num_samples=show_num_samples,
             show_distribution=show_distribution,
             show_label=show_label,
+            **kwargs,
         )
 
         return graph

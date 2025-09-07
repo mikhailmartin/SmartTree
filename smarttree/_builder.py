@@ -2,11 +2,12 @@ import bisect
 import math
 from collections import defaultdict
 
+import numpy as np
 import pandas as pd
 
-from ._constants import ClassificationCriterionOption
 from ._node_splitter import NodeSplitter
 from ._tree_node import TreeNode
+from ._types import ClassificationCriterionType
 
 
 class Builder:
@@ -14,11 +15,12 @@ class Builder:
         self,
         X: pd.DataFrame,
         y: pd.Series,
-        criterion: ClassificationCriterionOption,
+        criterion: ClassificationCriterionType,
         splitter: NodeSplitter,
         max_leaf_nodes: int | float,
         hierarchy: dict[str, str | list[str]],
     ) -> None:
+
         self.X = X
         self.y = y
         self.criterion = criterion
@@ -121,12 +123,12 @@ class Builder:
         self.node_counter += 1
         return tree_node
 
-    def distribution(self, mask: pd.Series) -> list[int]:
+    def distribution(self, mask: pd.Series) -> np.ndarray:
         """Calculates the class distribution."""
-        distribution = [
+        distribution = np.array([
             (mask & (self.y == class_name)).sum()
             for class_name in self.class_names
-        ]
+        ])
 
         return distribution
 

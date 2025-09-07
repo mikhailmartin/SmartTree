@@ -108,9 +108,9 @@ def test__check_data__fit(X, y, X_scenario, y_scenario, tree, expected_context):
                 ValueError,
                 match=(
                     "Feature names unseen at fit time:\n"
-                    "- 2. Age\n"
+                    "- '2. Age'\n"
                     "Feature names seen at fit time, yet now missing:\n"
-                    "- 2. Возраст"
+                    "- '2. Возраст'"
                 ),
             ),
         ),
@@ -146,9 +146,9 @@ def test__check_data__predict(X, y, X_scenario, tree, expected_context):
                 ValueError,
                 match=(
                     "Feature names unseen at fit time:\n"
-                    "- 2. Age\n"
+                    "- '2. Age'\n"
                     "Feature names seen at fit time, yet now missing:\n"
-                    "- 2. Возраст"
+                    "- '2. Возраст'"
                 ),
             ),
         ),

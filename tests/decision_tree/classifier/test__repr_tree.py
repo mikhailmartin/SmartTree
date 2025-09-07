@@ -1,10 +1,10 @@
 import pytest
 
 from smarttree import SmartDecisionTreeClassifier
-from smarttree._constants import (
-    CategoricalNanModeOption,
-    ClassificationCriterionOption,
-    NumericalNanModeOption,
+from smarttree._types import (
+    CategoricalNaModeType,
+    ClassificationCriterionType,
+    NumericalNaModeType,
 )
 
 
@@ -20,7 +20,7 @@ CLASS_NAME = SmartDecisionTreeClassifier.__name__
     ids=["default value", "not default value"],
 )
 def test_repr_tree__criterion(criterion, expected):
-    criterion: ClassificationCriterionOption
+    criterion: ClassificationCriterionType
     tree_classifier = SmartDecisionTreeClassifier(criterion=criterion)
     assert repr(tree_classifier) == expected
 
@@ -174,44 +174,44 @@ def test_repr_tree__hierarchy(hierarchy, expected):
 
 
 @pytest.mark.parametrize(
-    ("numerical_nan_mode", "expected"),
+    ("numerical_na_mode", "expected"),
     [
         ("min", f"{CLASS_NAME}()"),
-        ("max", f"{CLASS_NAME}(numerical_nan_mode='max')"),
+        ("max", f"{CLASS_NAME}(numerical_na_mode='max')"),
     ],
     ids=["default value", "not default value"],
 )
-def test_repr_tree__numerical_nan_mode(numerical_nan_mode, expected):
-    numerical_nan_mode: NumericalNanModeOption
-    tree_classifier = SmartDecisionTreeClassifier(numerical_nan_mode=numerical_nan_mode)
+def test_repr_tree__numerical_na_mode(numerical_na_mode, expected):
+    numerical_na_mode: NumericalNaModeType
+    tree_classifier = SmartDecisionTreeClassifier(numerical_na_mode=numerical_na_mode)
     assert repr(tree_classifier) == expected
 
 
 @pytest.mark.parametrize(
-    ("categorical_nan_mode", "expected"),
+    ("categorical_na_mode", "expected"),
     [
         ("as_category", f"{CLASS_NAME}()"),
-        ("include_all", f"{CLASS_NAME}(categorical_nan_mode='include_all')"),
+        ("include_all", f"{CLASS_NAME}(categorical_na_mode='include_all')"),
     ],
     ids=["default value", "not default value"],
 )
-def test_repr_tree__categorical_nan_mode(categorical_nan_mode, expected):
-    categorical_nan_mode: CategoricalNanModeOption
+def test_repr_tree__categorical_na_mode(categorical_na_mode, expected):
+    categorical_na_mode: CategoricalNaModeType
     tree_classifier = SmartDecisionTreeClassifier(
-        categorical_nan_mode=categorical_nan_mode
+        categorical_na_mode=categorical_na_mode
     )
     assert repr(tree_classifier) == expected
 
 
 @pytest.mark.parametrize(
-    ("categorical_nan_filler", "expected"),
+    ("categorical_na_filler", "expected"),
     [
         ("missing_value", f"{CLASS_NAME}()"),
-        ("NULL", f"{CLASS_NAME}(categorical_nan_filler='NULL')"),
+        ("NULL", f"{CLASS_NAME}(categorical_na_filler='NULL')"),
     ],
     ids=["default value", "not default value"],
 )
-def test_repr_tree__categorical_nan_filler(categorical_nan_filler, expected):
+def test_repr_tree__categorical_na_filler(categorical_na_filler, expected):
     tree_classifier = SmartDecisionTreeClassifier(
-        categorical_nan_filler=categorical_nan_filler)
+        categorical_na_filler=categorical_na_filler)
     assert repr(tree_classifier) == expected

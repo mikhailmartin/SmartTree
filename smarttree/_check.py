@@ -14,9 +14,9 @@ def check__params(
     categorical_feature_names=None,
     rank_feature_names=None,
     hierarchy=None,
-    numerical_nan_mode=None,
-    categorical_nan_mode=None,
-    categorical_nan_filler=None,
+    numerical_na_mode=None,
+    categorical_na_mode=None,
+    categorical_na_filler=None,
 ):
     if criterion is not None:
         _check__criterion(criterion)
@@ -56,14 +56,14 @@ def check__params(
     if hierarchy is not None:
         _check__hierarchy(hierarchy)
 
-    if numerical_nan_mode is not None:
-        _check__numerical_nan_mode(numerical_nan_mode)
+    if numerical_na_mode is not None:
+        _check__numerical_na_mode(numerical_na_mode)
 
-    if categorical_nan_mode is not None:
-        _check__categorical_nan_mode(categorical_nan_mode)
+    if categorical_na_mode is not None:
+        _check__categorical_na_mode(categorical_na_mode)
 
-    if categorical_nan_filler is not None:
-        _check__categorical_nan_filler(categorical_nan_filler)
+    if categorical_na_filler is not None:
+        _check__categorical_na_filler(categorical_na_filler)
 
 
 def _check__criterion(criterion):
@@ -249,27 +249,27 @@ def _check__hierarchy(hierarchy):
         )
 
 
-def _check__numerical_nan_mode(numerical_nan_mode):
-    if numerical_nan_mode not in ("include", "min", "max"):
+def _check__numerical_na_mode(numerical_na_mode):
+    if numerical_na_mode not in ("include", "min", "max"):
         raise ValueError(
-            "`numerical_nan_mode` must be Literal['include', 'min', 'max']."
-            f" The current value of `numerical_nan_mode` is {numerical_nan_mode!r}."
+            "`numerical_na_mode` must be Literal['include', 'min', 'max']."
+            f" The current value of `numerical_na_mode` is {numerical_na_mode!r}."
         )
 
 
-def _check__categorical_nan_mode(categorical_nan_mode):
-    if categorical_nan_mode not in ("as_category", "include_all", "include_best"):
+def _check__categorical_na_mode(categorical_na_mode):
+    if categorical_na_mode not in ("as_category", "include_all", "include_best"):
         raise ValueError(
-            "`categorical_nan_mode` must be Literal['as_category', 'include_all', 'include_best']."
-            f" The current value of `categorical_nan_mode` is {categorical_nan_mode!r}."
+            "`categorical_na_mode` must be Literal['as_category', 'include_all', 'include_best']."
+            f" The current value of `categorical_na_mode` is {categorical_na_mode!r}."
         )
 
 
-def _check__categorical_nan_filler(categorical_nan_filler):
-    if not isinstance(categorical_nan_filler, str):
+def _check__categorical_na_filler(categorical_na_filler):
+    if not isinstance(categorical_na_filler, str):
         raise ValueError(
-            "`categorical_nan_filler` must be a string."
-            f" The current value of `categorical_nan_filler` is {categorical_nan_filler!r}."
+            "`categorical_na_filler` must be a string."
+            f" The current value of `categorical_na_filler` is {categorical_na_filler!r}."
         )
 
 
@@ -365,7 +365,7 @@ def _check_all_feature_names_in(X, all_feature_names):
                 if i >= max_n_names:
                     output.append("- ...")
                     break
-                output.append(f"- {name}")
+                output.append(f"- {name!r}")
             return "\n".join(output)
 
         if unexpected_names:
