@@ -605,9 +605,11 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
 
         X = self.__preprocess(X)
 
+        distributions = [
+            self.__get_distribution(self.tree, point) for _, point in X.iterrows()
+        ]
         y_pred_proba = np.array([
-            self.__predict_proba(self.tree, point)[0]
-            for _, point in X.iterrows()
+            distribution / distribution.sum() for distribution in distributions
         ])
 
         return y_pred_proba
@@ -632,64 +634,39 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
 
         return X
 
-    def __predict_proba(
-        self,
-        node: TreeNode,
-        point: pd.Series,
-    ) -> tuple[np.ndarray, int]:
+    def __get_distribution(self, node: TreeNode, point: pd.Series) -> np.ndarray:
         """Predicts class for the sample."""
-        # if we haven't reached a leaf
-        if not node.is_leaf:
-            # but we in a node in which the split rule is set according to some feature,
-            # and the sample in this feature contains a missing value
-            if pd.isna(point[node.split_feature_name]):
-                # then we go to the child nodes for predictions, and then we weighted
-                # average them.
-                distribution_parent = np.array([0., 0., 0.])
-                samples_parent = 0
-                for child in node.childs:
-                    y_pred_proba_child, samples_child = self.__predict_proba(child, point)
-                    distribution_child = y_pred_proba_child * samples_child
-                    distribution_parent += distribution_child
-                    samples_parent += samples_child
-                y_pred_proba = distribution_parent / distribution_parent.sum()
-                samples = samples_parent
+        if node.is_leaf:
+            return node.distribution
 
-            elif node.split_feature_name in self.numerical_feature_names:
+        else:
+            if pd.isna(point[node.split_feature_name]):
+                distribution = np.array([0, 0, 0], dtype="int")
+                for child in node.childs:
+                    distribution_child = self.__get_distribution(child, point)
+                    distribution += distribution_child
+                return distribution
+
+            elif node.split_type == "numerical":
                 # looking for the branch that needs to be followed
                 threshold = float(node.childs[0].feature_value[0][3:])
                 if point[node.split_feature_name] <= threshold:
-                    y_pred_proba, samples = self.__predict_proba(node.childs[0], point)
+                    return self.__get_distribution(node.childs[0], point)
                 else:
-                    y_pred_proba, samples = self.__predict_proba(node.childs[1], point)
+                    return self.__get_distribution(node.childs[1], point)
 
-            elif (
-                node.split_feature_name in self.categorical_feature_names
-                or node.split_feature_name in self.rank_feature_names
-            ):
+            elif node.split_type in ("categorical", "rank"):
                 # looking for the branch that needs to be followed
                 for child in node.childs:
                     # if found
                     if child.feature_value == point[node.split_feature_name]:
-                        y_pred_proba, samples = self.__predict_proba(child, point)
-                        # then we can finish the search
-                        break
+                        return self.__get_distribution(child, point)
                 else:
                     # if there is no such branch TODO
-                    distribution = np.array(node.distribution)
-                    y_pred_proba = distribution / distribution.sum()
-                    samples = node.num_samples
+                    return node.distribution
 
             else:
                 assert False
-
-        # if we have reached a leaf
-        else:
-            distribution = np.array(node.distribution)
-            y_pred_proba = distribution / distribution.sum()
-            samples = node.num_samples
-
-        return y_pred_proba, samples
 
     def score(
         self,

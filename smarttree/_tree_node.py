@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 from typing import Self
 
 import pandas as pd
+import numpy as np
 
 
 @dataclass(slots=True)
@@ -15,7 +16,7 @@ class TreeNode:
     hierarchy: dict[str, str | list[str]] = field(repr=False)
     available_feature_names: list[str] = field(repr=False)
 
-    distribution: list[int]  # classification
+    distribution: np.ndarray  # classification
     impurity: float
     label: str  # classification
 

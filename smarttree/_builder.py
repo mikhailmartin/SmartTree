@@ -3,6 +3,7 @@ import math
 from collections import defaultdict
 
 import pandas as pd
+import numpy as np
 
 from ._constants import ClassificationCriterionOption
 from ._node_splitter import NodeSplitter
@@ -121,12 +122,12 @@ class Builder:
         self.node_counter += 1
         return tree_node
 
-    def distribution(self, mask: pd.Series) -> list[int]:
+    def distribution(self, mask: pd.Series) -> np.ndarray:
         """Calculates the class distribution."""
-        distribution = [
+        distribution = np.array([
             (mask & (self.y == class_name)).sum()
             for class_name in self.class_names
-        ]
+        ])
 
         return distribution
 
