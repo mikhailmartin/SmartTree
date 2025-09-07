@@ -64,7 +64,6 @@ class BaseSmartDecisionTree:
             categorical_na_filler=categorical_na_filler,
         )
 
-        # criteria for limiting branching
         self.__criterion = criterion
         self.__max_depth = max_depth
         self.__min_samples_split = min_samples_split
@@ -615,12 +614,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         return y_pred_proba
 
     def __preprocess(self, X: pd.DataFrame) -> pd.DataFrame:
-        """
-        Preprocesses data for prediction.
 
-        Fills in the missing values with the corresponding values according to
-        the `categorical_na_mode` and `numerical_na_mode`.
-        """
         X = X.copy()
 
         if self.numerical_na_mode in ("min", "max"):
@@ -647,7 +641,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
                 return distribution
 
             elif node.split_type == "numerical":
-                # looking for the branch that needs to be followed
                 threshold = float(node.childs[0].feature_value[0][3:])
                 if point[node.split_feature_name] <= threshold:
                     return self.__get_distribution(node.childs[0], point)
@@ -655,9 +648,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
                     return self.__get_distribution(node.childs[1], point)
 
             elif node.split_type in ("categorical", "rank"):
-                # looking for the branch that needs to be followed
                 for child in node.childs:
-                    # if found
                     # TODO: очень не здорово искать подстроку
                     if point[node.split_feature_name] in child.feature_value:
                         return self.__get_distribution(child, point)
