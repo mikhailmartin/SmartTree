@@ -635,7 +635,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         return X
 
     def __get_distribution(self, node: TreeNode, point: pd.Series) -> np.ndarray:
-        """Predicts class for the sample."""
+
         if node.is_leaf:
             return node.distribution
 
@@ -643,8 +643,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             if pd.isna(point[node.split_feature_name]):
                 distribution = np.array([0, 0, 0], dtype="int")
                 for child in node.childs:
-                    distribution_child = self.__get_distribution(child, point)
-                    distribution += distribution_child
+                    distribution += self.__get_distribution(child, point)
                 return distribution
 
             elif node.split_type == "numerical":
