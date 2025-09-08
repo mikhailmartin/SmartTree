@@ -14,10 +14,11 @@ def not_fitted_tree() -> SmartDecisionTreeClassifier:
     [
         lambda tree, X, y: tree.predict(X),
         lambda tree, X, y: tree.predict_proba(X),
+        lambda tree, X, y: tree.predict_log_proba(X),
         lambda tree, X, y: tree.score(X, y),
         lambda tree, X, y: tree.render(),
     ],
-    ids=["predict", "predict_proba", "score", "render"],
+    ids=["predict", "predict_proba", "predict_log_proba", "score", "render"],
 )
 def test__not_fitted__method(not_fitted_tree, X, y, method_call):
     with pytest.raises(NotFittedError):
