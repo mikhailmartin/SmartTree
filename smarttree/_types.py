@@ -2,7 +2,7 @@ from typing import Literal
 
 
 ClassificationCriterionType = Literal["gini", "entropy", "log_loss"]
-NumericalNaModeType = Literal["include", "min", "max"]
+NumericalNaModeType = Literal["min", "max", "include_all"]
 CategoricalNaModeType = Literal["as_category", "include_all", "include_best"]
 VerboseType = Literal["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG"] | int
-SplitTypeType = Literal["numerical", "categorical", "rank"]
+SplitType = Literal["numerical", "categorical", "rank"]

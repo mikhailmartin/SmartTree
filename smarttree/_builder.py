@@ -21,7 +21,7 @@ class Builder:
         hierarchy: dict[str, str | list[str]],
     ) -> None:
 
-        self.X = X
+        self.available_feature_names = X.columns.tolist()
         self.y = y
         self.criterion = criterion
         self.splitter = splitter
@@ -40,20 +40,18 @@ class Builder:
         self.node_counter: int = 0
 
     def build(self) -> tuple[TreeNode, defaultdict[str, float]]:
-        hierarchy = self.hierarchy.copy()
-        available_feature_names = self.X.columns.tolist()
-        # remove those features that cannot be considered yet
-        for value in hierarchy.values():
+
+        for value in self.hierarchy.values():
             if isinstance(value, list):
                 for feature_name in value:
-                    available_feature_names.remove(feature_name)
+                    self.available_feature_names.remove(feature_name)
             else:  # str
-                available_feature_names.remove(value)
+                self.available_feature_names.remove(value)
 
         root = self.create_node(
             mask=self.y.apply(lambda x: True),
-            hierarchy=hierarchy,
-            available_feature_names=available_feature_names,
+            hierarchy=self.hierarchy,
+            available_feature_names=self.available_feature_names,
             depth=0,
         )
 

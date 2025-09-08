@@ -266,10 +266,10 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
     A decision tree classifier.
 
     Parameters:
-        criterion: {'gini', 'entropy', 'log_loss'}, default='gini'
+        criterion: {"gini", "entropy", "log_loss"}, default="gini"
           The function to measure the quality of a split. Supported criteria are
-           'gini' for the Gini impurity and 'log_loss' and 'entropy' both for
-           the Shannon information gain.
+          "gini" for the Gini impurity and "log_loss" and "entropy" both for
+          the Shannon information gain.
 
         max_depth: int, default=None
           The maximum depth of the tree. If None, then nodes are expanded until
@@ -338,33 +338,34 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
           If provided, the algorithm will respect these dependencies when
           selecting features for splits.
 
-        numerical_na_mode: {'include', 'min', 'max'}, default='include'
+        numerical_na_mode: {"min", "max", "include_all"}, default="min"
           The mode of handling missing values in a numerical feature.
 
-          - If 'include': While training samples with missing values are
+          - If "min", missing values are filled with minimum value of
+            a numerical feature in training data.
+          - If "max", missing values are filled with maximum value of
+            a numerical feature in training data.
+          - If "include_all": While training samples with missing values are
             included into all child nodes. While predicting decision is weighted
             mean of all decisions in child nodes.
-          - If 'min', missing values are filled with minimum value of
-            a numerical feature in training data.
-          - If 'max', missing values are filled with maximum value of
-            a numerical feature in training data.
 
-        categorical_na_mode: {'as_category', 'include_all', 'include_best'}, default='as_category'
+        categorical_na_mode: {"as_category", "include_all", "include_best"},
+                             default="as_category"
           The mode of handling missing values in a categorical feature.
 
-          - If 'as_category': While training and predicting missing values
+          - If "as_category": While training and predicting missing values
             will be filled with `categorical_na_filler`.
-          - If 'include_all': While training samples with missing values are
+          - If "include_all": While training samples with missing values are
             included into all child nodes. While predicting decision is
             weighted mean of all decisions in child nodes.
-          - If 'include_best': TODO.
 
-        categorical_na_filler: str, default='missing_value'
+        categorical_na_filler: str, default="missing_value"
           If `categorical_na_mode` is set to "as_category", then during
           training and predicting missing values will be filled with
           `categorical_na_filler`.
 
-        verbose: {'critical', 'error', 'warning', 'info', 'debug'} or int, default="warning"
+        verbose: {"CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG"} or int,
+                 default="WARNING"
           Controls the level of decision tree verbosity.
     """
 
@@ -649,7 +650,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
 
             elif node.split_type in ("categorical", "rank"):
                 for child in node.childs:
-                    # TODO: очень не здорово искать подстроку
                     if point[node.split_feature_name] in child.feature_value:
                         return self.__get_distribution(child, point)
                 else:

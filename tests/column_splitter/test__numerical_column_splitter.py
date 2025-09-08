@@ -12,12 +12,12 @@ def numerical_column_splitter(X, y) -> NumericalColumnSplitter:
         criterion="gini",
         min_samples_split=2,
         min_samples_leaf=1,
-        numerical_na_mode="min",
+        na_mode="min",
     )
 
 @pytest.mark.parametrize(
     "numerical_na_mode",
-    ["min", "max", "include"],
+    ["min", "max", "include_all"],
     ids=lambda param: str(param),
 )
 def test__split(X, y, numerical_na_mode, root_node):
@@ -28,7 +28,7 @@ def test__split(X, y, numerical_na_mode, root_node):
         criterion="gini",
         min_samples_split=2,
         min_samples_leaf=1,
-        numerical_na_mode=numerical_na_mode,
+        na_mode=numerical_na_mode,
     )
 
     split_feature_name_with_na = "2. Возраст"
