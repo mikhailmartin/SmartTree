@@ -18,7 +18,7 @@ def test__split(X, y, categorical_na_mode, root_node):
         criterion="gini",
         min_samples_split=2,
         min_samples_leaf=1,
-        categorical_na_mode=categorical_na_mode,
+        na_mode=categorical_na_mode,
         max_childs=float("+inf"),
         max_leaf_nodes=float("+inf"),
     )

@@ -67,7 +67,7 @@ class NodeSplitter:
             criterion=criterion,
             min_samples_split=min_samples_split,
             min_samples_leaf=min_samples_leaf,
-            numerical_na_mode=numerical_na_mode,
+            na_mode=numerical_na_mode,
         )
         self.cat_col_splitter = CategoricalColumnSplitter(
             dataset=dataset,
@@ -75,7 +75,7 @@ class NodeSplitter:
             min_samples_split=min_samples_split,
             min_samples_leaf=min_samples_leaf,
             max_leaf_nodes=max_leaf_nodes,
-            categorical_na_mode=categorical_na_mode,
+            na_mode=categorical_na_mode,
             max_childs=max_childs,
         )
         self.rank_col_splitter = RankColumnSplitter(
