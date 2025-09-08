@@ -2,10 +2,7 @@
 
 ## linter
 ```commandline
-isort --diff --check smarttree/ tests/
-```
-```commandline
-mypy smarttree/
+ruff check smarttree/ tests/
 ```
 
 ## testing
