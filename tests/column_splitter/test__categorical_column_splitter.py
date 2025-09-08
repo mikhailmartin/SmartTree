@@ -25,6 +25,4 @@ def test__split(X, y, categorical_na_mode, root_node):
 
     split_feature_name_with_na = "25. Каким транспортом Вы обычно пользуетесь?"
     leaf_counter = 0
-    split_result = categorical_column_splitter.split(
-        root_node, split_feature_name_with_na, leaf_counter
-    )
+    _ = categorical_column_splitter.split(root_node, split_feature_name_with_na, leaf_counter)

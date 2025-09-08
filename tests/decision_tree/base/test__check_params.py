@@ -446,7 +446,7 @@ def test__check_params__rank_feature_names(rank_feature_names, expected):
                 match=(
                     "`hierarchy` must be a dictionary"
                     " {opening feature: opened feature / list of opened features}."
-                    f" Value 1 of opening feature isnt a string."
+                    " Value 1 of opening feature isnt a string."
                 ),
             ),
         ),

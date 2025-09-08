@@ -32,4 +32,4 @@ def test__split(X, y, numerical_na_mode, root_node):
     )
 
     split_feature_name_with_na = "2. Возраст"
-    split_result = numerical_column_splitter.split(root_node, split_feature_name_with_na)
+    _ = numerical_column_splitter.split(root_node, split_feature_name_with_na)

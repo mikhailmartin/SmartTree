@@ -1,7 +1,8 @@
 import math
 from abc import ABC, abstractmethod
+from collections.abc import Generator
 from copy import deepcopy
-from typing import Generator, NamedTuple
+from typing import NamedTuple
 
 import numpy as np
 import pandas as pd
