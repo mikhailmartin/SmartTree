@@ -173,7 +173,7 @@ class NumericalColumnSplitter(BaseColumnSplitter):
         )
 
     def split(self, node: TreeNode, split_feature_name: str) -> ColumnSplitResult:
-        """Finds the best tree node split by set numerical feature, if it exists."""
+
         numerical_column = self.dataset.X.loc[node.mask, split_feature_name]
         points = numerical_column.dropna().to_numpy()
         thresholds = self.get_thresholds(points)
@@ -256,7 +256,7 @@ class CategoricalColumnSplitter(BaseColumnSplitter):
         split_feature_name: str,
         leaf_counter: int,
     ) -> ColumnSplitResult:
-        """Split a node according to a categorical feature in the best way."""
+
         category_column: pd.Series = self.dataset.X.loc[node.mask, split_feature_name]  # type: ignore
         categories = category_column.dropna().unique().tolist()
 
@@ -291,10 +291,7 @@ class CategoricalColumnSplitter(BaseColumnSplitter):
         split_feature_name: str,
         feature_values: list[list],
     ) -> tuple[float, list[pd.Series]]:
-        """
-        Split a node according to a categorical feature according to
-        the defined feature values.
-        """
+
         mask_na = parent_mask & self.dataset.mask_na[split_feature_name]
 
         child_masks = []
@@ -372,7 +369,7 @@ class RankColumnSplitter(BaseColumnSplitter):
         self.rank_feature_names = rank_feature_names
 
     def split(self, node: TreeNode, split_feature_name: str) -> ColumnSplitResult:
-        """Split a node according to a rank feature in the best way."""
+
         available_feature_values = self.rank_feature_names[split_feature_name]
 
         best_split_result = ColumnSplitResult(NO_INFORMATION_GAIN, [], [])
@@ -393,22 +390,16 @@ class RankColumnSplitter(BaseColumnSplitter):
         split_feature_name: str,
         feature_values: tuple[list, list],
     ) -> tuple[float, list[pd.Series]]:
-        """
-        Splits a node according to a rank feature according to the defined feature
-        values.
-        """
+
         feature_values_left, feature_values_right = feature_values
 
         mask_left = parent_mask & self.dataset.X[split_feature_name].isin(feature_values_left)
         mask_right = parent_mask & self.dataset.X[split_feature_name].isin(feature_values_right)
-
-        if (
-            mask_left.sum() < self.min_samples_leaf
-            or mask_right.sum() < self.min_samples_leaf
-        ):
-            return NO_INFORMATION_GAIN, []
-
         child_masks = [mask_left, mask_right]
+
+        for child_mask in child_masks:
+            if child_mask.sum() < self.min_samples_leaf:
+                return NO_INFORMATION_GAIN, []
 
         information_gain = self.information_gain(parent_mask, child_masks)
 
