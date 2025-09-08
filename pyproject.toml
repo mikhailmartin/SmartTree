@@ -32,8 +32,11 @@ build-backend = "poetry.core.masonry.api"
 module = "graphviz"
 ignore_missing_imports = true
 
+[tool.ruff]
+line-length = 120
+
 [tool.ruff.lint]
-select = ["I"]
+select = ["E", "I"]
 
 [tool.ruff.lint.isort]
 split-on-trailing-comma = true
