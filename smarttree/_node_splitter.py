@@ -13,8 +13,11 @@ from ._types import (
     CategoricalNaModeType,
     ClassificationCriterionType,
     NumericalNaModeType,
-    SplitTypeType,
+    SplitType,
 )
+
+
+NO_INFORMATION_GAIN = float("-inf")
 
 
 class NodeSplitResult(NamedTuple):
@@ -45,52 +48,42 @@ class NodeSplitter:
         categorical_na_mode: CategoricalNaModeType,
     ) -> None:
 
-        self.dataset = Dataset(X, y)
-        self.criterion = criterion
         self.max_depth = max_depth
         self.min_samples_split = min_samples_split
-        self.min_samples_leaf = min_samples_leaf
-        self.max_leaf_nodes = max_leaf_nodes
         self.min_impurity_decrease = min_impurity_decrease
-        self.max_childs = max_childs
-        self.numerical_feature_names = numerical_feature_names
-        self.categorical_feature_names = categorical_feature_names
-        self.rank_feature_names = rank_feature_names
-        self.numerical_na_mode = numerical_na_mode
-        self.categorical_na_mode = categorical_na_mode
-
         self.leaf_counter: int = 0
 
-        self.feature_split_type: dict[str, SplitTypeType] = dict()
-        for feature_name in self.numerical_feature_names:
+        self.feature_split_type: dict[str, SplitType] = dict()
+        for feature_name in numerical_feature_names:
             self.feature_split_type[feature_name] = "numerical"
-        for feature_name in self.categorical_feature_names:
+        for feature_name in categorical_feature_names:
             self.feature_split_type[feature_name] = "categorical"
-        for feature_name in self.rank_feature_names:
+        for feature_name in rank_feature_names:
             self.feature_split_type[feature_name] = "rank"
 
+        dataset = Dataset(X, y)
         self.num_col_splitter = NumericalColumnSplitter(
-            dataset=self.dataset,
-            criterion=self.criterion,
-            min_samples_split=self.min_samples_split,
-            min_samples_leaf=self.min_samples_leaf,
-            numerical_na_mode=self.numerical_na_mode,
+            dataset=dataset,
+            criterion=criterion,
+            min_samples_split=min_samples_split,
+            min_samples_leaf=min_samples_leaf,
+            numerical_na_mode=numerical_na_mode,
         )
         self.cat_col_splitter = CategoricalColumnSplitter(
-            dataset=self.dataset,
-            criterion=self.criterion,
-            min_samples_split=self.min_samples_split,
-            min_samples_leaf=self.min_samples_leaf,
-            max_leaf_nodes=self.max_leaf_nodes,
-            categorical_na_mode=self.categorical_na_mode,
-            max_childs=self.max_childs,
+            dataset=dataset,
+            criterion=criterion,
+            min_samples_split=min_samples_split,
+            min_samples_leaf=min_samples_leaf,
+            max_leaf_nodes=max_leaf_nodes,
+            categorical_na_mode=categorical_na_mode,
+            max_childs=max_childs,
         )
         self.rank_col_splitter = RankColumnSplitter(
-            dataset=self.dataset,
-            criterion=self.criterion,
-            min_samples_split=self.min_samples_split,
-            min_samples_leaf=self.min_samples_leaf,
-            rank_feature_names=self.rank_feature_names,
+            dataset=dataset,
+            criterion=criterion,
+            min_samples_split=min_samples_split,
+            min_samples_leaf=min_samples_leaf,
+            rank_feature_names=rank_feature_names,
         )
 
     def is_splittable(self, node: TreeNode) -> bool:
@@ -117,8 +110,8 @@ class NodeSplitter:
             return False
 
     def find_best_split_for(self, node: TreeNode) -> NodeSplitResult:
-        """Finds the best tree node split, if it exists."""
-        best_split_result = NodeSplitResult(float("-inf"), "", "", [], [])
+
+        best_split_result = NodeSplitResult(NO_INFORMATION_GAIN, "", "", [], [])
         for feature_name in node.available_feature_names:
             split_type = self.feature_split_type[feature_name]
             match split_type:

@@ -65,7 +65,7 @@ class BaseColumnSplitter(ABC):
               list of boolean masks of child nodes.
             na_mode: str, default=None
               missing values handling node.
-              - If 'include', then turn on normalization of child nodes impurity.
+              - If "include_all", then turn on normalization of child nodes impurity.
 
         Returns:
             float: information gain.
@@ -212,17 +212,17 @@ class NumericalColumnSplitter(BaseColumnSplitter):
 
             child_masks = [mask_less, mask_more]
 
-            inf_gain = self.information_gain(
+            information_gain = self.information_gain(
                 node.mask, child_masks, na_mode=self.numerical_na_mode
             )
 
-            if best_split_result.information_gain < inf_gain:
+            if best_split_result.information_gain < information_gain:
                 less_values = [f"<= {threshold}"]
                 more_values = [f"> {threshold}"]
                 feature_values = [less_values, more_values]
 
                 best_split_result = ColumnSplitResult(
-                    inf_gain, feature_values, child_masks
+                    information_gain, feature_values, child_masks
                 )
 
         return best_split_result
@@ -399,11 +399,12 @@ class RankColumnSplitter(BaseColumnSplitter):
 
         best_split_result = ColumnSplitResult(NO_INFORMATION_GAIN, [], [])
         for feature_values in self.rank_partitions(available_feature_values):
-            inf_gain, child_masks = \
-                self.__rank_split(node.mask, split_feature_name, feature_values)
-            if best_split_result.information_gain < inf_gain:
+            information_gain, child_masks = self.__rank_split(
+                node.mask, split_feature_name, feature_values
+            )
+            if best_split_result.information_gain < information_gain:
                 best_split_result = ColumnSplitResult(
-                    inf_gain, list(feature_values), child_masks
+                    information_gain, list(feature_values), child_masks
                 )
 
         return best_split_result
