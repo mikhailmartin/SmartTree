@@ -181,7 +181,6 @@ class NumericalColumnSplitter(BaseColumnSplitter):
 
         best_split_result = ColumnSplitResult(NO_INFORMATION_GAIN, [], [])
         for threshold in thresholds:
-
             information_gain, child_masks = self.__num_split(
                 node.mask, split_feature_name, threshold
             )
