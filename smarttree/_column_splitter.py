@@ -176,7 +176,7 @@ class NumericalColumnSplitter(BaseColumnSplitter):
 
         numerical_column = self.dataset.X.loc[node.mask, split_feature_name]
         points = numerical_column.dropna().to_numpy()
-        thresholds = self.get_thresholds(points)
+        thresholds = self.__get_thresholds(points)
 
         best_split_result = ColumnSplitResult(NO_INFORMATION_GAIN, [], [])
         for threshold in thresholds:
@@ -192,16 +192,16 @@ class NumericalColumnSplitter(BaseColumnSplitter):
 
         return best_split_result
 
-    def get_thresholds(self, array: np.ndarray) -> np.ndarray:
+    def __get_thresholds(self, array: np.ndarray) -> np.ndarray:
 
         array.sort()
         array = np.unique(array)
-        thresholds = np.array([]) if len(array) <= 1 else self.moving_average(array)
+        thresholds = np.array([]) if len(array) <= 1 else self.__moving_average(array)
 
         return thresholds
 
     @staticmethod
-    def moving_average(array: np.ndarray, window: int = 2) -> np.ndarray:
+    def __moving_average(array: np.ndarray, window: int = 2) -> np.ndarray:
         return np.convolve(array, np.ones(window), mode="valid") / window
 
     def __num_split(
@@ -264,7 +264,7 @@ class CategoricalColumnSplitter(BaseColumnSplitter):
             return ColumnSplitResult(NO_INFORMATION_GAIN, [], [])
 
         best_split_result = ColumnSplitResult(NO_INFORMATION_GAIN, [], [])
-        for cat_partitions in self.cat_partitions(categories):  # type: ignore
+        for cat_partitions in self.__cat_partitions(categories):  # type: ignore
             # if partitions is not really partitions
             if len(cat_partitions) <= 1:
                 continue
@@ -332,7 +332,7 @@ class CategoricalColumnSplitter(BaseColumnSplitter):
 
         return information_gain, child_masks
 
-    def cat_partitions(
+    def __cat_partitions(
         self,
         collection: list,
     ) -> Generator[list[list], None, None]:
@@ -342,7 +342,7 @@ class CategoricalColumnSplitter(BaseColumnSplitter):
             return
 
         first = collection[0]
-        for smaller in self.cat_partitions(collection[1:]):
+        for smaller in self.__cat_partitions(collection[1:]):
             # insert `first` in each of the subpartition's subsets
             for n, subset in enumerate(smaller):
                 yield smaller[:n] + [[first] + subset] + smaller[n + 1:]
@@ -373,7 +373,7 @@ class RankColumnSplitter(BaseColumnSplitter):
         available_feature_values = self.rank_feature_names[split_feature_name]
 
         best_split_result = ColumnSplitResult(NO_INFORMATION_GAIN, [], [])
-        for feature_values in self.rank_partitions(available_feature_values):
+        for feature_values in self.__rank_partitions(available_feature_values):
             information_gain, child_masks = self.__rank_split(
                 node.mask, split_feature_name, feature_values
             )
@@ -406,6 +406,6 @@ class RankColumnSplitter(BaseColumnSplitter):
         return information_gain, child_masks
 
     @staticmethod
-    def rank_partitions(collection: list) -> Generator[tuple[list, list], None, None]:
+    def __rank_partitions(collection: list) -> Generator[tuple[list, list], None, None]:
         for i in range(1, len(collection)):
             yield collection[:i], collection[i:]
