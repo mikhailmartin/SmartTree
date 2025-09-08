@@ -26,4 +26,4 @@ def rank_column_splitter(X, y) -> RankColumnSplitter:
 def test__split(rank_column_splitter, root_node):
 
     split_feature_name = "5. В какой семье Вы выросли?"
-    split_result = rank_column_splitter.split(root_node, split_feature_name)
+    _ = rank_column_splitter.split(root_node, split_feature_name)
