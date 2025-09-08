@@ -27,11 +27,14 @@ jobs:
           virtualenvs-in-project: true
 
       - name: Load cached venv
-        id: cached-pip-wheels
+        id: cached-venv
         uses: actions/cache@v3
         with:
-          path: ~/.cache
-          key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+          path: .venv
+          key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}-${{ hashFiles('**/pyproject.toml') }}
+          restore-keys: |
+            venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}-
+            venv-${{ runner.os }}-
 
       - name: Install dependencies
         run: |
@@ -40,15 +43,12 @@ jobs:
 
       - name: Check code style with ruff
         run: |
-          source $VENV
-          poetry run python -m ruff check smarttree/ tests/
+          poetry run ruff check smarttree/ tests/
 
       - name: Check types with mypy
         run: |
-          source $VENV
           poetry run mypy smarttree/ --ignore-missing-imports
 
       - name: Test with pytest
         run: |
-          source $VENV
           poetry run pytest tests/
