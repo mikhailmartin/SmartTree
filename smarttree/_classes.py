@@ -590,16 +590,16 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         """
         Predict class probabilities of the input samples X.
 
-        The predicted class probability is the fraction of samples of the same class in
-        a leaf.
+        The predicted class probability is the fraction of samples of
+        the same class in a leaf.
 
         Parameters:
             X: pd.DataFrame
               The input samples.
 
         Returns:
-            The class probabilities of the input samples. The order of the
-            classes corresponds to that in the attribute :term:`class_names`.
+            ndarray: The class probabilities of the input samples. The order of
+            the classes corresponds to that in the attribute :term:`class_names`.
         """
         check__data(X=X, all_feature_names=self.all_feature_names)
 
@@ -611,6 +611,24 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         y_pred_proba = np.array([
             distribution / distribution.sum() for distribution in distributions
         ])
+
+        return y_pred_proba
+
+    def predict_log_proba(self, X: pd.DataFrame) -> np.ndarray:
+        """
+        Predict class log-probabilities of the input samples X.
+
+        Parameters:
+            X: pd.DataFrame
+              The input samples.
+
+        Returns:
+            ndarray: The class log-probabilities of the input samples. The order
+            of the classes corresponds to that in the attribute :term:`classes_`.
+        """
+        y_pred_proba = self.predict_proba(X)
+        for i in range(len(y_pred_proba)):
+            y_pred_proba[i] = np.log(y_pred_proba[i])
 
         return y_pred_proba
 
