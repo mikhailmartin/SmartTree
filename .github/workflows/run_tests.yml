@@ -14,33 +14,40 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
       - name: Set up Python
         uses: actions/setup-python@v3
         with:
           python-version: '3.11'
+
       - name: Install Poetry
         uses: snok/install-poetry@v1
         with:
           virtualenvs-create: true
           virtualenvs-in-project: true
+
       - name: Load cached venv
         id: cached-pip-wheels
         uses: actions/cache@v3
         with:
           path: ~/.cache
           key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+
       - name: Install dependencies
         run: |
           poetry install --no-interaction --no-root --with test
           poetry run pip install -e .
+
       - name: Check code style with ruff
         run: |
           source $VENV
           poetry run python -m ruff check smarttree/ tests/
+
       - name: Check types with mypy
         run: |
           source $VENV
           poetry run mypy smarttree/ --ignore-missing-imports
+
       - name: Test with pytest
         run: |
           source $VENV
