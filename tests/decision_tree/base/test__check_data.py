@@ -1,6 +1,7 @@
 import re
 from contextlib import nullcontext as does_not_raise
 
+import pandas as pd
 import pytest
 
 from smarttree import SmartDecisionTreeClassifier
@@ -33,9 +34,10 @@ def tree():
     ("X_scenario", "y_scenario", "expected_context"),
     [
         ("valid", "valid", does_not_raise()),
-        ("not_df", "valid", pytest.raises(ValueError, match="X must be a pandas.DataFrame.")),
         ("valid", "not_series", pytest.raises(ValueError, match="y must be a pandas.Series.")),
         ("valid", "short", pytest.raises(ValueError, match="X and y must be the equal length.")),
+        ("valid", "contain_na", pytest.raises(ValueError, match="y must not contain NA.")),
+        ("not_df", "valid", pytest.raises(ValueError, match="X must be a pandas.DataFrame.")),
         (
             "missing_numerical",
             "valid",
@@ -71,7 +73,7 @@ def tree():
         ),
     ],
     ids=[
-        "valid", "not_df", "not_series", "short",
+        "valid", "not_series", "short", "not_df", "contain_na",
         "missing_numerical", "missing_categorical", "missing_rank",
     ],
 )
@@ -88,6 +90,7 @@ def test__check_data__fit(X, y, X_scenario, y_scenario, tree, expected_context):
         "valid": y,
         "not_series": "y",
         "short": y[:-1],
+        "contain_na": y.where(y.index != 0, pd.NA),
     }
 
     X_fit = X_map[X_scenario]

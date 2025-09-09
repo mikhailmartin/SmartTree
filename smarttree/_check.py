@@ -313,6 +313,9 @@ def _check__y(y):
     if not isinstance(y, pd.Series):
         raise ValueError("y must be a pandas.Series.")
 
+    if y.isna().any():
+        raise ValueError("y must not contain NA.")
+
 
 def _check__X_and_y(X, y):
     if X.shape[0] != y.shape[0]:
