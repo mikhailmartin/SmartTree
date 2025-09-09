@@ -491,21 +491,22 @@ def test__check_params__hierarchy(hierarchy, expected):
 @pytest.mark.parametrize(
     ("numerical_na_mode", "expected"),
     [
-        ("include", does_not_raise()),
         ("min", does_not_raise()),
         ("max", does_not_raise()),
+        ("include_all", does_not_raise()),
+        ("include_best", does_not_raise()),
         (
             "smth",
             raises(
                 ValueError,
                 match=re.escape(
-                    "`numerical_na_mode` must be Literal['include', 'min', 'max']."
+                    "`numerical_na_mode` must be Literal['min', 'max', 'include_all', 'include_best']."
                     " The current value of `numerical_na_mode` is 'smth'."
                 ),
             ),
         ),
     ],
-    ids=["include", "min", "max", "invalid"],
+    ids=["min", "max", "include_all", "include_best", "invalid"],
 )
 def test__check_params__numerical_na_mode(numerical_na_mode, expected):
     with expected:

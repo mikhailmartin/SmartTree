@@ -222,6 +222,28 @@ class NumericalColumnSplitter(BaseColumnSplitter):
                 if child_masks[i].sum() < self.min_samples_leaf:
                     return NO_INFORMATION_GAIN, []
 
+        elif self.na_mode == "include_best":
+            candidates = []
+            origin_child_masks = child_masks
+            for i, child_mask in enumerate(origin_child_masks):
+                child_masks = deepcopy(origin_child_masks)
+                child_masks[i] = child_mask | (parent_mask & mask_na)  # update
+                for child_mask in child_masks:
+                    if child_mask.sum() < self.min_samples_leaf:
+                        break
+                else:
+                    candidates.append(child_masks)
+
+            best_information_gain = NO_INFORMATION_GAIN
+            best_child_masks = []
+            for child_masks in candidates:
+                information_gain = self.information_gain(parent_mask, child_masks)
+                if best_information_gain < information_gain:
+                    best_information_gain = information_gain
+                    best_child_masks = child_masks
+
+            return best_information_gain, best_child_masks
+
         information_gain = self.information_gain(parent_mask, child_masks)
 
         return information_gain, child_masks
