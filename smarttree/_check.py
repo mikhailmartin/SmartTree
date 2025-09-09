@@ -250,9 +250,9 @@ def _check__hierarchy(hierarchy):
 
 
 def _check__numerical_na_mode(numerical_na_mode):
-    if numerical_na_mode not in ("include", "min", "max"):
+    if numerical_na_mode not in ("min", "max", "include_all", "include_best"):
         raise ValueError(
-            "`numerical_na_mode` must be Literal['include', 'min', 'max']."
+            "`numerical_na_mode` must be Literal['min', 'max', 'include_all', 'include_best']."
             f" The current value of `numerical_na_mode` is {numerical_na_mode!r}."
         )
 

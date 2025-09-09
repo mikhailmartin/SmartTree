@@ -17,7 +17,7 @@ def numerical_column_splitter(X, y) -> NumericalColumnSplitter:
 
 @pytest.mark.parametrize(
     "numerical_na_mode",
-    ["min", "max", "include_all"],
+    ["min", "max", "include_all", "include_best"],
     ids=lambda param: str(param),
 )
 def test__split(X, y, numerical_na_mode, root_node):

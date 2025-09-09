@@ -338,26 +338,33 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
           If provided, the algorithm will respect these dependencies when
           selecting features for splits.
 
-        numerical_na_mode: {"min", "max", "include_all"}, default="min"
+        numerical_na_mode: {"min", "max", "include_all", "include_best"},
+                           default="min"
           The mode of handling missing values in a numerical feature.
 
-          - If "min", missing values are filled with minimum value of
+          - If "min", then missing values are filled with minimum value of
             a numerical feature in training data.
-          - If "max", missing values are filled with maximum value of
+          - If "max", then missing values are filled with maximum value of
             a numerical feature in training data.
-          - If "include_all": While training samples with missing values are
-            included into all child nodes. While predicting decision is weighted
-            mean of all decisions in child nodes.
+          - If "include_all", then while training samples with missing values
+            are included into all child nodes. While predicting decision is
+            weighted mean of all decisions in child nodes.
+          - If "include_best", then while training and prediction samples with
+            missing values are included into the best child node according to
+            information gain.
 
         categorical_na_mode: {"as_category", "include_all", "include_best"},
                              default="as_category"
           The mode of handling missing values in a categorical feature.
 
-          - If "as_category": While training and predicting missing values
+          - If "as_category", then while training and predicting missing values
             will be filled with `categorical_na_filler`.
-          - If "include_all": While training samples with missing values are
-            included into all child nodes. While predicting decision is
+          - If "include_all", then while training samples with missing values
+            are included into all child nodes. While predicting decision is
             weighted mean of all decisions in child nodes.
+          - If "include_best", then while training and prediction samples with
+            missing values are included into the best child node according to
+            information gain.
 
         categorical_na_filler: str, default="missing_value"
           If `categorical_na_mode` is set to "as_category", then during
