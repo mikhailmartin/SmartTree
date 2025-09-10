@@ -3,6 +3,7 @@ from typing import Self
 
 import numpy as np
 import pandas as pd
+from numpy.typing import NDArray
 
 
 @dataclass(slots=True)
@@ -16,7 +17,7 @@ class TreeNode:
     hierarchy: dict[str, str | list[str]] = field(repr=False)
     available_features: list[str] = field(repr=False)
 
-    distribution: np.ndarray  # classification
+    distribution: NDArray[np.integer]  # classification
     impurity: float
     label: str  # classification
 
@@ -29,6 +30,7 @@ class TreeNode:
     split_feature: str = field(init=False, repr=False)
     feature_values: list = field(init=False, repr=False)
     child_masks: list = field(init=False, repr=False)
+    child_na_index: int = field(init=False, repr=False)
 
     # set by Builder.build()
     feature_value: list[str] = field(init=False, repr=False)
@@ -42,5 +44,6 @@ class TreeNode:
         self.split_feature = ""
         self.feature_values = []
         self.child_masks = []
+        self.child_na_index = -1
 
         self.feature_value = []

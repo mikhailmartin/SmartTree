@@ -17,15 +17,23 @@ from ._types import (
 )
 
 
-NO_INFORMATION_GAIN = float("-inf")
-
-
 class NodeSplitResult(NamedTuple):
     information_gain: float
     split_type: str
     split_feature: str
     feature_values: list[list[str]]
     child_masks: list[pd.Series]
+    child_na_index: int = -1
+
+    @classmethod
+    def no_split(cls):
+        return cls(
+            information_gain=float("-inf"),
+            split_type="",
+            split_feature="",
+            feature_values=[],
+            child_masks=[],
+        )
 
 
 class NodeSplitter:
@@ -111,7 +119,7 @@ class NodeSplitter:
 
     def find_best_split_for(self, node: TreeNode) -> NodeSplitResult:
 
-        best_split_result = NodeSplitResult(NO_INFORMATION_GAIN, "", "", [], [])
+        best_split_result = NodeSplitResult.no_split()
         for feature in node.available_features:
             split_type = self.feature_split_type[feature]
             match split_type:
@@ -129,6 +137,7 @@ class NodeSplitter:
                     feature,
                     split_result.feature_values,
                     split_result.child_masks,
+                    split_result.child_na_index,
                 )
 
         return best_split_result

@@ -1,13 +1,14 @@
 """Custom realization of Decision Tree which can handle categorical features."""
 import logging
 import math
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from functools import lru_cache
 from typing import Self
 
 import numpy as np
 import pandas as pd
 from graphviz import Digraph
+from numpy.typing import NDArray
 from sklearn.metrics import accuracy_score
 
 from ._builder import Builder
@@ -24,7 +25,7 @@ from ._types import (
 )
 
 
-class BaseSmartDecisionTree:
+class BaseSmartDecisionTree(ABC):
     """Base class for smart decision trees."""
 
     def __init__(
@@ -191,7 +192,7 @@ class BaseSmartDecisionTree:
         raise NotImplementedError
 
     @abstractmethod
-    def predict_proba(self, X: pd.DataFrame) -> np.ndarray:
+    def predict_proba(self, X: pd.DataFrame) -> NDArray:
         raise NotImplementedError
 
     @abstractmethod
@@ -648,17 +649,25 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
 
         return X
 
-    def __get_distribution(self, node: TreeNode, point: pd.Series) -> np.ndarray:
+    def __get_distribution(
+        self,
+        node: TreeNode,
+        point: pd.Series,
+    ) -> NDArray[np.integer]:
 
         if node.is_leaf:
             return node.distribution
 
         else:
             if pd.isna(point[node.split_feature]):
-                distribution = np.array([0, 0, 0], dtype="int")
-                for child in node.childs:
-                    distribution += self.__get_distribution(child, point)
-                return distribution
+                if self._feature_na_mode[node.split_feature] == "include_all":
+                    distribution = np.array([0, 0, 0], dtype="int")
+                    for child in node.childs:
+                        distribution += self.__get_distribution(child, point)
+                    return distribution
+                else:  # "include_best"
+                    child = node.childs[node.child_na_index]
+                    return self.__get_distribution(child, point)
 
             elif node.split_type == "numerical":
                 threshold = float(node.childs[0].feature_value[0][3:])
