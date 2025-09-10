@@ -26,7 +26,7 @@ class TreeNode:
     # set by NodeSplitter.find_best_split_for()
     information_gain: float = field(init=False, repr=False)
     split_type: str = field(init=False, repr=False)
-    split_feature_name: str = field(init=False, repr=False)
+    split_feature: str = field(init=False, repr=False)
     feature_values: list = field(init=False, repr=False)
     child_masks: list = field(init=False, repr=False)
 
@@ -39,7 +39,7 @@ class TreeNode:
 
         self.information_gain = float("-inf")
         self.split_type = ""
-        self.split_feature_name = ""
+        self.split_feature = ""
         self.feature_values = []
         self.child_masks = []
 

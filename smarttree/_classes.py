@@ -654,7 +654,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             return node.distribution
 
         else:
-            if pd.isna(point[node.split_feature_name]):
+            if pd.isna(point[node.split_feature]):
                 distribution = np.array([0, 0, 0], dtype="int")
                 for child in node.childs:
                     distribution += self.__get_distribution(child, point)
@@ -662,14 +662,14 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
 
             elif node.split_type == "numerical":
                 threshold = float(node.childs[0].feature_value[0][3:])
-                if point[node.split_feature_name] <= threshold:
+                if point[node.split_feature] <= threshold:
                     return self.__get_distribution(node.childs[0], point)
                 else:
                     return self.__get_distribution(node.childs[1], point)
 
             elif node.split_type in ("categorical", "rank"):
                 for child in node.childs:
-                    if point[node.split_feature_name] in child.feature_value:
+                    if point[node.split_feature] in child.feature_value:
                         return self.__get_distribution(child, point)
                 else:
                     # if there is no such branch TODO

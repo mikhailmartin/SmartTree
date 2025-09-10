@@ -66,12 +66,12 @@ class Builder:
             and self.splitter.leaf_counter < self.max_leaf_nodes
         ):
             node = splittable_leaf_nodes.pop()
-            feature_importances[node.split_feature_name] += node.information_gain
+            feature_importances[node.split_feature] += node.information_gain
 
             for child_mask, feature_value in zip(node.child_masks, node.feature_values):
                 # add opened features
-                if node.split_feature_name in node.hierarchy:
-                    value = node.hierarchy.pop(node.split_feature_name)
+                if node.split_feature in node.hierarchy:
+                    value = node.hierarchy.pop(node.split_feature)
                     if isinstance(value, list):  # list[str]
                         node.available_feature_names.extend(value)
                     else:  # str

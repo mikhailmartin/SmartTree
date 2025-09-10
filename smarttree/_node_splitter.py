@@ -23,7 +23,7 @@ NO_INFORMATION_GAIN = float("-inf")
 class NodeSplitResult(NamedTuple):
     information_gain: float
     split_type: str
-    split_feature_name: str
+    split_feature: str
     feature_values: list[list[str]]
     child_masks: list[pd.Series]
 
@@ -102,7 +102,7 @@ class NodeSplitter:
         if split_result.information_gain >= self.min_impurity_decrease:
             node.information_gain = split_result.information_gain
             node.split_type = split_result.split_type
-            node.split_feature_name = split_result.split_feature_name
+            node.split_feature = split_result.split_feature
             node.feature_values = split_result.feature_values
             node.child_masks = split_result.child_masks
             return True
