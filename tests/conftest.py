@@ -156,7 +156,7 @@ def root_node(X, y):
         depth=0,
         mask=y.apply(lambda x: True),
         hierarchy=dict(),
-        available_feature_names=X.columns.tolist(),
+        available_features=X.columns.tolist(),
         impurity=0.67,
         distribution=np.array([199, 199, 197]),
         label="доброкачественная опухоль",

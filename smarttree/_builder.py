@@ -21,7 +21,7 @@ class Builder:
         hierarchy: dict[str, str | list[str]],
     ) -> None:
 
-        self.available_feature_names = X.columns.tolist()
+        self.available_features = X.columns.tolist()
         self.y = y
         self.criterion = criterion
         self.splitter = splitter
@@ -43,15 +43,15 @@ class Builder:
 
         for value in self.hierarchy.values():
             if isinstance(value, list):
-                for feature_name in value:
-                    self.available_feature_names.remove(feature_name)
+                for feature in value:
+                    self.available_features.remove(feature)
             else:  # str
-                self.available_feature_names.remove(value)
+                self.available_features.remove(value)
 
         root = self.create_node(
             mask=self.y.apply(lambda x: True),
             hierarchy=self.hierarchy,
-            available_feature_names=self.available_feature_names,
+            available_features=self.available_features,
             depth=0,
         )
 
@@ -73,14 +73,14 @@ class Builder:
                 if node.split_feature in node.hierarchy:
                     value = node.hierarchy.pop(node.split_feature)
                     if isinstance(value, list):  # list[str]
-                        node.available_feature_names.extend(value)
+                        node.available_features.extend(value)
                     else:  # str
-                        node.available_feature_names.append(value)
+                        node.available_features.append(value)
 
                 child_node = self.create_node(
                     mask=child_mask,
                     hierarchy=node.hierarchy,
-                    available_feature_names=node.available_feature_names,
+                    available_features=node.available_features,
                     depth=node.depth + 1,
                 )
                 child_node.feature_value = feature_value
@@ -103,7 +103,7 @@ class Builder:
         self,
         mask: pd.Series,
         hierarchy: dict[str, str | list[str]],
-        available_feature_names: list[str],
+        available_features: list[str],
         depth: int,
     ) -> TreeNode:
         """Creates a node of the tree."""
@@ -116,7 +116,7 @@ class Builder:
             depth=depth,
             mask=mask,
             hierarchy=hierarchy.copy(),
-            available_feature_names=available_feature_names.copy(),
+            available_features=available_features.copy(),
         )
         self.node_counter += 1
         return tree_node
