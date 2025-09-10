@@ -3,6 +3,7 @@ import os
 import numpy as np
 import pandas as pd
 import pytest
+from numpy.typing import NDArray
 
 from smarttree import BaseSmartDecisionTree
 from smarttree._tree_node import TreeNode
@@ -164,7 +165,33 @@ def root_node(X, y):
 
 
 class ConcreteSmartTree(BaseSmartDecisionTree):
-    ...
+    def fit(self, X: pd.DataFrame, y: pd.Series) -> None:
+        pass
+
+    def predict(self, X: pd.DataFrame) -> list[str]:
+        pass
+
+    def predict_proba(self, X: pd.DataFrame) -> NDArray:
+        pass
+
+    def score(self,
+        X: pd.DataFrame,
+        y: pd.Series,
+        sample_weight: pd.Series | None = None,
+    ) -> float | np.floating:
+        pass
+
+    def render(
+        self,
+        *,
+        rounded: bool = False,
+        show_impurity: bool = False,
+        show_num_samples: bool = False,
+        show_distribution: bool = False,
+        show_label: bool = False,
+        **kwargs,
+    ):
+        pass
 
 
 @pytest.fixture(scope="function")

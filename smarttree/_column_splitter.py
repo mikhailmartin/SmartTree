@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import math
 from abc import ABC, abstractmethod
 from collections.abc import Generator
@@ -23,9 +25,18 @@ class ColumnSplitResult(NamedTuple):
     information_gain: float
     feature_values: list[list]
     child_masks: list[pd.Series]
+    child_na_index: int = -1
+
+    @classmethod
+    def no_split(cls) -> ColumnSplitResult:
+        return cls(
+            information_gain=NO_INFORMATION_GAIN,
+            feature_values=[],
+            child_masks=[],
+        )
 
 
-class BaseColumnSplitter(ABC):
+class ColumnSplitter(ABC):
 
     def __init__(
         self,
@@ -154,7 +165,7 @@ class BaseColumnSplitter(ABC):
         return entropy
 
 
-class NumericalColumnSplitter(BaseColumnSplitter):
+class NumericalColumnSplitter(ColumnSplitter):
 
     def __init__(
         self,
@@ -179,15 +190,15 @@ class NumericalColumnSplitter(BaseColumnSplitter):
         points = numerical_column.dropna().to_numpy()
         thresholds = self.__get_thresholds(points)
 
-        best_split_result = ColumnSplitResult(NO_INFORMATION_GAIN, [], [])
+        best_split_result = ColumnSplitResult.no_split()
         for threshold in thresholds:
-            information_gain, child_masks = self.__num_split(
+            information_gain, child_masks, child_na_index = self.__num_split(
                 node.mask, split_feature, threshold
             )
             if best_split_result.information_gain < information_gain:
                 feature_values = [[f"<= {threshold}"], [f"> {threshold}"]]
                 best_split_result = ColumnSplitResult(
-                    information_gain, feature_values, child_masks
+                    information_gain, feature_values, child_masks, child_na_index
                 )
 
         return best_split_result
@@ -208,7 +219,7 @@ class NumericalColumnSplitter(BaseColumnSplitter):
         self, parent_mask: pd.Series,
         split_feature: str,
         threshold: float,
-    ) -> tuple[float, list[pd.Series]]:
+    ) -> tuple[float, list[pd.Series], int]:
 
         mask_na = parent_mask & self.dataset.mask_na[split_feature]
 
@@ -220,7 +231,7 @@ class NumericalColumnSplitter(BaseColumnSplitter):
             for i, child_mask in enumerate(child_masks):
                 child_masks[i] = child_mask | (parent_mask & mask_na)  # update
                 if child_masks[i].sum() < self.min_samples_leaf:
-                    return NO_INFORMATION_GAIN, []
+                    return NO_INFORMATION_GAIN, [], -1
 
         elif self.na_mode == "include_best":
             candidates = []
@@ -236,20 +247,22 @@ class NumericalColumnSplitter(BaseColumnSplitter):
 
             best_information_gain = NO_INFORMATION_GAIN
             best_child_masks = []
+            best_child_na_index = -1
             for child_masks in candidates:
                 information_gain = self.information_gain(parent_mask, child_masks)
                 if best_information_gain < information_gain:
                     best_information_gain = information_gain
                     best_child_masks = child_masks
+                    best_child_na_index = i
 
-            return best_information_gain, best_child_masks
+            return best_information_gain, best_child_masks, best_child_na_index
 
         information_gain = self.information_gain(parent_mask, child_masks)
 
-        return information_gain, child_masks
+        return information_gain, child_masks, -1
 
 
-class CategoricalColumnSplitter(BaseColumnSplitter):
+class CategoricalColumnSplitter(ColumnSplitter):
 
     def __init__(
         self,
@@ -283,9 +296,9 @@ class CategoricalColumnSplitter(BaseColumnSplitter):
         categories = category_column.dropna().unique().tolist()
 
         if len(categories) <= 1:
-            return ColumnSplitResult(NO_INFORMATION_GAIN, [], [])
+            return ColumnSplitResult.no_split()
 
-        best_split_result = ColumnSplitResult(NO_INFORMATION_GAIN, [], [])
+        best_split_result = ColumnSplitResult.no_split()
         for cat_partitions in self.__cat_partitions(categories):  # type: ignore
             # if partitions is not really partitions
             if len(cat_partitions) <= 1:
@@ -297,12 +310,12 @@ class CategoricalColumnSplitter(BaseColumnSplitter):
             if leaf_counter + len(cat_partitions) > self.max_leaf_nodes:
                 continue
 
-            information_gain, child_masks = self.__cat_split(
+            information_gain, child_masks, child_na_index = self.__cat_split(
                 node.mask, split_feature, cat_partitions
             )
             if best_split_result.information_gain < information_gain:
                 best_split_result = ColumnSplitResult(
-                    information_gain, cat_partitions, child_masks
+                    information_gain, cat_partitions, child_masks, child_na_index
                 )
 
         return best_split_result
@@ -312,7 +325,7 @@ class CategoricalColumnSplitter(BaseColumnSplitter):
         parent_mask: pd.Series,
         split_feature: str,
         feature_values: list[list],
-    ) -> tuple[float, list[pd.Series]]:
+    ) -> tuple[float, list[pd.Series], int]:
 
         mask_na = parent_mask & self.dataset.mask_na[split_feature]
 
@@ -326,7 +339,7 @@ class CategoricalColumnSplitter(BaseColumnSplitter):
             for i, child_mask in enumerate(child_masks):
                 child_masks[i] = child_mask | (parent_mask & mask_na)  # update
                 if child_masks[i].sum() < self.min_samples_leaf:
-                    return NO_INFORMATION_GAIN, []
+                    return NO_INFORMATION_GAIN, [], -1
 
         elif self.na_mode == "include_best":
             candidates = []
@@ -342,17 +355,19 @@ class CategoricalColumnSplitter(BaseColumnSplitter):
 
             best_information_gain = NO_INFORMATION_GAIN
             best_child_masks = []
-            for child_masks in candidates:
+            best_child_na_index = -1
+            for i, child_masks in enumerate(candidates):
                 information_gain = self.information_gain(parent_mask, child_masks)
                 if best_information_gain < information_gain:
                     best_information_gain = information_gain
                     best_child_masks = child_masks
+                    best_child_na_index = i
 
-            return best_information_gain, best_child_masks
+            return best_information_gain, best_child_masks, best_child_na_index
 
         information_gain = self.information_gain(parent_mask, child_masks)
 
-        return information_gain, child_masks
+        return information_gain, child_masks, -1
 
     def __cat_partitions(
         self,
@@ -372,7 +387,7 @@ class CategoricalColumnSplitter(BaseColumnSplitter):
             yield [[first]] + smaller
 
 
-class RankColumnSplitter(BaseColumnSplitter):
+class RankColumnSplitter(ColumnSplitter):
     def __init__(
         self,
         dataset: Dataset,
@@ -394,7 +409,7 @@ class RankColumnSplitter(BaseColumnSplitter):
 
         available_feature_values = self.rank_features[split_feature]
 
-        best_split_result = ColumnSplitResult(NO_INFORMATION_GAIN, [], [])
+        best_split_result = ColumnSplitResult.no_split()
         for feature_values in self.__rank_partitions(available_feature_values):
             information_gain, child_masks = self.__rank_split(
                 node.mask, split_feature, feature_values
