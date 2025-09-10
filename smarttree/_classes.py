@@ -508,13 +508,13 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             self.numerical_features.extend(unknown_num_features)
             self.logger.info(
                 f"[{self.__class__.__name__}] [Info] {unknown_num_features} are"
-                " added to `numerical_feature_names`."
+                " added to `numerical_features`."
             )
         if unknown_cat_features:
             self.categorical_features.extend(unknown_cat_features)
             self.logger.info(
                 f"[{self.__class__.__name__}] [Info] {unknown_cat_features} are"
-                " added to `categorical_feature_names`."
+                " added to `categorical_features`."
             )
 
         self._all_features = X.columns.tolist()

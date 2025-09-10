@@ -316,10 +316,10 @@ def _check__X_and_y(X, y):
 
 
 def _check__numerical_features_in(X, numerical_features):
-    for numerical_feature_name in numerical_features:
-        if numerical_feature_name not in X.columns:
+    for numerical_feature in numerical_features:
+        if numerical_feature not in X.columns:
             raise ValueError(
-                f"`numerical_features` contain feature {numerical_feature_name!r},"
+                f"`numerical_features` contain feature {numerical_feature!r},"
                 " which isnt present in the training data."
             )
 
