@@ -273,7 +273,7 @@ def check__data(
     numerical_features=None,
     categorical_features=None,
     rank_features=None,
-    all_feature_names=None,
+    all_features=None,
 ):
     if X is not None:
         _check__X(X)
@@ -293,8 +293,8 @@ def check__data(
     if rank_features is not None:
         _check__rank_features_in(X, rank_features)
 
-    if all_feature_names is not None:
-        _check_all_feature_names_in(X, all_feature_names)
+    if all_features is not None:
+        _check__all_features_in(X, all_features)
 
 
 def _check__X(X):
@@ -342,9 +342,9 @@ def _check__rank_features_in(X, rank_features):
             )
 
 
-def _check_all_feature_names_in(X, all_feature_names):
+def _check__all_features_in(X, all_features):
 
-    fitted_features_set = set(all_feature_names)
+    fitted_features_set = set(all_features)
     X_features_set = set(X.columns)
     if fitted_features_set != X_features_set:
         message = [

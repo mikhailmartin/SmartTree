@@ -89,7 +89,7 @@ class BaseSmartDecisionTree:
 
         self.__rank_features = dict() if rank_features is None else rank_features
 
-        self._all_feature_names: list[str] = []
+        self._all_features: list[str] = []
         self.__numerical_na_mode = numerical_na_mode
         self.__categorical_na_mode = categorical_na_mode
         self.__categorical_na_filler = categorical_na_filler
@@ -144,9 +144,9 @@ class BaseSmartDecisionTree:
         return self.__rank_features
 
     @property
-    def all_feature_names(self) -> list[str]:
+    def all_features(self) -> list[str]:
         self._check_is_fitted()
-        return self._all_feature_names
+        return self._all_features
 
     @property
     def hierarchy(self) -> dict[str, str | list[str]]:
@@ -517,7 +517,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
                 " added to `categorical_feature_names`."
             )
 
-        self._all_feature_names = X.columns.tolist()
+        self._all_features = X.columns.tolist()
         self.__classes = sorted(y.unique())
 
         if self.numerical_na_mode in ("min", "max"):
@@ -602,7 +602,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             ndarray: The class probabilities of the input samples. The order of
             the classes corresponds to that in the attribute :term:`class_names`.
         """
-        check__data(X=X, all_feature_names=self.all_feature_names)
+        check__data(X=X, all_features=self.all_features)
 
         X = self.__preprocess(X)
 
@@ -685,7 +685,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         sample_weight: pd.Series | None = None,
     ) -> float | np.floating:
         """Returns the accuracy metric."""
-        check__data(X=X, y=y, all_feature_names=self.all_feature_names)
+        check__data(X=X, y=y, all_features=self.all_features)
 
         score = accuracy_score(y, self.predict(X), sample_weight=sample_weight)
 
