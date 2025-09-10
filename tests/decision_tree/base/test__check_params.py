@@ -312,7 +312,7 @@ def test__check_params__max_childs(max_childs, expected):
 
 
 @pytest.mark.parametrize(
-    ("numerical_feature_names", "expected"),
+    ("numerical_features", "expected"),
     [
         (None, does_not_raise()),
         ("feature", does_not_raise()),
@@ -322,8 +322,8 @@ def test__check_params__max_childs(max_childs, expected):
             raises(
                 ValueError,
                 match=(
-                    "`numerical_feature_names` must be a string or list of strings."
-                    " The current value of `numerical_feature_names` is 1.0."
+                    "`numerical_features` must be a string or list of strings."
+                    " The current value of `numerical_features` is 1.0."
                 ),
             ),
         ),
@@ -332,7 +332,7 @@ def test__check_params__max_childs(max_childs, expected):
             raises(
                 ValueError,
                 match=(
-                    "If `numerical_feature_names` is a list, it must consists of"
+                    "If `numerical_features` is a list, it must consists of"
                     " strings. The element 1.0 of the list isnt a string."
                 ),
             ),
@@ -340,9 +340,9 @@ def test__check_params__max_childs(max_childs, expected):
     ],
     ids=["None", "str", "list[str]", "float", "list[float]"],
 )
-def test__check_params__numerical_feature_names(numerical_feature_names, expected):
+def test__check_params__numerical_features(numerical_features, expected):
     with expected:
-        SmartDecisionTreeClassifier(numerical_feature_names=numerical_feature_names)
+        SmartDecisionTreeClassifier(numerical_features=numerical_features)
 
 
 @pytest.mark.parametrize(

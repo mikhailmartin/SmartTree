@@ -10,7 +10,7 @@ def check__params(
     max_leaf_nodes=None,
     min_impurity_decrease=None,
     max_childs=None,
-    numerical_feature_names=None,
+    numerical_features=None,
     categorical_feature_names=None,
     rank_feature_names=None,
     hierarchy=None,
@@ -44,8 +44,8 @@ def check__params(
     if max_childs is not None:
         _check__max_childs(max_childs)
 
-    if numerical_feature_names is not None:
-        _check__numerical_feature_names(numerical_feature_names)
+    if numerical_features is not None:
+        _check__numerical_features(numerical_features)
 
     if categorical_feature_names is not None:
         _check__categorical_feature_names(categorical_feature_names)
@@ -159,21 +159,18 @@ def _check__max_childs(max_childs) -> None:
         )
 
 
-def _check__numerical_feature_names(numerical_feature_names):
-    if isinstance(numerical_feature_names, list):
-        for numerical_feature_name in numerical_feature_names:
-            if not isinstance(numerical_feature_name, str):
+def _check__numerical_features(numerical_features):
+    if isinstance(numerical_features, list):
+        for numerical_feature in numerical_features:
+            if not isinstance(numerical_feature, str):
                 raise ValueError(
-                    "If `numerical_feature_names` is a list, it must consists of"
-                    " strings."
-                    f" The element {numerical_feature_name} of the list isnt a"
-                    " string."
+                    "If `numerical_features` is a list, it must consists of strings."
+                    f" The element {numerical_feature} of the list isnt a string."
                 )
-    elif not isinstance(numerical_feature_names, str):
+    elif not isinstance(numerical_features, str):
         raise ValueError(
-            "`numerical_feature_names` must be a string or list of strings."
-            f" The current value of `numerical_feature_names` is"
-            f" {numerical_feature_names!r}."
+            "`numerical_features` must be a string or list of strings."
+            f" The current value of `numerical_features` is {numerical_features!r}."
         )
 
 
@@ -277,7 +274,7 @@ def check__data(
     *,
     X=None,
     y=None,
-    numerical_feature_names=None,
+    numerical_features=None,
     categorical_feature_names=None,
     rank_feature_names=None,
     all_feature_names=None,
@@ -291,8 +288,8 @@ def check__data(
     if X is not None and y is not None:
         _check__X_and_y(X, y)
 
-    if numerical_feature_names is not None:
-        _check__numerical_feature_names_in(X, numerical_feature_names)
+    if numerical_features is not None:
+        _check__numerical_features_in(X, numerical_features)
 
     if categorical_feature_names is not None:
         _check__categorical_feature_names_in(X, categorical_feature_names)
@@ -322,11 +319,11 @@ def _check__X_and_y(X, y):
         raise ValueError("X and y must be the equal length.")
 
 
-def _check__numerical_feature_names_in(X, numerical_feature_names):
-    for numerical_feature_name in numerical_feature_names:
+def _check__numerical_features_in(X, numerical_features):
+    for numerical_feature_name in numerical_features:
         if numerical_feature_name not in X.columns:
             raise ValueError(
-                f"`numerical_feature_names` contain feature {numerical_feature_name!r},"
+                f"`numerical_features` contain feature {numerical_feature_name!r},"
                 " which isnt present in the training data."
             )
 

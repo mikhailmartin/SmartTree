@@ -41,7 +41,7 @@ class NodeSplitter:
         max_leaf_nodes: int | float,
         min_impurity_decrease: float,
         max_childs: int | float,
-        numerical_feature_names: list[str],
+        numerical_features: list[str],
         categorical_feature_names: list[str],
         rank_feature_names: dict[str, list],
         numerical_na_mode: NumericalNaModeType,
@@ -54,8 +54,8 @@ class NodeSplitter:
         self.leaf_counter: int = 0
 
         self.feature_split_type: dict[str, SplitType] = dict()
-        for feature_name in numerical_feature_names:
-            self.feature_split_type[feature_name] = "numerical"
+        for feature in numerical_features:
+            self.feature_split_type[feature] = "numerical"
         for feature_name in categorical_feature_names:
             self.feature_split_type[feature_name] = "categorical"
         for feature_name in rank_feature_names:

@@ -110,17 +110,16 @@ def test_repr_tree__max_childs(max_childs, expected):
 
 
 @pytest.mark.parametrize(
-    ("numerical_feature_names", "expected"),
+    ("numerical_features", "expected"),
     [
         (None, f"{CLASS_NAME}()"),
-        ("feature", f"{CLASS_NAME}(numerical_feature_names=['feature'])"),
-        (["feature"], f"{CLASS_NAME}(numerical_feature_names=['feature'])"),
+        ("feature", f"{CLASS_NAME}(numerical_features=['feature'])"),
+        (["feature"], f"{CLASS_NAME}(numerical_features=['feature'])"),
     ],
     ids=["default value", "not default value(str)", "not default value(list[str])"],
 )
-def test_repr_tree__numerical_feature_names(numerical_feature_names, expected):
-    tree_classifier = SmartDecisionTreeClassifier(
-        numerical_feature_names=numerical_feature_names)
+def test_repr_tree__numerical_features(numerical_features, expected):
+    tree_classifier = SmartDecisionTreeClassifier(numerical_features=numerical_features)
     assert repr(tree_classifier) == expected
 
 

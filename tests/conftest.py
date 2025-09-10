@@ -8,7 +8,7 @@ from smarttree import BaseSmartDecisionTree
 from smarttree._tree_node import TreeNode
 
 
-NUMERICAL_FEATURE_NAMES = [
+NUMERICAL_FEATURES = [
     "2. Возраст",
     "4. Если имеете супруга или партнера, как долго вы живете вместе (в годах)?",
     "6. Жив ли хотя бы один из Ваших родителей (да/нет)?",
@@ -129,8 +129,8 @@ def X(data) -> pd.DataFrame:
 
 
 @pytest.fixture(scope="session")
-def numerical_feature_names() -> list[str]:
-    return NUMERICAL_FEATURE_NAMES
+def numerical_features() -> list[str]:
+    return NUMERICAL_FEATURES
 
 
 @pytest.fixture(scope="session")
