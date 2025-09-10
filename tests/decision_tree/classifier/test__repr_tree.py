@@ -124,17 +124,18 @@ def test_repr_tree__numerical_features(numerical_features, expected):
 
 
 @pytest.mark.parametrize(
-    ("categorical_feature_names", "expected"),
+    ("categorical_features", "expected"),
     [
         (None, f"{CLASS_NAME}()"),
-        ("feature", f"{CLASS_NAME}(categorical_feature_names=['feature'])"),
-        (["feature"], f"{CLASS_NAME}(categorical_feature_names=['feature'])"),
+        ("feature", f"{CLASS_NAME}(categorical_features=['feature'])"),
+        (["feature"], f"{CLASS_NAME}(categorical_features=['feature'])"),
     ],
     ids=["default value", "not default value(str)", "not default value(list[str])"],
 )
-def test_repr_tree__categorical_feature_names(categorical_feature_names, expected):
+def test_repr_tree__categorical_features(categorical_features, expected):
     tree_classifier = SmartDecisionTreeClassifier(
-        categorical_feature_names=categorical_feature_names)
+        categorical_features=categorical_features
+    )
     assert repr(tree_classifier) == expected
 
 

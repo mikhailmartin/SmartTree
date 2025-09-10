@@ -332,8 +332,8 @@ def test__check_params__max_childs(max_childs, expected):
             raises(
                 ValueError,
                 match=(
-                    "If `numerical_features` is a list, it must consists of"
-                    " strings. The element 1.0 of the list isnt a string."
+                    "If `numerical_features` is a list, it must consists of strings."
+                    " The element 1.0 of the list isnt a string."
                 ),
             ),
         ),
@@ -346,7 +346,7 @@ def test__check_params__numerical_features(numerical_features, expected):
 
 
 @pytest.mark.parametrize(
-    ("categorical_feature_names", "expected"),
+    ("categorical_features", "expected"),
     [
         (None, does_not_raise()),
         ("feature", does_not_raise()),
@@ -356,8 +356,8 @@ def test__check_params__numerical_features(numerical_features, expected):
             raises(
                 ValueError,
                 match=(
-                    "`categorical_feature_names` must be a string or list of strings."
-                    " The current value of `categorical_feature_names` is 1.0."
+                    "`categorical_features` must be a string or list of strings."
+                    " The current value of `categorical_features` is 1.0."
                 ),
             ),
         ),
@@ -366,17 +366,17 @@ def test__check_params__numerical_features(numerical_features, expected):
             raises(
                 ValueError,
                 match=(
-                    "If `categorical_feature_names` is a list, it must consists of"
-                    " strings. The element 1.0 of the list isnt a string."
+                    "If `categorical_features` is a list, it must consists of strings."
+                    " The element 1.0 of the list isnt a string."
                 ),
             ),
         ),
     ],
     ids=["None", "str", "list[str]", "float", "list[float]"],
 )
-def test__check_params__categorical_feature_names(categorical_feature_names, expected):
+def test__check_params__categorical_features(categorical_features, expected):
     with expected:
-        SmartDecisionTreeClassifier(categorical_feature_names=categorical_feature_names)
+        SmartDecisionTreeClassifier(categorical_features=categorical_features)
 
 
 @pytest.mark.parametrize(

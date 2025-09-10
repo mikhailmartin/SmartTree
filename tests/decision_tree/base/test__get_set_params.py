@@ -14,7 +14,7 @@ DEFAULT_PARAMS_FROM_GET = {
     "min_impurity_decrease": .0,
     "max_childs": None,
     "numerical_features": [],
-    "categorical_feature_names": [],
+    "categorical_features": [],
     "rank_feature_names": {},
     "hierarchy": {},
     "numerical_na_mode": "min",
@@ -41,7 +41,7 @@ def test__get_params(concrete_smart_tree):
         ({"min_impurity_decrease": .01}, does_not_raise()),
         ({"max_childs": 2}, does_not_raise()),
         ({"numerical_features": ["num_feature"]}, does_not_raise()),
-        ({"categorical_feature_names": ["cat_feature"]}, does_not_raise()),
+        ({"categorical_features": ["cat_feature"]}, does_not_raise()),
         ({"rank_feature_names": {"rank_feature": ["1", "2", "3"]}}, does_not_raise()),
         ({"hierarchy": {"num_feature": "rank_feature"}}, does_not_raise()),
         ({"numerical_na_mode": "max"}, does_not_raise()),
@@ -55,7 +55,7 @@ def test__get_params(concrete_smart_tree):
                     "Invalid parameter `aboba` for estimator ConcreteSmartTree."
                     " Valid parameters are: criterion, max_depth, min_samples_split,"
                     " min_samples_leaf, max_leaf_nodes, min_impurity_decrease,"
-                    " max_childs, numerical_features, categorical_feature_names,"
+                    " max_childs, numerical_features, categorical_features,"
                     " rank_feature_names, hierarchy, numerical_na_mode,"
                     " categorical_na_mode, categorical_na_filler."
                 ),
@@ -72,7 +72,7 @@ def test__get_params(concrete_smart_tree):
         "min_impurity_decrease",
         "max_childs",
         "numerical_features",
-        "categorical_feature_names",
+        "categorical_features",
         "rank_feature_names",
         "hierarchy",
         "numerical_na_mode",

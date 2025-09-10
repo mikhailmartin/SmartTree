@@ -28,7 +28,7 @@ NUMERICAL_FEATURES = [
     "34. Заболевания щитовидной железы (да/нет)",
     "35. Наследственность (да/нет)",
 ]
-CATEGORICAL_FEATURE_NAMES = [
+CATEGORICAL_FEATURES = [
     "3. Семейное положение",
     "23. Каков тип Вашего дома?",
     "25. Каким транспортом Вы обычно пользуетесь?",
@@ -134,8 +134,8 @@ def numerical_features() -> list[str]:
 
 
 @pytest.fixture(scope="session")
-def categorical_feature_names() -> list[str]:
-    return CATEGORICAL_FEATURE_NAMES
+def categorical_features() -> list[str]:
+    return CATEGORICAL_FEATURES
 
 
 @pytest.fixture(scope="session")

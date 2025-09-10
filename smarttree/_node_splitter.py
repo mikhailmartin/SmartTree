@@ -42,7 +42,7 @@ class NodeSplitter:
         min_impurity_decrease: float,
         max_childs: int | float,
         numerical_features: list[str],
-        categorical_feature_names: list[str],
+        categorical_features: list[str],
         rank_feature_names: dict[str, list],
         numerical_na_mode: NumericalNaModeType,
         categorical_na_mode: CategoricalNaModeType,
@@ -56,8 +56,8 @@ class NodeSplitter:
         self.feature_split_type: dict[str, SplitType] = dict()
         for feature in numerical_features:
             self.feature_split_type[feature] = "numerical"
-        for feature_name in categorical_feature_names:
-            self.feature_split_type[feature_name] = "categorical"
+        for feature in categorical_features:
+            self.feature_split_type[feature] = "categorical"
         for feature_name in rank_feature_names:
             self.feature_split_type[feature_name] = "rank"
 

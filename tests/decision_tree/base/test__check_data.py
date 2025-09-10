@@ -25,7 +25,7 @@ def tree():
     return SmartDecisionTreeClassifier(
         max_depth=1,
         numerical_features=[NUM_FEATURE],
-        categorical_feature_names=[CAT_FEATURE],
+        categorical_features=[CAT_FEATURE],
         rank_feature_names={RANK_FEATURE: RANK_VALUES},
     )
 
@@ -55,7 +55,7 @@ def tree():
             pytest.raises(
                 ValueError,
                 match=(
-                    f"`categorical_feature_names` contain feature {CAT_FEATURE!r},"
+                    f"`categorical_features` contain feature {CAT_FEATURE!r},"
                     " which isnt present in the training data."
                 ),
             ),
