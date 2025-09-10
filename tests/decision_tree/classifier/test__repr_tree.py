@@ -110,48 +110,48 @@ def test_repr_tree__max_childs(max_childs, expected):
 
 
 @pytest.mark.parametrize(
-    ("numerical_feature_names", "expected"),
+    ("numerical_features", "expected"),
     [
         (None, f"{CLASS_NAME}()"),
-        ("feature", f"{CLASS_NAME}(numerical_feature_names=['feature'])"),
-        (["feature"], f"{CLASS_NAME}(numerical_feature_names=['feature'])"),
+        ("feature", f"{CLASS_NAME}(numerical_features=['feature'])"),
+        (["feature"], f"{CLASS_NAME}(numerical_features=['feature'])"),
     ],
     ids=["default value", "not default value(str)", "not default value(list[str])"],
 )
-def test_repr_tree__numerical_feature_names(numerical_feature_names, expected):
-    tree_classifier = SmartDecisionTreeClassifier(
-        numerical_feature_names=numerical_feature_names)
+def test_repr_tree__numerical_features(numerical_features, expected):
+    tree_classifier = SmartDecisionTreeClassifier(numerical_features=numerical_features)
     assert repr(tree_classifier) == expected
 
 
 @pytest.mark.parametrize(
-    ("categorical_feature_names", "expected"),
+    ("categorical_features", "expected"),
     [
         (None, f"{CLASS_NAME}()"),
-        ("feature", f"{CLASS_NAME}(categorical_feature_names=['feature'])"),
-        (["feature"], f"{CLASS_NAME}(categorical_feature_names=['feature'])"),
+        ("feature", f"{CLASS_NAME}(categorical_features=['feature'])"),
+        (["feature"], f"{CLASS_NAME}(categorical_features=['feature'])"),
     ],
     ids=["default value", "not default value(str)", "not default value(list[str])"],
 )
-def test_repr_tree__categorical_feature_names(categorical_feature_names, expected):
+def test_repr_tree__categorical_features(categorical_features, expected):
     tree_classifier = SmartDecisionTreeClassifier(
-        categorical_feature_names=categorical_feature_names)
+        categorical_features=categorical_features
+    )
     assert repr(tree_classifier) == expected
 
 
 @pytest.mark.parametrize(
-    ("rank_feature_names", "expected"),
+    ("rank_features", "expected"),
     [
         (None, f"{CLASS_NAME}()"),
         (
             {"f": ["v1", "v2"]},
-            f"{CLASS_NAME}(rank_feature_names={{'f': ['v1', 'v2']}})",
+            f"{CLASS_NAME}(rank_features={{'f': ['v1', 'v2']}})",
         ),
     ],
     ids=["default value", "not default value"],
 )
-def test_repr_tree__rank_feature_names(rank_feature_names, expected):
-    tree_classifier = SmartDecisionTreeClassifier(rank_feature_names=rank_feature_names)
+def test_repr_tree__rank_features(rank_features, expected):
+    tree_classifier = SmartDecisionTreeClassifier(rank_features=rank_features)
     assert repr(tree_classifier) == expected
 
 

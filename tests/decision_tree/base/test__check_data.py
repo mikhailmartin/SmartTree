@@ -24,9 +24,9 @@ SELECTED = [NUM_FEATURE, CAT_FEATURE, RANK_FEATURE]
 def tree():
     return SmartDecisionTreeClassifier(
         max_depth=1,
-        numerical_feature_names=[NUM_FEATURE],
-        categorical_feature_names=[CAT_FEATURE],
-        rank_feature_names={RANK_FEATURE: RANK_VALUES},
+        numerical_features=[NUM_FEATURE],
+        categorical_features=[CAT_FEATURE],
+        rank_features={RANK_FEATURE: RANK_VALUES},
     )
 
 
@@ -44,7 +44,7 @@ def tree():
             pytest.raises(
                 ValueError,
                 match=(
-                    f"`numerical_feature_names` contain feature {NUM_FEATURE!r},"
+                    f"`numerical_features` contain feature {NUM_FEATURE!r},"
                     " which isnt present in the training data."
                 ),
             ),
@@ -55,7 +55,7 @@ def tree():
             pytest.raises(
                 ValueError,
                 match=(
-                    f"`categorical_feature_names` contain feature {CAT_FEATURE!r},"
+                    f"`categorical_features` contain feature {CAT_FEATURE!r},"
                     " which isnt present in the training data."
                 ),
             ),
@@ -66,7 +66,7 @@ def tree():
             pytest.raises(
                 ValueError,
                 match=re.escape(
-                    f"`rank_feature_names` contain feature {RANK_FEATURE!r},"
+                    f"`rank_features` contain feature {RANK_FEATURE!r},"
                     " which isnt present in the training data."
                 ),
             ),

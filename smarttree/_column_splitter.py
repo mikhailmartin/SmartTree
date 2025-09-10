@@ -173,16 +173,16 @@ class NumericalColumnSplitter(BaseColumnSplitter):
             na_mode=na_mode,
         )
 
-    def split(self, node: TreeNode, split_feature_name: str) -> ColumnSplitResult:
+    def split(self, node: TreeNode, split_feature: str) -> ColumnSplitResult:
 
-        numerical_column = self.dataset.X.loc[node.mask, split_feature_name]
+        numerical_column = self.dataset.X.loc[node.mask, split_feature]
         points = numerical_column.dropna().to_numpy()
         thresholds = self.__get_thresholds(points)
 
         best_split_result = ColumnSplitResult(NO_INFORMATION_GAIN, [], [])
         for threshold in thresholds:
             information_gain, child_masks = self.__num_split(
-                node.mask, split_feature_name, threshold
+                node.mask, split_feature, threshold
             )
             if best_split_result.information_gain < information_gain:
                 feature_values = [[f"<= {threshold}"], [f"> {threshold}"]]
@@ -206,14 +206,14 @@ class NumericalColumnSplitter(BaseColumnSplitter):
 
     def __num_split(
         self, parent_mask: pd.Series,
-        split_feature_name: str,
+        split_feature: str,
         threshold: float,
     ) -> tuple[float, list[pd.Series]]:
 
-        mask_na = parent_mask & self.dataset.mask_na[split_feature_name]
+        mask_na = parent_mask & self.dataset.mask_na[split_feature]
 
-        mask_less = parent_mask & (self.dataset.X[split_feature_name] <= threshold)
-        mask_more = parent_mask & (self.dataset.X[split_feature_name] > threshold)
+        mask_less = parent_mask & (self.dataset.X[split_feature] <= threshold)
+        mask_more = parent_mask & (self.dataset.X[split_feature] > threshold)
         child_masks = [mask_less, mask_more]
 
         if self.na_mode == "include_all":
@@ -275,11 +275,11 @@ class CategoricalColumnSplitter(BaseColumnSplitter):
     def split(
         self,
         node: TreeNode,
-        split_feature_name: str,
+        split_feature: str,
         leaf_counter: int,
     ) -> ColumnSplitResult:
 
-        category_column: pd.Series = self.dataset.X.loc[node.mask, split_feature_name]  # type: ignore
+        category_column: pd.Series = self.dataset.X.loc[node.mask, split_feature]  # type: ignore
         categories = category_column.dropna().unique().tolist()
 
         if len(categories) <= 1:
@@ -298,7 +298,7 @@ class CategoricalColumnSplitter(BaseColumnSplitter):
                 continue
 
             information_gain, child_masks = self.__cat_split(
-                node.mask, split_feature_name, cat_partitions
+                node.mask, split_feature, cat_partitions
             )
             if best_split_result.information_gain < information_gain:
                 best_split_result = ColumnSplitResult(
@@ -310,15 +310,15 @@ class CategoricalColumnSplitter(BaseColumnSplitter):
     def __cat_split(
         self,
         parent_mask: pd.Series,
-        split_feature_name: str,
+        split_feature: str,
         feature_values: list[list],
     ) -> tuple[float, list[pd.Series]]:
 
-        mask_na = parent_mask & self.dataset.mask_na[split_feature_name]
+        mask_na = parent_mask & self.dataset.mask_na[split_feature]
 
         child_masks = []
         for partition in feature_values:
-            partition_mask = self.dataset.X[split_feature_name].isin(partition)
+            partition_mask = self.dataset.X[split_feature].isin(partition)
             child_mask = parent_mask & partition_mask
             child_masks.append(child_mask)
 
@@ -379,7 +379,7 @@ class RankColumnSplitter(BaseColumnSplitter):
         criterion: ClassificationCriterionType,
         min_samples_split: int,
         min_samples_leaf: int,
-        rank_feature_names: dict[str, list],
+        rank_features: dict[str, list],
     ) -> None:
 
         super().__init__(
@@ -388,16 +388,16 @@ class RankColumnSplitter(BaseColumnSplitter):
             min_samples_split=min_samples_split,
             min_samples_leaf=min_samples_leaf,
         )
-        self.rank_feature_names = rank_feature_names
+        self.rank_features = rank_features
 
-    def split(self, node: TreeNode, split_feature_name: str) -> ColumnSplitResult:
+    def split(self, node: TreeNode, split_feature: str) -> ColumnSplitResult:
 
-        available_feature_values = self.rank_feature_names[split_feature_name]
+        available_feature_values = self.rank_features[split_feature]
 
         best_split_result = ColumnSplitResult(NO_INFORMATION_GAIN, [], [])
         for feature_values in self.__rank_partitions(available_feature_values):
             information_gain, child_masks = self.__rank_split(
-                node.mask, split_feature_name, feature_values
+                node.mask, split_feature, feature_values
             )
             if best_split_result.information_gain < information_gain:
                 best_split_result = ColumnSplitResult(
@@ -409,14 +409,14 @@ class RankColumnSplitter(BaseColumnSplitter):
     def __rank_split(
         self,
         parent_mask: pd.Series,
-        split_feature_name: str,
+        split_feature: str,
         feature_values: tuple[list, list],
     ) -> tuple[float, list[pd.Series]]:
 
         feature_values_left, feature_values_right = feature_values
 
-        mask_left = parent_mask & self.dataset.X[split_feature_name].isin(feature_values_left)
-        mask_right = parent_mask & self.dataset.X[split_feature_name].isin(feature_values_right)
+        mask_left = parent_mask & self.dataset.X[split_feature].isin(feature_values_left)
+        mask_right = parent_mask & self.dataset.X[split_feature].isin(feature_values_right)
         child_masks = [mask_left, mask_right]
 
         for child_mask in child_masks:

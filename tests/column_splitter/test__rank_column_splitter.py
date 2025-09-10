@@ -11,7 +11,7 @@ def rank_column_splitter(X, y) -> RankColumnSplitter:
         criterion="gini",
         min_samples_split=2,
         min_samples_leaf=1,
-        rank_feature_names={
+        rank_features={
             "5. В какой семье Вы выросли?": [
                 "полная семья, кровные родители",
                 "мачеха/отчим",

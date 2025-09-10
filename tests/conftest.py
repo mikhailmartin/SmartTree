@@ -8,7 +8,7 @@ from smarttree import BaseSmartDecisionTree
 from smarttree._tree_node import TreeNode
 
 
-NUMERICAL_FEATURE_NAMES = [
+NUMERICAL_FEATURES = [
     "2. Возраст",
     "4. Если имеете супруга или партнера, как долго вы живете вместе (в годах)?",
     "6. Жив ли хотя бы один из Ваших родителей (да/нет)?",
@@ -28,12 +28,12 @@ NUMERICAL_FEATURE_NAMES = [
     "34. Заболевания щитовидной железы (да/нет)",
     "35. Наследственность (да/нет)",
 ]
-CATEGORICAL_FEATURE_NAMES = [
+CATEGORICAL_FEATURES = [
     "3. Семейное положение",
     "23. Каков тип Вашего дома?",
     "25. Каким транспортом Вы обычно пользуетесь?",
 ]
-RANK_FEATURE_NAMES = {
+RANK_FEATURES = {
     "5. В какой семье Вы выросли?": [
         "полная семья, кровные родители",
         "мачеха/отчим",
@@ -129,18 +129,18 @@ def X(data) -> pd.DataFrame:
 
 
 @pytest.fixture(scope="session")
-def numerical_feature_names() -> list[str]:
-    return NUMERICAL_FEATURE_NAMES
+def numerical_features() -> list[str]:
+    return NUMERICAL_FEATURES
 
 
 @pytest.fixture(scope="session")
-def categorical_feature_names() -> list[str]:
-    return CATEGORICAL_FEATURE_NAMES
+def categorical_features() -> list[str]:
+    return CATEGORICAL_FEATURES
 
 
 @pytest.fixture(scope="session")
-def rank_feature_names() -> dict[str: list]:
-    return RANK_FEATURE_NAMES
+def rank_features() -> dict[str: list]:
+    return RANK_FEATURES
 
 
 @pytest.fixture(scope="session")
@@ -156,7 +156,7 @@ def root_node(X, y):
         depth=0,
         mask=y.apply(lambda x: True),
         hierarchy=dict(),
-        available_feature_names=X.columns.tolist(),
+        available_features=X.columns.to_list(),
         impurity=0.67,
         distribution=np.array([199, 199, 197]),
         label="доброкачественная опухоль",

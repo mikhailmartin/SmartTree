@@ -52,8 +52,8 @@ class Renderer:
         node_name = f"node {node.number}"
 
         node_content_buffer = [f"Node {node.number}"]
-        if node.split_feature_name:
-            node_content_buffer.append(f"{node.split_feature_name}")
+        if node.split_feature:
+            node_content_buffer.append(f"{node.split_feature}")
         if show_impurity:
             node_content_buffer.append(f"{self.criterion} = {node.impurity:.2f}")
         if show_num_samples:
