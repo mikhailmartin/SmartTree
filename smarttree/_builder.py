@@ -21,7 +21,7 @@ class Builder:
         hierarchy: dict[str, str | list[str]],
     ) -> None:
 
-        self.available_features = X.columns.tolist()
+        self.available_features = X.columns.to_list()
         self.y = y
         self.criterion = criterion
         self.splitter = splitter

@@ -517,7 +517,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
                 " added to `categorical_features`."
             )
 
-        self._all_features = X.columns.tolist()
+        self._all_features = X.columns.to_list()
         self.__classes = sorted(y.unique())
 
         if self.numerical_na_mode in ("min", "max"):

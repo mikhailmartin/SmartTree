@@ -38,7 +38,7 @@ def test__fit_predict(X, y, X_scenario, na_mode):
     tree = SmartDecisionTreeClassifier(**na_mode)
     tree.fit(X_input, y)
 
-    assert tree.all_features == X_input.columns.tolist()
+    assert tree.all_features == X_input.columns.to_list()
     assert tree.classes_ == sorted(y.unique())
 
     _ = tree.predict(X_input)
