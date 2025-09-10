@@ -103,6 +103,7 @@ class BaseSmartDecisionTree:
         self._is_fitted: bool = False
         self._root: TreeNode | None = None
         self._feature_importances: dict = dict()
+        self._feature_na_mode: dict[str, NumericalNaModeType | CategoricalNaModeType | None] = dict()
         self._numerical_na_filler: dict[str, int | float] = dict()
 
     @property
@@ -495,51 +496,47 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
 
         max_childs = float("+inf") if self.max_childs is None else self.max_childs
 
-        unsetted_features_set = set(X.columns) - (
-            set(self.numerical_feature_names)
-            | set(self.categorical_feature_names)
-            | set(self.rank_feature_names)
+        known_feature_names = (
+            self.numerical_feature_names
+            + self.categorical_feature_names
+            + list(self.rank_feature_names.keys())
         )
-
-        if unsetted_features_set:
-            unsetted_num_features = (
-                X[list(unsetted_features_set)].select_dtypes("number").columns.tolist()
+        unknown_num_feature_names = (
+            X.drop(columns=known_feature_names).select_dtypes("number").columns.to_list()
+        )
+        unknown_cat_feature_names = (
+            X.drop(columns=known_feature_names).select_dtypes(include=["category", "object"]).columns.to_list()
+        )
+        if unknown_num_feature_names:
+            self.numerical_feature_names.extend(unknown_num_feature_names)
+            self.logger.info(
+                f"[{self.__class__.__name__}] [Info] {unknown_num_feature_names} are"
+                " added to `numerical_feature_names`."
             )
-            if unsetted_num_features:
-                numerical_feature_names = self.numerical_feature_names + unsetted_num_features
-                self.logger.info(
-                    f"[{self.__class__.__name__}] [Info] {unsetted_num_features} are"
-                    " added to `numerical_feature_names`."
-                )
-            else:
-                numerical_feature_names = self.numerical_feature_names
-            unsetted_cat_features = (
-                X[list(unsetted_features_set)]
-                .select_dtypes(include=["category", "object"]).columns.tolist()
+        if unknown_cat_feature_names:
+            self.categorical_feature_names.extend(unknown_cat_feature_names)
+            self.logger.info(
+                f"[{self.__class__.__name__}] [Info] {unknown_cat_feature_names} are"
+                " added to `categorical_feature_names`."
             )
-            if unsetted_cat_features:
-                categorical_feature_names = self.categorical_feature_names + unsetted_cat_features
-                self.logger.info(
-                    f"[{self.__class__.__name__}] [Info] {unsetted_cat_features} are"
-                    " added to `categorical_feature_names`."
-                )
-            else:
-                categorical_feature_names = self.categorical_feature_names
-        else:
-            numerical_feature_names = self.numerical_feature_names
-            categorical_feature_names = self.categorical_feature_names
-        ################################################################################
 
         self._all_feature_names = X.columns.tolist()
         self.__classes = sorted(y.unique())
 
         if self.numerical_na_mode in ("min", "max"):
-            for numerical_feature_name in numerical_feature_names:
+            for numerical_feature_name in self.numerical_feature_names:
                 if self.numerical_na_mode == "min":
                     na_filler = X[numerical_feature_name].min()
                 else:  # max
                     na_filler = X[numerical_feature_name].max()
                 self._numerical_na_filler[numerical_feature_name] = na_filler
+
+        for numerical_feature_name in self.numerical_feature_names:
+            self._feature_na_mode[numerical_feature_name] = self.numerical_na_mode
+        for categorical_feature_name in self.categorical_feature_names:
+            self._feature_na_mode[categorical_feature_name] = self.categorical_na_mode
+        for rank_feature_name in self.rank_feature_names:
+            self._feature_na_mode[rank_feature_name] = None
 
         X = self.__preprocess(X)
 
@@ -553,8 +550,8 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             max_leaf_nodes=max_leaf_nodes,
             min_impurity_decrease=self.min_impurity_decrease,
             max_childs=max_childs,
-            numerical_feature_names=numerical_feature_names,
-            categorical_feature_names=categorical_feature_names,
+            numerical_feature_names=self.numerical_feature_names,
+            categorical_feature_names=self.categorical_feature_names,
             rank_feature_names=self.rank_feature_names,
             numerical_na_mode=self.numerical_na_mode,
             categorical_na_mode=self.categorical_na_mode,
