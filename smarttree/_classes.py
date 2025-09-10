@@ -493,27 +493,27 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
 
         max_childs = float("+inf") if self.max_childs is None else self.max_childs
 
-        known_feature_names = (
+        known_features = (
             self.numerical_features
             + self.categorical_features
             + list(self.rank_features.keys())
         )
-        unknown_num_feature_names = (
-            X.drop(columns=known_feature_names).select_dtypes("number").columns.to_list()
+        unknown_num_features = (
+            X.drop(columns=known_features).select_dtypes("number").columns.to_list()
         )
-        unknown_cat_feature_names = (
-            X.drop(columns=known_feature_names).select_dtypes(include=["category", "object"]).columns.to_list()
+        unknown_cat_features = (
+            X.drop(columns=known_features).select_dtypes(include=["category", "object"]).columns.to_list()
         )
-        if unknown_num_feature_names:
-            self.numerical_features.extend(unknown_num_feature_names)
+        if unknown_num_features:
+            self.numerical_features.extend(unknown_num_features)
             self.logger.info(
-                f"[{self.__class__.__name__}] [Info] {unknown_num_feature_names} are"
+                f"[{self.__class__.__name__}] [Info] {unknown_num_features} are"
                 " added to `numerical_feature_names`."
             )
-        if unknown_cat_feature_names:
-            self.categorical_features.extend(unknown_cat_feature_names)
+        if unknown_cat_features:
+            self.categorical_features.extend(unknown_cat_features)
             self.logger.info(
-                f"[{self.__class__.__name__}] [Info] {unknown_cat_feature_names} are"
+                f"[{self.__class__.__name__}] [Info] {unknown_cat_features} are"
                 " added to `categorical_feature_names`."
             )
 
