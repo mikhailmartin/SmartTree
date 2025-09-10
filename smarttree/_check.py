@@ -12,7 +12,7 @@ def check__params(
     max_childs=None,
     numerical_features=None,
     categorical_features=None,
-    rank_feature_names=None,
+    rank_features=None,
     hierarchy=None,
     numerical_na_mode=None,
     categorical_na_mode=None,
@@ -50,8 +50,8 @@ def check__params(
     if categorical_features is not None:
         _check__categorical_features(categorical_features)
 
-    if rank_feature_names is not None:
-        _check__rank_feature_names(rank_feature_names)
+    if rank_features is not None:
+        _check__rank_features(rank_features)
 
     if hierarchy is not None:
         _check__hierarchy(hierarchy)
@@ -189,23 +189,22 @@ def _check__categorical_features(categorical_features):
         )
 
 
-def _check__rank_feature_names(rank_feature_names):
-    if isinstance(rank_feature_names, dict):
-        for rank_feature_name, value_list in rank_feature_names.items():
-            if not isinstance(rank_feature_name, str):
+def _check__rank_features(rank_features):
+    if isinstance(rank_features, dict):
+        for rank_feature, value_list in rank_features.items():
+            if not isinstance(rank_feature, str):
                 raise ValueError(
-                    "Keys in `rank_feature_names` must be a strings."
-                    f" The key {rank_feature_name} isnt a string."
+                    "Keys in `rank_features` must be a strings."
+                    f" The key {rank_feature} isnt a string."
                 )
             if not isinstance(value_list, list):
                 raise ValueError(
-                    "Values in `rank_feature_names` must be lists."
-                    f" The value {value_list} of the key {rank_feature_name} isnt a"
-                    " list."
+                    "Values in `rank_features` must be lists."
+                    f" The value {value_list} of the key {rank_feature} isnt a list."
                 )
     else:
         raise ValueError(
-            "`rank_feature_names` must be a dictionary"
+            "`rank_features` must be a dictionary"
             " {rang feature name: list of its ordered values}."
         )
 
@@ -273,7 +272,7 @@ def check__data(
     y=None,
     numerical_features=None,
     categorical_features=None,
-    rank_feature_names=None,
+    rank_features=None,
     all_feature_names=None,
 ):
     if X is not None:
@@ -291,8 +290,8 @@ def check__data(
     if categorical_features is not None:
         _check__categorical_features_in(X, categorical_features)
 
-    if rank_feature_names is not None:
-        _check__rank_feature_names_in(X, rank_feature_names)
+    if rank_features is not None:
+        _check__rank_features_in(X, rank_features)
 
     if all_feature_names is not None:
         _check_all_feature_names_in(X, all_feature_names)
@@ -334,11 +333,11 @@ def _check__categorical_features_in(X, categorical_features):
             )
 
 
-def _check__rank_feature_names_in(X, rank_feature_names):
-    for rank_feature_name in rank_feature_names.keys():
-        if rank_feature_name not in X.columns:
+def _check__rank_features_in(X, rank_features):
+    for rank_feature in rank_features.keys():
+        if rank_feature not in X.columns:
             raise ValueError(
-                f"`rank_feature_names` contain feature {rank_feature_name!r},"
+                f"`rank_features` contain feature {rank_feature!r},"
                 " which isnt present in the training data."
             )
 

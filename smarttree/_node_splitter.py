@@ -43,7 +43,7 @@ class NodeSplitter:
         max_childs: int | float,
         numerical_features: list[str],
         categorical_features: list[str],
-        rank_feature_names: dict[str, list],
+        rank_features: dict[str, list],
         numerical_na_mode: NumericalNaModeType,
         categorical_na_mode: CategoricalNaModeType,
     ) -> None:
@@ -58,8 +58,8 @@ class NodeSplitter:
             self.feature_split_type[feature] = "numerical"
         for feature in categorical_features:
             self.feature_split_type[feature] = "categorical"
-        for feature_name in rank_feature_names:
-            self.feature_split_type[feature_name] = "rank"
+        for feature in rank_features:
+            self.feature_split_type[feature] = "rank"
 
         dataset = Dataset(X, y)
         self.num_col_splitter = NumericalColumnSplitter(
@@ -83,7 +83,7 @@ class NodeSplitter:
             criterion=criterion,
             min_samples_split=min_samples_split,
             min_samples_leaf=min_samples_leaf,
-            rank_feature_names=rank_feature_names,
+            rank_features=rank_features,
         )
 
     def is_splittable(self, node: TreeNode) -> bool:

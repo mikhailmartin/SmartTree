@@ -26,7 +26,7 @@ def tree():
         max_depth=1,
         numerical_features=[NUM_FEATURE],
         categorical_features=[CAT_FEATURE],
-        rank_feature_names={RANK_FEATURE: RANK_VALUES},
+        rank_features={RANK_FEATURE: RANK_VALUES},
     )
 
 
@@ -66,7 +66,7 @@ def tree():
             pytest.raises(
                 ValueError,
                 match=re.escape(
-                    f"`rank_feature_names` contain feature {RANK_FEATURE!r},"
+                    f"`rank_features` contain feature {RANK_FEATURE!r},"
                     " which isnt present in the training data."
                 ),
             ),

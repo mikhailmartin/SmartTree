@@ -33,7 +33,7 @@ CATEGORICAL_FEATURES = [
     "23. Каков тип Вашего дома?",
     "25. Каким транспортом Вы обычно пользуетесь?",
 ]
-RANK_FEATURE_NAMES = {
+RANK_FEATURES = {
     "5. В какой семье Вы выросли?": [
         "полная семья, кровные родители",
         "мачеха/отчим",
@@ -139,8 +139,8 @@ def categorical_features() -> list[str]:
 
 
 @pytest.fixture(scope="session")
-def rank_feature_names() -> dict[str: list]:
-    return RANK_FEATURE_NAMES
+def rank_features() -> dict[str: list]:
+    return RANK_FEATURES
 
 
 @pytest.fixture(scope="session")

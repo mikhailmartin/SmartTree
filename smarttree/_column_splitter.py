@@ -379,7 +379,7 @@ class RankColumnSplitter(BaseColumnSplitter):
         criterion: ClassificationCriterionType,
         min_samples_split: int,
         min_samples_leaf: int,
-        rank_feature_names: dict[str, list],
+        rank_features: dict[str, list],
     ) -> None:
 
         super().__init__(
@@ -388,11 +388,11 @@ class RankColumnSplitter(BaseColumnSplitter):
             min_samples_split=min_samples_split,
             min_samples_leaf=min_samples_leaf,
         )
-        self.rank_feature_names = rank_feature_names
+        self.rank_features = rank_features
 
     def split(self, node: TreeNode, split_feature_name: str) -> ColumnSplitResult:
 
-        available_feature_values = self.rank_feature_names[split_feature_name]
+        available_feature_values = self.rank_features[split_feature_name]
 
         best_split_result = ColumnSplitResult(NO_INFORMATION_GAIN, [], [])
         for feature_values in self.__rank_partitions(available_feature_values):

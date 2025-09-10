@@ -380,7 +380,7 @@ def test__check_params__categorical_features(categorical_features, expected):
 
 
 @pytest.mark.parametrize(
-    ("rank_feature_names", "expected"),
+    ("rank_features", "expected"),
     [
         (None, does_not_raise()),
         ({"feature": ["a", "b", "c"]}, does_not_raise()),
@@ -389,7 +389,7 @@ def test__check_params__categorical_features(categorical_features, expected):
             raises(
                 ValueError,
                 match=(
-                    "`rank_feature_names` must be a dictionary"
+                    "`rank_features` must be a dictionary"
                     " {rang feature name: list of its ordered values}."
                 ),
             ),
@@ -399,7 +399,7 @@ def test__check_params__categorical_features(categorical_features, expected):
             raises(
                 ValueError,
                 match=(
-                    "Keys in `rank_feature_names` must be a strings."
+                    "Keys in `rank_features` must be a strings."
                     " The key 1 isnt a string."
                 ),
             ),
@@ -409,7 +409,7 @@ def test__check_params__categorical_features(categorical_features, expected):
             raises(
                 ValueError,
                 match=(
-                    "Values in `rank_feature_names` must be lists."
+                    "Values in `rank_features` must be lists."
                     " The value value of the key feature isnt a list."
                 ),
             ),
@@ -417,9 +417,9 @@ def test__check_params__categorical_features(categorical_features, expected):
     ],
     ids=["None", "dict[str, list[str]", "int", "dict[int, list[str]]", "dict[str, str]"],
 )
-def test__check_params__rank_feature_names(rank_feature_names, expected):
+def test__check_params__rank_features(rank_features, expected):
     with expected:
-        SmartDecisionTreeClassifier(rank_feature_names=rank_feature_names)
+        SmartDecisionTreeClassifier(rank_features=rank_features)
 
 
 @pytest.mark.parametrize(
