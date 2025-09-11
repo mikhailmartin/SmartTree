@@ -17,6 +17,7 @@ def check__params(
     numerical_na_mode=None,
     categorical_na_mode=None,
     categorical_na_filler=None,
+    feature_na_mode=None,
 ):
     if criterion is not None:
         _check__criterion(criterion)
@@ -64,6 +65,9 @@ def check__params(
 
     if categorical_na_filler is not None:
         _check__categorical_na_filler(categorical_na_filler)
+
+    if feature_na_mode is not None:
+        _check__feature_na_mode(feature_na_mode)
 
 
 def _check__criterion(criterion):
@@ -190,23 +194,22 @@ def _check__categorical_features(categorical_features):
 
 
 def _check__rank_features(rank_features):
-    if isinstance(rank_features, dict):
-        for rank_feature, value_list in rank_features.items():
-            if not isinstance(rank_feature, str):
-                raise ValueError(
-                    "Keys in `rank_features` must be a strings."
-                    f" The key {rank_feature} isnt a string."
-                )
-            if not isinstance(value_list, list):
-                raise ValueError(
-                    "Values in `rank_features` must be lists."
-                    f" The value {value_list} of the key {rank_feature} isnt a list."
-                )
-    else:
+    if not isinstance(rank_features, dict):
         raise ValueError(
             "`rank_features` must be a dictionary"
             " {rang feature name: list of its ordered values}."
         )
+    for rank_feature, value_list in rank_features.items():
+        if not isinstance(rank_feature, str):
+            raise ValueError(
+                "Keys in `rank_features` must be a strings."
+                f" The key {rank_feature} isnt a string."
+            )
+        if not isinstance(value_list, list):
+            raise ValueError(
+                "Values in `rank_features` must be lists."
+                f" The value {value_list} of the key {rank_feature} isnt a list."
+            )
 
 
 def _check__hierarchy(hierarchy):
@@ -215,31 +218,26 @@ def _check__hierarchy(hierarchy):
         " {opening feature: opened feature / list of opened features}."
     )
 
-    if isinstance(hierarchy, dict):
-        for key, value in hierarchy.items():
-            if not isinstance(key, str):
-                raise ValueError(
-                    common_message
-                    + f" Value {key!r} of opening feature isnt a string."
-                )
-            if not isinstance(value, (str, list)):
-                raise ValueError(
-                    common_message
-                    + f" Value {value} of opened feature(s) isnt a string (list of"
-                      " strings)."
-                )
-            if isinstance(value, list):
-                for elem in value:
-                    if not isinstance(elem, str):
-                        raise ValueError(
-                            common_message
-                            + f" Value {elem} of opened feature isnt a string."
-                        )
-    else:
+    if not isinstance(hierarchy, dict):
         raise ValueError(
-            common_message
-            + f" The current value of `hierarchy` is {hierarchy!r}."
+            f"{common_message} The current value of `hierarchy` is {hierarchy!r}."
         )
+    for key, value in hierarchy.items():
+        if not isinstance(key, str):
+            raise ValueError(
+                f"{common_message} Value {key!r} of opening feature isnt a string."
+            )
+        if not isinstance(value, (str, list)):
+            raise ValueError(
+                f"{common_message} Value {value} of opened feature(s) isnt a string"
+                " (list of strings)."
+            )
+        if isinstance(value, list):
+            for elem in value:
+                if not isinstance(elem, str):
+                    raise ValueError(
+                        f"{common_message} Value {elem} of opened feature isnt a string."
+                    )
 
 
 def _check__numerical_na_mode(numerical_na_mode):
@@ -264,6 +262,26 @@ def _check__categorical_na_filler(categorical_na_filler):
             "`categorical_na_filler` must be a string."
             f" The current value of `categorical_na_filler` is {categorical_na_filler!r}."
         )
+
+
+def _check__feature_na_mode(feature_na_mode):
+    if not isinstance(feature_na_mode, dict):
+        raise ValueError(
+            "`feature_na_mode` must be a dictionary {feature name: NA mode}."
+            f" The current value of `feature_na_mode` is {feature_na_mode!r}."
+        )
+    for key, value in feature_na_mode.items():
+        if not isinstance(key, str):
+            raise ValueError(
+                "Keys in `feature_na_mode` must be a strings."
+                f" The key {key} isnt a string."
+            )
+        if value not in ("min", "max", "as_category", "include_all", "include_best"):
+            raise ValueError(
+                "Values in `feature_na_mode` must be "
+                "Literal['min', 'max', 'as_category' 'include_all', 'include_best']."
+                f" The current value of `na_mode` for `feature` {key!r} is {value!r}."
+            )
 
 
 def check__data(

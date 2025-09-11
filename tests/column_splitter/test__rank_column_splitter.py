@@ -1,12 +1,10 @@
-import pytest
-
 from smarttree._column_splitter import RankColumnSplitter
 from smarttree._dataset import Dataset
 
 
-@pytest.fixture(scope="module")
-def rank_column_splitter(X, y) -> RankColumnSplitter:
-    return RankColumnSplitter(
+def test__split(X, y, root_node, feature_na_mode):
+
+    rank_column_splitter = RankColumnSplitter(
         dataset=Dataset(X, y),
         criterion="gini",
         min_samples_split=2,
@@ -20,10 +18,8 @@ def rank_column_splitter(X, y) -> RankColumnSplitter:
                 "в детском доме",
             ],
         },
+        feature_na_mode=feature_na_mode,
     )
-
-
-def test__split(rank_column_splitter, root_node):
 
     split_feature_name = "5. В какой семье Вы выросли?"
     _ = rank_column_splitter.split(root_node, split_feature_name)

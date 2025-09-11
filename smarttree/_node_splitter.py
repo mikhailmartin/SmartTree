@@ -9,12 +9,7 @@ from ._column_splitter import (
 )
 from ._dataset import Dataset
 from ._tree_node import TreeNode
-from ._types import (
-    CategoricalNaModeType,
-    ClassificationCriterionType,
-    NumericalNaModeType,
-    SplitType,
-)
+from ._types import ClassificationCriterionType, NaModeType, SplitType
 
 
 class NodeSplitResult(NamedTuple):
@@ -52,8 +47,7 @@ class NodeSplitter:
         numerical_features: list[str],
         categorical_features: list[str],
         rank_features: dict[str, list],
-        numerical_na_mode: NumericalNaModeType,
-        categorical_na_mode: CategoricalNaModeType,
+        feature_na_mode: dict[str, NaModeType | None],
     ) -> None:
 
         self.max_depth = max_depth
@@ -75,7 +69,7 @@ class NodeSplitter:
             criterion=criterion,
             min_samples_split=min_samples_split,
             min_samples_leaf=min_samples_leaf,
-            na_mode=numerical_na_mode,
+            feature_na_mode=feature_na_mode,
         )
         self.cat_col_splitter = CategoricalColumnSplitter(
             dataset=dataset,
@@ -83,7 +77,7 @@ class NodeSplitter:
             min_samples_split=min_samples_split,
             min_samples_leaf=min_samples_leaf,
             max_leaf_nodes=max_leaf_nodes,
-            na_mode=categorical_na_mode,
+            feature_na_mode=feature_na_mode,
             max_childs=max_childs,
         )
         self.rank_col_splitter = RankColumnSplitter(
@@ -92,6 +86,7 @@ class NodeSplitter:
             min_samples_split=min_samples_split,
             min_samples_leaf=min_samples_leaf,
             rank_features=rank_features,
+            feature_na_mode=feature_na_mode,
         )
 
     def is_splittable(self, node: TreeNode) -> bool:

@@ -213,5 +213,6 @@ def test_repr_tree__categorical_na_mode(categorical_na_mode, expected):
 )
 def test_repr_tree__categorical_na_filler(categorical_na_filler, expected):
     tree_classifier = SmartDecisionTreeClassifier(
-        categorical_na_filler=categorical_na_filler)
+        categorical_na_filler=categorical_na_filler
+    )
     assert repr(tree_classifier) == expected
