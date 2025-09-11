@@ -441,10 +441,10 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             feature_na_mode=feature_na_mode,
             verbose=verbose,
         )
-        self.__classes: list[str] = []
+        self.__classes: NDArray = np.array([])
 
     @property
-    def classes_(self) -> list[str]:  # TODO: -> NDArray
+    def classes_(self) -> NDArray:
         self._check_is_fitted()
         return self.__classes
 
@@ -553,7 +553,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             )
 
         self._all_features = X.columns.to_list()
-        self.__classes = sorted(y.unique())
+        self.__classes = np.sort(y.unique())
 
         for feature, na_mode in self.feature_na_mode.items():
             if na_mode == "min":
@@ -612,7 +612,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         """
         y_pred_proba_s = self.predict_proba(X)
         y_pred = [
-            self.__classes[y_pred_proba.argmax()] for y_pred_proba in y_pred_proba_s
+            self.classes_[y_pred_proba.argmax()] for y_pred_proba in y_pred_proba_s
         ]
 
         return y_pred
@@ -658,10 +658,8 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             of the classes corresponds to that in the attribute :term:`classes_`.
         """
         y_pred_proba = self.predict_proba(X)
-        for i in range(len(y_pred_proba)):
-            y_pred_proba[i] = np.log(y_pred_proba[i])
-
-        return y_pred_proba
+        epsilon = 1e-10
+        return np.log(y_pred_proba + epsilon)
 
     def __preprocess(self, X: pd.DataFrame) -> pd.DataFrame:
 
