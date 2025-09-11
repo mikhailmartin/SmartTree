@@ -697,8 +697,10 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
                     if point[node.split_feature] in child.feature_value:
                         return self.__get_distribution(child, point)
                 else:
-                    # if there is no such branch TODO
-                    return node.distribution
+                    distribution = np.array([0, 0, 0], dtype="int")
+                    for child in node.childs:
+                        distribution += self.__get_distribution(child, point)
+                    return distribution
 
             else:
                 assert False
