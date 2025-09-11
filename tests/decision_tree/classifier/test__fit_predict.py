@@ -42,3 +42,4 @@ def test__fit_predict(X, y, X_scenario, na_mode):
     assert tree.classes_ == sorted(y.unique())
 
     _ = tree.predict(X_input)
+    _ = tree.predict_log_proba(X_input)
