@@ -214,10 +214,6 @@ class BaseSmartDecisionTree(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def predict_proba(self, X: pd.DataFrame) -> NDArray:
-        raise NotImplementedError
-
-    @abstractmethod
     def score(self,
         X: pd.DataFrame,
         y: pd.Series,
