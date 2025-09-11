@@ -692,7 +692,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
                 else:
                     return self.__get_distribution(node.childs[1], point)
 
-            elif node.split_type in ("categorical", "rank"):
+            else:  # "categorical" | "rank"
                 for child in node.childs:
                     if point[node.split_feature] in child.feature_value:
                         return self.__get_distribution(child, point)
@@ -701,9 +701,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
                     for child in node.childs:
                         distribution += self.__get_distribution(child, point)
                     return distribution
-
-            else:
-                assert False
 
     def score(
         self,
