@@ -1,3 +1,4 @@
+import numpy as np
 import pytest
 
 from smarttree import SmartDecisionTreeClassifier
@@ -39,7 +40,7 @@ def test__fit_predict(X, y, X_scenario, na_mode):
     tree.fit(X_input, y)
 
     assert tree.all_features == X_input.columns.to_list()
-    assert tree.classes_ == sorted(y.unique())
+    np.testing.assert_array_equal(tree.classes_, np.sort(y.unique()))
 
     _ = tree.predict(X_input)
     _ = tree.predict_log_proba(X_input)
