@@ -18,9 +18,12 @@ RANK_FEATURE_WITH_NA = "5. В какой семье Вы выросли?"
         ("single_num_feature_without_na", dict()),
         ("single_num_feature_with_na", dict(numerical_na_mode="min")),
         ("single_num_feature_with_na", dict(numerical_na_mode="max")),
+        ("single_num_feature_with_na", dict(numerical_na_mode="include_all")),
+        ("single_num_feature_with_na", dict(numerical_na_mode="include_best")),
         ("single_cat_feature_without_na", dict()),
         ("single_cat_feature_with_na", dict(categorical_na_mode="as_category")),
         ("single_cat_feature_with_na", dict(categorical_na_mode="include_all")),
+        ("single_cat_feature_with_na", dict(categorical_na_mode="include_best")),
         ("single_rank_feature_with_na", dict()),
     ],
 )
