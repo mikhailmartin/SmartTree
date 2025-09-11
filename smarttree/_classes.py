@@ -20,6 +20,7 @@ from ._tree_node import TreeNode
 from ._types import (
     CategoricalNaModeType,
     ClassificationCriterionType,
+    NaModeType,
     NumericalNaModeType,
     VerboseType,
 )
@@ -45,6 +46,7 @@ class BaseSmartDecisionTree(ABC):
         numerical_na_mode: NumericalNaModeType = "min",
         categorical_na_mode: CategoricalNaModeType = "as_category",
         categorical_na_filler: str = "missing_value",
+        feature_na_mode: dict[str, NaModeType | None] | None = None,
         verbose: VerboseType = "WARNING",
     ) -> None:
 
@@ -63,6 +65,7 @@ class BaseSmartDecisionTree(ABC):
             numerical_na_mode=numerical_na_mode,
             categorical_na_mode=categorical_na_mode,
             categorical_na_filler=categorical_na_filler,
+            feature_na_mode=feature_na_mode,
         )
 
         self.__criterion = criterion
@@ -91,9 +94,25 @@ class BaseSmartDecisionTree(ABC):
         self.__rank_features = dict() if rank_features is None else rank_features
 
         self._all_features: list[str] = []
+
         self.__numerical_na_mode = numerical_na_mode
         self.__categorical_na_mode = categorical_na_mode
         self.__categorical_na_filler = categorical_na_filler
+
+        self.__feature_na_mode: dict[str, NaModeType | None]
+        if feature_na_mode is None:
+            self.__feature_na_mode = dict()
+        else:
+            self.__feature_na_mode = feature_na_mode
+        for numerical_feature in self.numerical_features:
+            if numerical_feature not in self.__feature_na_mode:
+                self.__feature_na_mode[numerical_feature] = self.numerical_na_mode
+        for categorical_feature in self.categorical_features:
+            if categorical_feature not in self.__feature_na_mode:
+                self.__feature_na_mode[categorical_feature] = self.categorical_na_mode
+        for rank_feature in self.rank_features:
+            if rank_feature not in self.__feature_na_mode:
+                self.__feature_na_mode[rank_feature] = None
 
         self.logger = logging.getLogger()
         self.logger.setLevel(verbose)
@@ -101,8 +120,7 @@ class BaseSmartDecisionTree(ABC):
         self._is_fitted: bool = False
         self._root: TreeNode | None = None
         self._feature_importances: dict = dict()
-        self._feature_na_mode: dict[str, NumericalNaModeType | CategoricalNaModeType | None] = dict()
-        self._numerical_na_filler: dict[str, int | float] = dict()
+        self._feature_na_filler: dict[str, int | float | str] = dict()
 
     @property
     def criterion(self) -> ClassificationCriterionType:
@@ -166,6 +184,10 @@ class BaseSmartDecisionTree(ABC):
         return self.__categorical_na_filler
 
     @property
+    def feature_na_mode(self) -> dict[str, NaModeType | None]:
+        return self.__feature_na_mode
+
+    @property
     def tree(self) -> TreeNode:
         self._check_is_fitted()
         assert self._root is not None
@@ -223,6 +245,7 @@ class BaseSmartDecisionTree(ABC):
             "numerical_na_mode": self.numerical_na_mode,
             "categorical_na_mode": self.categorical_na_mode,
             "categorical_na_filler": self.categorical_na_filler,
+            "feature_na_mode": self.feature_na_mode,
         }
 
     def set_params(self, **params) -> Self:
@@ -370,6 +393,10 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
           training and predicting missing values will be filled with
           `categorical_na_filler`.
 
+        feature_na_mode: dict[str, {"min", "max", "as_category", "include_all", "include_best"}],
+                         default=None
+          The mode of handling missing values in a feature.
+
         verbose: {"CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG"} or int,
                  default="WARNING"
           Controls the level of decision tree verbosity.
@@ -392,6 +419,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         numerical_na_mode: NumericalNaModeType = "min",
         categorical_na_mode: CategoricalNaModeType = "as_category",
         categorical_na_filler: str = "missing_value",
+        feature_na_mode: dict[str, NaModeType | None] | None = None,
         verbose: VerboseType = "WARNING",
     ) -> None:
 
@@ -410,12 +438,13 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             numerical_na_mode=numerical_na_mode,
             categorical_na_mode=categorical_na_mode,
             categorical_na_filler=categorical_na_filler,
+            feature_na_mode=feature_na_mode,
             verbose=verbose,
         )
         self.__classes: list[str] = []
 
     @property
-    def classes_(self) -> list[str]:  # TODO: -> np.ndarray
+    def classes_(self) -> list[str]:  # TODO: -> NDArray
         self._check_is_fitted()
         return self.__classes
 
@@ -474,7 +503,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             rank_features=self.rank_features,
         )
 
-        ################################################################################
         max_depth = float("+inf") if self.max_depth is None else self.max_depth
 
         if isinstance(self.min_samples_split, float):
@@ -507,12 +535,18 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         )
         if unknown_num_features:
             self.numerical_features.extend(unknown_num_features)
+            for numerical_feature in unknown_num_features:
+                if numerical_feature not in self.feature_na_mode:
+                    self.feature_na_mode[numerical_feature] = self.numerical_na_mode
             self.logger.info(
                 f"[{self.__class__.__name__}] [Info] {unknown_num_features} are"
                 " added to `numerical_features`."
             )
         if unknown_cat_features:
             self.categorical_features.extend(unknown_cat_features)
+            for categorical_feature in unknown_cat_features:
+                if categorical_feature not in self.feature_na_mode:
+                    self.feature_na_mode[categorical_feature] = self.categorical_na_mode
             self.logger.info(
                 f"[{self.__class__.__name__}] [Info] {unknown_cat_features} are"
                 " added to `categorical_features`."
@@ -521,20 +555,16 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         self._all_features = X.columns.to_list()
         self.__classes = sorted(y.unique())
 
-        if self.numerical_na_mode in ("min", "max"):
-            for numerical_feature in self.numerical_features:
-                if self.numerical_na_mode == "min":
-                    na_filler = X[numerical_feature].min()
-                else:  # max
-                    na_filler = X[numerical_feature].max()
-                self._numerical_na_filler[numerical_feature] = na_filler
-
-        for numerical_feature in self.numerical_features:
-            self._feature_na_mode[numerical_feature] = self.numerical_na_mode
-        for categorical_feature in self.categorical_features:
-            self._feature_na_mode[categorical_feature] = self.categorical_na_mode
-        for rank_feature in self.rank_features:
-            self._feature_na_mode[rank_feature] = None
+        for feature, na_mode in self.feature_na_mode.items():
+            if na_mode == "min":
+                na_filler = X[feature].min()
+            elif na_mode == "max":
+                na_filler = X[feature].max()
+            elif na_mode == "as_category":
+                na_filler = self.categorical_na_filler
+            else:
+                continue
+            self._feature_na_filler[feature] = na_filler
 
         X = self.__preprocess(X)
 
@@ -551,8 +581,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             numerical_features=self.numerical_features,
             categorical_features=self.categorical_features,
             rank_features=self.rank_features,
-            numerical_na_mode=self.numerical_na_mode,
-            categorical_na_mode=self.categorical_na_mode,
+            feature_na_mode=self.feature_na_mode,
         )
 
         builder = Builder(
@@ -588,7 +617,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
 
         return y_pred
 
-    def predict_proba(self, X: pd.DataFrame) -> np.ndarray:
+    def predict_proba(self, X: pd.DataFrame) -> NDArray:
         """
         Predict class probabilities of the input samples X.
 
@@ -616,7 +645,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
 
         return y_pred_proba
 
-    def predict_log_proba(self, X: pd.DataFrame) -> np.ndarray:
+    def predict_log_proba(self, X: pd.DataFrame) -> NDArray:
         """
         Predict class log-probabilities of the input samples X.
 
@@ -637,15 +666,8 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
     def __preprocess(self, X: pd.DataFrame) -> pd.DataFrame:
 
         X = X.copy()
-
-        if self.numerical_na_mode in ("min", "max"):
-            for numerical_feature in self.numerical_features:
-                na_filler = self._numerical_na_filler[numerical_feature]
-                X[numerical_feature].fillna(na_filler, inplace=True)
-
-        if self.categorical_na_mode == "as_category":
-            for categorical_feature in self.categorical_features:
-                X[categorical_feature].fillna(self.categorical_na_filler, inplace=True)
+        for feature, na_filler in self._feature_na_filler.items():
+            X[feature].fillna(na_filler, inplace=True)
 
         return X
 
@@ -660,7 +682,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
 
         else:
             if pd.isna(point[node.split_feature]):
-                if self._feature_na_mode[node.split_feature] == "include_all":
+                if self.feature_na_mode[node.split_feature] == "include_all":
                     distribution = np.array([0, 0, 0], dtype="int")
                     for child in node.childs:
                         distribution += self.__get_distribution(child, point)

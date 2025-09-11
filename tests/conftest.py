@@ -7,6 +7,7 @@ from numpy.typing import NDArray
 
 from smarttree import BaseSmartDecisionTree
 from smarttree._tree_node import TreeNode
+from smarttree._types import NaModeType
 
 
 NUMERICAL_FEATURES = [
@@ -142,6 +143,22 @@ def categorical_features() -> list[str]:
 @pytest.fixture(scope="session")
 def rank_features() -> dict[str: list]:
     return RANK_FEATURES
+
+
+@pytest.fixture(scope="session")
+def feature_na_mode(
+    numerical_features, categorical_features, rank_features
+) -> dict[str, NaModeType | None]:
+
+    result = dict()
+    for numerical_feature in numerical_features:
+        result[numerical_feature] = "min"
+    for categorical_feature in categorical_features:
+        result[categorical_feature] = "as_category"
+    for rank_feature in rank_features:
+        result[rank_feature] = None
+
+    return result
 
 
 @pytest.fixture(scope="session")

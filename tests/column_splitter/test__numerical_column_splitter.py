@@ -5,22 +5,12 @@ from smarttree._dataset import Dataset
 from smarttree._types import NumericalNaModeType
 
 
-@pytest.fixture(scope="module")
-def numerical_column_splitter(X, y) -> NumericalColumnSplitter:
-    return NumericalColumnSplitter(
-        dataset=Dataset(X, y),
-        criterion="gini",
-        min_samples_split=2,
-        min_samples_leaf=1,
-        na_mode="min",
-    )
-
 @pytest.mark.parametrize(
     "numerical_na_mode",
     ["min", "max", "include_all", "include_best"],
     ids=lambda param: str(param),
 )
-def test__split(X, y, numerical_na_mode, root_node):
+def test__split(X, y, numerical_na_mode, root_node, feature_na_mode):
 
     numerical_na_mode: NumericalNaModeType
     numerical_column_splitter = NumericalColumnSplitter(
@@ -28,7 +18,7 @@ def test__split(X, y, numerical_na_mode, root_node):
         criterion="gini",
         min_samples_split=2,
         min_samples_leaf=1,
-        na_mode=numerical_na_mode,
+        feature_na_mode=feature_na_mode,
     )
 
     split_feature_name_with_na = "2. Возраст"

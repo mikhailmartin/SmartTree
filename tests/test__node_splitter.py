@@ -5,7 +5,7 @@ from smarttree._node_splitter import NodeSplitter
 
 @pytest.fixture(scope="module")
 def concrete_node_splitter(
-    X, y, numerical_features, categorical_features, rank_features
+    X, y, numerical_features, categorical_features, rank_features, feature_na_mode
 ) -> NodeSplitter:
     return NodeSplitter(
         X=X,
@@ -20,8 +20,7 @@ def concrete_node_splitter(
         numerical_features=numerical_features,
         categorical_features=categorical_features,
         rank_features=rank_features,
-        numerical_na_mode="min",
-        categorical_na_mode="as_category",
+        feature_na_mode=feature_na_mode,
     )
 
 

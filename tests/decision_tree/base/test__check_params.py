@@ -8,6 +8,7 @@ from smarttree import SmartDecisionTreeClassifier
 from smarttree._types import (
     CategoricalNaModeType,
     ClassificationCriterionType,
+    NaModeType,
     NumericalNaModeType,
 )
 
@@ -587,3 +588,47 @@ def test__check_params__min_samples_split__min_samples_leaf(
         SmartDecisionTreeClassifier(
             min_samples_split=min_samples_split, min_samples_leaf=min_samples_leaf
         )
+
+
+@pytest.mark.parametrize(
+    ("feature_na_mode", "expected"),
+    [
+        ({"feature": "min"}, does_not_raise()),
+        (
+            "string",
+            raises(
+                ValueError,
+                match=(
+                    "`feature_na_mode` must be a dictionary {feature name: NA mode}."
+                    " The current value of `feature_na_mode` is 'string'."
+                ),
+            ),
+        ),
+        (
+            {1: "min"},
+            raises(
+                ValueError,
+                match=(
+                    "Keys in `feature_na_mode` must be a strings."
+                    " The key 1 isnt a string."
+                ),
+            ),
+        ),
+        (
+            {"feature": "mex"},
+            raises(
+                ValueError,
+                match=re.escape(
+                    "Values in `feature_na_mode` must be "
+                    "Literal['min', 'max', 'as_category' 'include_all', 'include_best']."
+                    " The current value of `na_mode` for `feature` 'feature' is 'mex'."
+                ),
+            ),
+        ),
+    ],
+    ids=["valid", "not_dict", "invalid_key", "invalid_value"],
+)
+def test__check_params__feature_na_mode(feature_na_mode, expected):
+    with expected:
+        feature_na_mode: dict[str, NaModeType | None]
+        SmartDecisionTreeClassifier(feature_na_mode=feature_na_mode)

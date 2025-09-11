@@ -1,13 +1,13 @@
 import pandas as pd
 import pytest
 
-from smarttree._column_splitter import ColumnSplitter
+from smarttree._column_splitter import BaseColumnSplitter
 from smarttree._dataset import Dataset
 
 
 @pytest.fixture(scope="module")
-def concrete_column_splitter(X, y) -> ColumnSplitter:
-    class ConcreteColumnSplitter(ColumnSplitter):
+def concrete_column_splitter(X, y, feature_na_mode) -> BaseColumnSplitter:
+    class ConcreteColumnSplitter(BaseColumnSplitter):
         def split(
             self,
             parent_mask: pd.Series,
@@ -20,6 +20,7 @@ def concrete_column_splitter(X, y) -> ColumnSplitter:
         criterion="gini",
         min_samples_split=2,
         min_samples_leaf=1,
+        feature_na_mode=feature_na_mode,
     )
 
 

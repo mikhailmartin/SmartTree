@@ -20,6 +20,7 @@ DEFAULT_PARAMS_FROM_GET = {
     "numerical_na_mode": "min",
     "categorical_na_mode": "as_category",
     "categorical_na_filler": "missing_value",
+    "feature_na_mode": {},
 }
 
 
@@ -47,6 +48,7 @@ def test__get_params(concrete_smart_tree):
         ({"numerical_na_mode": "max"}, does_not_raise()),
         ({"categorical_na_mode": "as_category"}, does_not_raise()),
         ({"categorical_na_filler": "NA"}, does_not_raise()),
+        ({"feature_na_mode": {"feature": "max"}}, does_not_raise()),
         (
             {"aboba": "aboba"},
             pytest.raises(
@@ -57,7 +59,7 @@ def test__get_params(concrete_smart_tree):
                     " min_samples_leaf, max_leaf_nodes, min_impurity_decrease,"
                     " max_childs, numerical_features, categorical_features,"
                     " rank_features, hierarchy, numerical_na_mode,"
-                    " categorical_na_mode, categorical_na_filler."
+                    " categorical_na_mode, categorical_na_filler, feature_na_mode."
                 ),
             ),
         ),
@@ -78,6 +80,7 @@ def test__get_params(concrete_smart_tree):
         "numerical_na_mode",
         "categorical_na_mode",
         "categorical_na_filler",
+        "feature_na_mode",
         "invalid",
     ],
 )

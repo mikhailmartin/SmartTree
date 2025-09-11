@@ -10,7 +10,7 @@ from smarttree._types import CategoricalNaModeType
     ["as_category", "include_all", "include_best"],
     ids=lambda param: str(param),
 )
-def test__split(X, y, categorical_na_mode, root_node):
+def test__split(X, y, categorical_na_mode, root_node, feature_na_mode):
 
     categorical_na_mode: CategoricalNaModeType
     categorical_column_splitter = CategoricalColumnSplitter(
@@ -18,9 +18,9 @@ def test__split(X, y, categorical_na_mode, root_node):
         criterion="gini",
         min_samples_split=2,
         min_samples_leaf=1,
-        na_mode=categorical_na_mode,
         max_childs=float("+inf"),
         max_leaf_nodes=float("+inf"),
+        feature_na_mode=feature_na_mode,
     )
 
     split_feature_name_with_na = "25. Каким транспортом Вы обычно пользуетесь?"
