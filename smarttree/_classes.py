@@ -650,12 +650,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         return np.log(y_pred_proba + epsilon)
 
     def __preprocess(self, X: pd.DataFrame) -> pd.DataFrame:
-
-        X = X.copy()
-        for feature, na_filler in self._feature_na_filler.items():
-            X[feature].fillna(na_filler, inplace=True)
-
-        return X
+        return X.fillna(self._feature_na_filler)
 
     def __get_distribution(
         self,
