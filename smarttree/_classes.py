@@ -710,10 +710,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
     ) -> float | np.floating:
         """Returns the accuracy metric."""
         check__data(X=X, y=y, all_features=self.all_features)
-
-        score = accuracy_score(y, self.predict(X), sample_weight=sample_weight)
-
-        return score
+        return accuracy_score(y, self.predict(X), sample_weight=sample_weight)
 
     @lru_cache
     def render(
