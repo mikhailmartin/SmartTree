@@ -632,14 +632,11 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
 
         X = self.__preprocess(X)
 
-        distributions = [
+        distributions = np.array([
             self.__get_distribution(self.tree, point) for _, point in X.iterrows()
-        ]
-        y_pred_proba = np.array([
-            distribution / distribution.sum() for distribution in distributions
         ])
 
-        return y_pred_proba
+        return distributions / distributions.sum(axis=1, keepdims=True)
 
     def predict_log_proba(self, X: pd.DataFrame) -> NDArray:
         """
