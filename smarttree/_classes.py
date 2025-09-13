@@ -660,33 +660,32 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         if node.is_leaf:
             return node.distribution
 
-        else:
-            if pd.isna(point[node.split_feature]):
-                if self.feature_na_mode[node.split_feature] == "include_all":
-                    distribution = np.array([0, 0, 0], dtype="int")
-                    for child in node.childs:
-                        distribution += self.__get_distribution(child, point)
-                    return distribution
-                else:  # "include_best"
-                    child = node.childs[node.child_na_index]
-                    return self.__get_distribution(child, point)
-
-            elif node.split_type == "numerical":
-                threshold = float(node.childs[0].feature_value[0][3:])
-                if point[node.split_feature] <= threshold:
-                    return self.__get_distribution(node.childs[0], point)
-                else:
-                    return self.__get_distribution(node.childs[1], point)
-
-            else:  # "categorical" | "rank"
+        if pd.isna(point[node.split_feature]):
+            if self.feature_na_mode[node.split_feature] == "include_all":
+                distribution = np.array([0, 0, 0], dtype="int")
                 for child in node.childs:
-                    if point[node.split_feature] in child.feature_value:
-                        return self.__get_distribution(child, point)
-                else:
-                    distribution = np.array([0, 0, 0], dtype="int")
-                    for child in node.childs:
-                        distribution += self.__get_distribution(child, point)
-                    return distribution
+                    distribution += self.__get_distribution(child, point)
+                return distribution
+            else:  # "include_best"
+                child = node.childs[node.child_na_index]
+                return self.__get_distribution(child, point)
+
+        elif node.split_type == "numerical":
+            threshold = float(node.childs[0].feature_value[0][3:])
+            if point[node.split_feature] <= threshold:
+                return self.__get_distribution(node.childs[0], point)
+            else:
+                return self.__get_distribution(node.childs[1], point)
+
+        else:  # "categorical" | "rank"
+            for child in node.childs:
+                if point[node.split_feature] in child.feature_value:
+                    return self.__get_distribution(child, point)
+            else:
+                distribution = np.array([0, 0, 0], dtype="int")
+                for child in node.childs:
+                    distribution += self.__get_distribution(child, point)
+                return distribution
 
     def score(
         self,
