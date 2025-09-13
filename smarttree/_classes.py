@@ -210,7 +210,7 @@ class BaseSmartDecisionTree(ABC):
             )
 
     @abstractmethod
-    def predict(self, X: pd.DataFrame) -> list[str]:
+    def predict(self, X: pd.DataFrame) -> NDArray:
         raise NotImplementedError
 
     @abstractmethod
@@ -595,7 +595,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
 
         self._is_fitted = True
 
-    def predict(self, X: pd.DataFrame) -> list[str]:
+    def predict(self, X: pd.DataFrame) -> NDArray:
         """
         Predict class for samples in X.
 
@@ -604,14 +604,9 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
               The input samples.
 
         Returns:
-            list[str]: The predicted classes.
+            ndarray: The predicted classes.
         """
-        y_pred_proba_s = self.predict_proba(X)
-        y_pred = [
-            self.classes_[y_pred_proba.argmax()] for y_pred_proba in y_pred_proba_s
-        ]
-
-        return y_pred
+        return self.classes_[self.predict_proba(X).argmax(axis=1)]
 
     def predict_proba(self, X: pd.DataFrame) -> NDArray:
         """
