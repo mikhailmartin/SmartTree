@@ -481,7 +481,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             f"{self.__class__.__name__}({', '.join(repr_)})"
         )
 
-    def fit(self, X: pd.DataFrame, y: pd.Series) -> None:
+    def fit(self, X: pd.DataFrame, y: pd.Series) -> Self:
         """
         Build a decision tree classifier from the training set (X, y).
 
@@ -594,6 +594,8 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         self._feature_importances = feature_importances
 
         self._is_fitted = True
+
+        return self
 
     def predict(self, X: pd.DataFrame) -> NDArray:
         """
