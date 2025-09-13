@@ -607,7 +607,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         """
         return self.classes_[self.predict_proba(X).argmax(axis=1)]
 
-    def predict_proba(self, X: pd.DataFrame) -> NDArray:
+    def predict_proba(self, X: pd.DataFrame) -> NDArray[np.floating]:
         """
         Predict class probabilities of the input samples X.
 
@@ -632,7 +632,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
 
         return distributions / distributions.sum(axis=1, keepdims=True)
 
-    def predict_log_proba(self, X: pd.DataFrame) -> NDArray:
+    def predict_log_proba(self, X: pd.DataFrame) -> NDArray[np.floating]:
         """
         Predict class log-probabilities of the input samples X.
 
