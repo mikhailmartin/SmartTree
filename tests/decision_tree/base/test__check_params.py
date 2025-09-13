@@ -6,10 +6,10 @@ from pytest import raises
 
 from smarttree import SmartDecisionTreeClassifier
 from smarttree._types import (
-    CategoricalNaModeType,
+    CatNaModeType,
     ClassificationCriterionType,
     NaModeType,
-    NumericalNaModeType,
+    NumNaModeType,
 )
 
 
@@ -313,7 +313,7 @@ def test__check_params__max_childs(max_childs, expected):
 
 
 @pytest.mark.parametrize(
-    ("numerical_features", "expected"),
+    ("num_features", "expected"),
     [
         (None, does_not_raise()),
         ("feature", does_not_raise()),
@@ -323,8 +323,8 @@ def test__check_params__max_childs(max_childs, expected):
             raises(
                 ValueError,
                 match=(
-                    "`numerical_features` must be a string or list of strings."
-                    " The current value of `numerical_features` is 1.0."
+                    "`num_features` must be a string or list of strings."
+                    " The current value of `num_features` is 1.0."
                 ),
             ),
         ),
@@ -333,7 +333,7 @@ def test__check_params__max_childs(max_childs, expected):
             raises(
                 ValueError,
                 match=(
-                    "If `numerical_features` is a list, it must consists of strings."
+                    "If `num_features` is a list, it must consists of strings."
                     " The element 1.0 of the list isnt a string."
                 ),
             ),
@@ -341,13 +341,13 @@ def test__check_params__max_childs(max_childs, expected):
     ],
     ids=["None", "str", "list[str]", "float", "list[float]"],
 )
-def test__check_params__numerical_features(numerical_features, expected):
+def test__check_params__num_features(num_features, expected):
     with expected:
-        SmartDecisionTreeClassifier(numerical_features=numerical_features)
+        SmartDecisionTreeClassifier(num_features=num_features)
 
 
 @pytest.mark.parametrize(
-    ("categorical_features", "expected"),
+    ("cat_features", "expected"),
     [
         (None, does_not_raise()),
         ("feature", does_not_raise()),
@@ -357,8 +357,8 @@ def test__check_params__numerical_features(numerical_features, expected):
             raises(
                 ValueError,
                 match=(
-                    "`categorical_features` must be a string or list of strings."
-                    " The current value of `categorical_features` is 1.0."
+                    "`cat_features` must be a string or list of strings."
+                    " The current value of `cat_features` is 1.0."
                 ),
             ),
         ),
@@ -367,7 +367,7 @@ def test__check_params__numerical_features(numerical_features, expected):
             raises(
                 ValueError,
                 match=(
-                    "If `categorical_features` is a list, it must consists of strings."
+                    "If `cat_features` is a list, it must consists of strings."
                     " The element 1.0 of the list isnt a string."
                 ),
             ),
@@ -375,9 +375,9 @@ def test__check_params__numerical_features(numerical_features, expected):
     ],
     ids=["None", "str", "list[str]", "float", "list[float]"],
 )
-def test__check_params__categorical_features(categorical_features, expected):
+def test__check_params__cat_features(cat_features, expected):
     with expected:
-        SmartDecisionTreeClassifier(categorical_features=categorical_features)
+        SmartDecisionTreeClassifier(cat_features=cat_features)
 
 
 @pytest.mark.parametrize(
@@ -490,7 +490,7 @@ def test__check_params__hierarchy(hierarchy, expected):
 
 
 @pytest.mark.parametrize(
-    ("numerical_na_mode", "expected"),
+    ("num_na_mode", "expected"),
     [
         ("min", does_not_raise()),
         ("max", does_not_raise()),
@@ -501,22 +501,22 @@ def test__check_params__hierarchy(hierarchy, expected):
             raises(
                 ValueError,
                 match=re.escape(
-                    "`numerical_na_mode` must be Literal['min', 'max', 'include_all',"
-                    " 'include_best']. The current value of `numerical_na_mode` is 'smth'."
+                    "`num_na_mode` must be Literal['min', 'max', 'include_all', 'include_best']."
+                    " The current value of `num_na_mode` is 'smth'."
                 ),
             ),
         ),
     ],
     ids=["min", "max", "include_all", "include_best", "invalid"],
 )
-def test__check_params__numerical_na_mode(numerical_na_mode, expected):
+def test__check_params__num_na_mode(num_na_mode, expected):
     with expected:
-        numerical_na_mode: NumericalNaModeType
-        SmartDecisionTreeClassifier(numerical_na_mode=numerical_na_mode)
+        num_na_mode: NumNaModeType
+        SmartDecisionTreeClassifier(num_na_mode=num_na_mode)
 
 
 @pytest.mark.parametrize(
-    ("categorical_na_mode", "expected"),
+    ("cat_na_mode", "expected"),
     [
         ("as_category", does_not_raise()),
         ("include_all", does_not_raise()),
@@ -526,22 +526,22 @@ def test__check_params__numerical_na_mode(numerical_na_mode, expected):
             raises(
                 ValueError,
                 match=re.escape(
-                    "`categorical_na_mode` must be Literal['as_category', 'include_all',"
-                    " 'include_best']. The current value of `categorical_na_mode` is 'smth'."
+                    "`cat_na_mode` must be Literal['as_category', 'include_all', 'include_best']."
+                    " The current value of `cat_na_mode` is 'smth'."
                 ),
             ),
         ),
     ],
     ids=["as_category", "include_all", "include_best", "invalid"],
 )
-def test__check_params__categorical_na_mode(categorical_na_mode, expected):
+def test__check_params__cat_na_mode(cat_na_mode, expected):
     with expected:
-        categorical_na_mode: CategoricalNaModeType
-        SmartDecisionTreeClassifier(categorical_na_mode=categorical_na_mode)
+        cat_na_mode: CatNaModeType
+        SmartDecisionTreeClassifier(cat_na_mode=cat_na_mode)
 
 
 @pytest.mark.parametrize(
-    ("categorical_na_filler", "expected"),
+    ("cat_na_filler", "expected"),
     [
         ("na", does_not_raise()),
         (
@@ -549,17 +549,17 @@ def test__check_params__categorical_na_mode(categorical_na_mode, expected):
             raises(
                 ValueError,
                 match=(
-                    "`categorical_na_filler` must be a string."
-                    " The current value of `categorical_na_filler` is 1."
+                    "`cat_na_filler` must be a string."
+                    " The current value of `cat_na_filler` is 1."
                 ),
             ),
         ),
     ],
     ids=["str", "int"],
 )
-def test__check_param__categorical_na_filler(categorical_na_filler, expected):
+def test__check_param__cat_na_filler(cat_na_filler, expected):
     with expected:
-        SmartDecisionTreeClassifier(categorical_na_filler=categorical_na_filler)
+        SmartDecisionTreeClassifier(cat_na_filler=cat_na_filler)
 
 
 @pytest.mark.parametrize(

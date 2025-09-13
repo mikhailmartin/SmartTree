@@ -1,11 +1,7 @@
 import pytest
 
 from smarttree import SmartDecisionTreeClassifier
-from smarttree._types import (
-    CategoricalNaModeType,
-    ClassificationCriterionType,
-    NumericalNaModeType,
-)
+from smarttree._types import CatNaModeType, ClassificationCriterionType, NumNaModeType
 
 
 CLASS_NAME = SmartDecisionTreeClassifier.__name__
@@ -110,32 +106,30 @@ def test_repr_tree__max_childs(max_childs, expected):
 
 
 @pytest.mark.parametrize(
-    ("numerical_features", "expected"),
+    ("num_features", "expected"),
     [
         (None, f"{CLASS_NAME}()"),
-        ("feature", f"{CLASS_NAME}(numerical_features=['feature'])"),
-        (["feature"], f"{CLASS_NAME}(numerical_features=['feature'])"),
+        ("feature", f"{CLASS_NAME}(num_features=['feature'])"),
+        (["feature"], f"{CLASS_NAME}(num_features=['feature'])"),
     ],
     ids=["default value", "not default value(str)", "not default value(list[str])"],
 )
-def test_repr_tree__numerical_features(numerical_features, expected):
-    tree_classifier = SmartDecisionTreeClassifier(numerical_features=numerical_features)
+def test_repr_tree__num_features(num_features, expected):
+    tree_classifier = SmartDecisionTreeClassifier(num_features=num_features)
     assert repr(tree_classifier) == expected
 
 
 @pytest.mark.parametrize(
-    ("categorical_features", "expected"),
+    ("cat_features", "expected"),
     [
         (None, f"{CLASS_NAME}()"),
-        ("feature", f"{CLASS_NAME}(categorical_features=['feature'])"),
-        (["feature"], f"{CLASS_NAME}(categorical_features=['feature'])"),
+        ("feature", f"{CLASS_NAME}(cat_features=['feature'])"),
+        (["feature"], f"{CLASS_NAME}(cat_features=['feature'])"),
     ],
     ids=["default value", "not default value(str)", "not default value(list[str])"],
 )
-def test_repr_tree__categorical_features(categorical_features, expected):
-    tree_classifier = SmartDecisionTreeClassifier(
-        categorical_features=categorical_features
-    )
+def test_repr_tree__cat_features(cat_features, expected):
+    tree_classifier = SmartDecisionTreeClassifier(cat_features=cat_features)
     assert repr(tree_classifier) == expected
 
 
@@ -174,45 +168,41 @@ def test_repr_tree__hierarchy(hierarchy, expected):
 
 
 @pytest.mark.parametrize(
-    ("numerical_na_mode", "expected"),
+    ("num_na_mode", "expected"),
     [
         ("min", f"{CLASS_NAME}()"),
-        ("max", f"{CLASS_NAME}(numerical_na_mode='max')"),
+        ("max", f"{CLASS_NAME}(num_na_mode='max')"),
     ],
     ids=["default value", "not default value"],
 )
-def test_repr_tree__numerical_na_mode(numerical_na_mode, expected):
-    numerical_na_mode: NumericalNaModeType
-    tree_classifier = SmartDecisionTreeClassifier(numerical_na_mode=numerical_na_mode)
+def test_repr_tree__num_na_mode(num_na_mode, expected):
+    num_na_mode: NumNaModeType
+    tree_classifier = SmartDecisionTreeClassifier(num_na_mode=num_na_mode)
     assert repr(tree_classifier) == expected
 
 
 @pytest.mark.parametrize(
-    ("categorical_na_mode", "expected"),
+    ("cat_na_mode", "expected"),
     [
         ("as_category", f"{CLASS_NAME}()"),
-        ("include_all", f"{CLASS_NAME}(categorical_na_mode='include_all')"),
+        ("include_all", f"{CLASS_NAME}(cat_na_mode='include_all')"),
     ],
     ids=["default value", "not default value"],
 )
-def test_repr_tree__categorical_na_mode(categorical_na_mode, expected):
-    categorical_na_mode: CategoricalNaModeType
-    tree_classifier = SmartDecisionTreeClassifier(
-        categorical_na_mode=categorical_na_mode
-    )
+def test_repr_tree__cat_na_mode(cat_na_mode, expected):
+    cat_na_mode: CatNaModeType
+    tree_classifier = SmartDecisionTreeClassifier(cat_na_mode=cat_na_mode)
     assert repr(tree_classifier) == expected
 
 
 @pytest.mark.parametrize(
-    ("categorical_na_filler", "expected"),
+    ("cat_na_filler", "expected"),
     [
         ("missing_value", f"{CLASS_NAME}()"),
-        ("NULL", f"{CLASS_NAME}(categorical_na_filler='NULL')"),
+        ("NULL", f"{CLASS_NAME}(cat_na_filler='NULL')"),
     ],
     ids=["default value", "not default value"],
 )
-def test_repr_tree__categorical_na_filler(categorical_na_filler, expected):
-    tree_classifier = SmartDecisionTreeClassifier(
-        categorical_na_filler=categorical_na_filler
-    )
+def test_repr_tree__cat_na_filler(cat_na_filler, expected):
+    tree_classifier = SmartDecisionTreeClassifier(cat_na_filler=cat_na_filler)
     assert repr(tree_classifier) == expected

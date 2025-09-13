@@ -2,11 +2,7 @@ from typing import NamedTuple
 
 import pandas as pd
 
-from ._column_splitter import (
-    CategoricalColumnSplitter,
-    NumericalColumnSplitter,
-    RankColumnSplitter,
-)
+from ._column_splitter import CatColumnSplitter, NumColumnSplitter, RankColumnSplitter
 from ._dataset import Dataset
 from ._tree_node import TreeNode
 from ._types import ClassificationCriterionType, NaModeType, SplitType
@@ -44,8 +40,8 @@ class NodeSplitter:
         max_leaf_nodes: int | float,
         min_impurity_decrease: float,
         max_childs: int | float,
-        numerical_features: list[str],
-        categorical_features: list[str],
+        num_features: list[str],
+        cat_features: list[str],
         rank_features: dict[str, list],
         feature_na_mode: dict[str, NaModeType | None],
     ) -> None:
@@ -56,22 +52,22 @@ class NodeSplitter:
         self.leaf_counter: int = 0
 
         self.feature_split_type: dict[str, SplitType] = dict()
-        for feature in numerical_features:
-            self.feature_split_type[feature] = "numerical"
-        for feature in categorical_features:
-            self.feature_split_type[feature] = "categorical"
-        for feature in rank_features:
-            self.feature_split_type[feature] = "rank"
+        for num_feature in num_features:
+            self.feature_split_type[num_feature] = "numerical"
+        for cat_feature in cat_features:
+            self.feature_split_type[cat_feature] = "categorical"
+        for rank_feature in rank_features:
+            self.feature_split_type[rank_feature] = "rank"
 
         dataset = Dataset(X, y)
-        self.num_col_splitter = NumericalColumnSplitter(
+        self.num_col_splitter = NumColumnSplitter(
             dataset=dataset,
             criterion=criterion,
             min_samples_split=min_samples_split,
             min_samples_leaf=min_samples_leaf,
             feature_na_mode=feature_na_mode,
         )
-        self.cat_col_splitter = CategoricalColumnSplitter(
+        self.cat_col_splitter = CatColumnSplitter(
             dataset=dataset,
             criterion=criterion,
             min_samples_split=min_samples_split,

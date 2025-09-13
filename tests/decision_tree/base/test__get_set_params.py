@@ -13,13 +13,13 @@ DEFAULT_PARAMS_FROM_GET = {
     "max_leaf_nodes": None,
     "min_impurity_decrease": .0,
     "max_childs": None,
-    "numerical_features": [],
-    "categorical_features": [],
+    "num_features": [],
+    "cat_features": [],
     "rank_features": {},
     "hierarchy": {},
-    "numerical_na_mode": "min",
-    "categorical_na_mode": "as_category",
-    "categorical_na_filler": "missing_value",
+    "num_na_mode": "min",
+    "cat_na_mode": "as_category",
+    "cat_na_filler": "missing_value",
     "feature_na_mode": {},
 }
 
@@ -41,13 +41,13 @@ def test__get_params(concrete_smart_tree):
         ({"max_leaf_nodes": 2}, does_not_raise()),
         ({"min_impurity_decrease": .01}, does_not_raise()),
         ({"max_childs": 2}, does_not_raise()),
-        ({"numerical_features": ["num_feature"]}, does_not_raise()),
-        ({"categorical_features": ["cat_feature"]}, does_not_raise()),
+        ({"num_features": ["num_feature"]}, does_not_raise()),
+        ({"cat_features": ["cat_feature"]}, does_not_raise()),
         ({"rank_features": {"rank_feature": ["1", "2", "3"]}}, does_not_raise()),
         ({"hierarchy": {"num_feature": "rank_feature"}}, does_not_raise()),
-        ({"numerical_na_mode": "max"}, does_not_raise()),
-        ({"categorical_na_mode": "as_category"}, does_not_raise()),
-        ({"categorical_na_filler": "NA"}, does_not_raise()),
+        ({"num_na_mode": "max"}, does_not_raise()),
+        ({"cat_na_mode": "as_category"}, does_not_raise()),
+        ({"cat_na_filler": "NA"}, does_not_raise()),
         ({"feature_na_mode": {"feature": "max"}}, does_not_raise()),
         (
             {"aboba": "aboba"},
@@ -57,9 +57,8 @@ def test__get_params(concrete_smart_tree):
                     "Invalid parameter `aboba` for estimator ConcreteSmartTree."
                     " Valid parameters are: criterion, max_depth, min_samples_split,"
                     " min_samples_leaf, max_leaf_nodes, min_impurity_decrease,"
-                    " max_childs, numerical_features, categorical_features,"
-                    " rank_features, hierarchy, numerical_na_mode,"
-                    " categorical_na_mode, categorical_na_filler, feature_na_mode."
+                    " max_childs, num_features, cat_features, rank_features, hierarchy,"
+                    " num_na_mode, cat_na_mode, cat_na_filler, feature_na_mode."
                 ),
             ),
         ),
@@ -73,13 +72,13 @@ def test__get_params(concrete_smart_tree):
         "max_leaf_nodes",
         "min_impurity_decrease",
         "max_childs",
-        "numerical_features",
-        "categorical_features",
+        "num_features",
+        "cat_features",
         "rank_features",
         "hierarchy",
-        "numerical_na_mode",
-        "categorical_na_mode",
-        "categorical_na_filler",
+        "num_na_mode",
+        "cat_na_mode",
+        "cat_na_filler",
         "feature_na_mode",
         "invalid",
     ],

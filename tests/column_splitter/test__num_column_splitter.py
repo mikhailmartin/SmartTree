@@ -1,8 +1,8 @@
 import pytest
 
-from smarttree._column_splitter import NumericalColumnSplitter
+from smarttree._column_splitter import NumColumnSplitter
 from smarttree._dataset import Dataset
-from smarttree._types import NumericalNaModeType
+from smarttree._types import NumNaModeType
 
 
 @pytest.mark.parametrize(
@@ -12,8 +12,8 @@ from smarttree._types import NumericalNaModeType
 )
 def test__split(X, y, numerical_na_mode, root_node, feature_na_mode):
 
-    numerical_na_mode: NumericalNaModeType
-    numerical_column_splitter = NumericalColumnSplitter(
+    numerical_na_mode: NumNaModeType
+    numerical_column_splitter = NumColumnSplitter(
         dataset=Dataset(X, y),
         criterion="gini",
         min_samples_split=2,

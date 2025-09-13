@@ -17,8 +17,8 @@ def concrete_node_splitter(
         min_impurity_decrease=.0,
         max_leaf_nodes=float("+inf"),
         max_childs=float("+inf"),
-        numerical_features=numerical_features,
-        categorical_features=categorical_features,
+        num_features=numerical_features,
+        cat_features=categorical_features,
         rank_features=rank_features,
         feature_na_mode=feature_na_mode,
     )

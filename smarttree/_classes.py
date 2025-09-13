@@ -18,10 +18,10 @@ from ._node_splitter import NodeSplitter
 from ._renderer import Renderer
 from ._tree_node import TreeNode
 from ._types import (
-    CategoricalNaModeType,
+    CatNaModeType,
     ClassificationCriterionType,
     NaModeType,
-    NumericalNaModeType,
+    NumNaModeType,
     VerboseType,
 )
 
@@ -39,13 +39,13 @@ class BaseSmartDecisionTree(ABC):
         max_leaf_nodes: int | None = None,
         min_impurity_decrease: float = .0,
         max_childs: int | None = None,
-        numerical_features: list[str] | str | None = None,
-        categorical_features: list[str] | str | None = None,
+        num_features: list[str] | str | None = None,
+        cat_features: list[str] | str | None = None,
         rank_features: dict[str, list] | None = None,
         hierarchy: dict[str, str | list[str]] | None = None,
-        numerical_na_mode: NumericalNaModeType = "min",
-        categorical_na_mode: CategoricalNaModeType = "as_category",
-        categorical_na_filler: str = "missing_value",
+        num_na_mode: NumNaModeType = "min",
+        cat_na_mode: CatNaModeType = "as_category",
+        cat_na_filler: str = "missing_value",
         feature_na_mode: dict[str, NaModeType | None] | None = None,
         verbose: VerboseType = "WARNING",
     ) -> None:
@@ -58,13 +58,13 @@ class BaseSmartDecisionTree(ABC):
             max_leaf_nodes=max_leaf_nodes,
             min_impurity_decrease=min_impurity_decrease,
             max_childs=max_childs,
-            numerical_features=numerical_features,
-            categorical_features=categorical_features,
+            num_features=num_features,
+            cat_features=cat_features,
             rank_features=rank_features,
             hierarchy=hierarchy,
-            numerical_na_mode=numerical_na_mode,
-            categorical_na_mode=categorical_na_mode,
-            categorical_na_filler=categorical_na_filler,
+            num_na_mode=num_na_mode,
+            cat_na_mode=cat_na_mode,
+            cat_na_filler=cat_na_filler,
             feature_na_mode=feature_na_mode,
         )
 
@@ -77,39 +77,39 @@ class BaseSmartDecisionTree(ABC):
         self.__max_childs = max_childs
         self.__hierarchy = dict() if hierarchy is None else hierarchy
 
-        if numerical_features is None:
-            self.__numerical_features = []
-        elif isinstance(numerical_features, str):
-            self.__numerical_features = [numerical_features]
+        if num_features is None:
+            self.__num_features = []
+        elif isinstance(num_features, str):
+            self.__num_features = [num_features]
         else:
-            self.__numerical_features = numerical_features
+            self.__num_features = num_features
 
-        if categorical_features is None:
-            self.__categorical_features = []
-        elif isinstance(categorical_features, str):
-            self.__categorical_features = [categorical_features]
+        if cat_features is None:
+            self.__cat_features = []
+        elif isinstance(cat_features, str):
+            self.__cat_features = [cat_features]
         else:
-            self.__categorical_features = categorical_features
+            self.__cat_features = cat_features
 
         self.__rank_features = dict() if rank_features is None else rank_features
 
         self._all_features: list[str] = []
 
-        self.__numerical_na_mode = numerical_na_mode
-        self.__categorical_na_mode = categorical_na_mode
-        self.__categorical_na_filler = categorical_na_filler
+        self.__num_na_mode = num_na_mode
+        self.__cat_na_mode = cat_na_mode
+        self.__cat_na_filler = cat_na_filler
 
         self.__feature_na_mode: dict[str, NaModeType | None]
         if feature_na_mode is None:
             self.__feature_na_mode = dict()
         else:
             self.__feature_na_mode = feature_na_mode
-        for numerical_feature in self.numerical_features:
-            if numerical_feature not in self.__feature_na_mode:
-                self.__feature_na_mode[numerical_feature] = self.numerical_na_mode
-        for categorical_feature in self.categorical_features:
-            if categorical_feature not in self.__feature_na_mode:
-                self.__feature_na_mode[categorical_feature] = self.categorical_na_mode
+        for num_feature in self.num_features:
+            if num_feature not in self.__feature_na_mode:
+                self.__feature_na_mode[num_feature] = self.num_na_mode
+        for cat_feature in self.cat_features:
+            if cat_feature not in self.__feature_na_mode:
+                self.__feature_na_mode[cat_feature] = self.cat_na_mode
         for rank_feature in self.rank_features:
             if rank_feature not in self.__feature_na_mode:
                 self.__feature_na_mode[rank_feature] = None
@@ -151,12 +151,12 @@ class BaseSmartDecisionTree(ABC):
         return self.__max_childs
 
     @property
-    def numerical_features(self) -> list[str]:
-        return self.__numerical_features
+    def num_features(self) -> list[str]:
+        return self.__num_features
 
     @property
-    def categorical_features(self) -> list[str]:
-        return self.__categorical_features
+    def cat_features(self) -> list[str]:
+        return self.__cat_features
 
     @property
     def rank_features(self) -> dict[str, list]:
@@ -172,16 +172,16 @@ class BaseSmartDecisionTree(ABC):
         return self.__hierarchy
 
     @property
-    def numerical_na_mode(self) -> NumericalNaModeType:
-        return self.__numerical_na_mode
+    def num_na_mode(self) -> NumNaModeType:
+        return self.__num_na_mode
 
     @property
-    def categorical_na_mode(self) -> CategoricalNaModeType:
-        return self.__categorical_na_mode
+    def cat_na_mode(self) -> CatNaModeType:
+        return self.__cat_na_mode
 
     @property
-    def categorical_na_filler(self) -> str:
-        return self.__categorical_na_filler
+    def cat_na_filler(self) -> str:
+        return self.__cat_na_filler
 
     @property
     def feature_na_mode(self) -> dict[str, NaModeType | None]:
@@ -199,7 +199,7 @@ class BaseSmartDecisionTree(ABC):
         return self._feature_importances
 
     @abstractmethod
-    def fit(self, X: pd.DataFrame, y: pd.Series) -> None:
+    def fit(self, X: pd.DataFrame, y: pd.Series) -> Self:
         raise NotImplementedError
 
     def _check_is_fitted(self) -> None:
@@ -234,13 +234,13 @@ class BaseSmartDecisionTree(ABC):
             "max_leaf_nodes": self.max_leaf_nodes,
             "min_impurity_decrease": self.min_impurity_decrease,
             "max_childs": self.max_childs,
-            "numerical_features": self.numerical_features,
-            "categorical_features": self.categorical_features,
+            "num_features": self.num_features,
+            "cat_features": self.cat_features,
             "rank_features": self.rank_features,
             "hierarchy": self.hierarchy,
-            "numerical_na_mode": self.numerical_na_mode,
-            "categorical_na_mode": self.categorical_na_mode,
-            "categorical_na_filler": self.categorical_na_filler,
+            "num_na_mode": self.num_na_mode,
+            "cat_na_mode": self.cat_na_mode,
+            "cat_na_filler": self.cat_na_filler,
             "feature_na_mode": self.feature_na_mode,
         }
 
@@ -339,11 +339,11 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
           When choosing a categorical split, `max_childs` limits the maximum
           number of child nodes. If None then unlimited number of child nodes.
 
-        numerical_features: list[str] or str, default=None
+        num_features: list[str] or str, default=None
           List of numerical feature names. If None `numerical_features` will be
           set from unset feature names in X while .fit().
 
-        categorical_features: list[str] or str, default=None
+        cat_features: list[str] or str, default=None
           List of categorical feature names. If None `categorical_features`
           will be set from unset feature names in X while .fit().
 
@@ -356,8 +356,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
           If provided, the algorithm will respect these dependencies when
           selecting features for splits.
 
-        numerical_na_mode: {"min", "max", "include_all", "include_best"},
-                           default="min"
+        num_na_mode: {"min", "max", "include_all", "include_best"}, default="min"
           The mode of handling missing values in a numerical feature.
 
           - If "min", then missing values are filled with minimum value of
@@ -371,8 +370,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             missing values are included into the best child node according to
             information gain.
 
-        categorical_na_mode: {"as_category", "include_all", "include_best"},
-                             default="as_category"
+        cat_na_mode: {"as_category", "include_all", "include_best"}, default="as_category"
           The mode of handling missing values in a categorical feature.
 
           - If "as_category", then while training and predicting missing values
@@ -384,7 +382,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             missing values are included into the best child node according to
             information gain.
 
-        categorical_na_filler: str, default="missing_value"
+        cat_na_filler: str, default="missing_value"
           If `categorical_na_mode` is set to "as_category", then during
           training and predicting missing values will be filled with
           `categorical_na_filler`.
@@ -408,13 +406,13 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         max_leaf_nodes: int | None = None,
         min_impurity_decrease: float = .0,
         max_childs: int | None = None,
-        numerical_features: list[str] | str | None = None,
-        categorical_features: list[str] | str | None = None,
+        num_features: list[str] | str | None = None,
+        cat_features: list[str] | str | None = None,
         rank_features: dict[str, list] | None = None,
         hierarchy: dict[str, str | list[str]] | None = None,
-        numerical_na_mode: NumericalNaModeType = "min",
-        categorical_na_mode: CategoricalNaModeType = "as_category",
-        categorical_na_filler: str = "missing_value",
+        num_na_mode: NumNaModeType = "min",
+        cat_na_mode: CatNaModeType = "as_category",
+        cat_na_filler: str = "missing_value",
         feature_na_mode: dict[str, NaModeType | None] | None = None,
         verbose: VerboseType = "WARNING",
     ) -> None:
@@ -427,13 +425,13 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             max_leaf_nodes=max_leaf_nodes,
             min_impurity_decrease=min_impurity_decrease,
             max_childs=max_childs,
-            numerical_features=numerical_features,
-            categorical_features=categorical_features,
+            num_features=num_features,
+            cat_features=cat_features,
             rank_features=rank_features,
             hierarchy=hierarchy,
-            numerical_na_mode=numerical_na_mode,
-            categorical_na_mode=categorical_na_mode,
-            categorical_na_filler=categorical_na_filler,
+            num_na_mode=num_na_mode,
+            cat_na_mode=cat_na_mode,
+            cat_na_filler=cat_na_filler,
             feature_na_mode=feature_na_mode,
             verbose=verbose,
         )
@@ -462,20 +460,20 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             repr_.append(f"min_impurity_decrease={self.min_impurity_decrease}")
         if self.max_childs:
             repr_.append(f"max_childs={self.max_childs}")
-        if self.numerical_features:
-            repr_.append(f"numerical_features={self.numerical_features}")
-        if self.categorical_features:
-            repr_.append(f"categorical_features={self.categorical_features}")
+        if self.num_features:
+            repr_.append(f"num_features={self.num_features}")
+        if self.cat_features:
+            repr_.append(f"cat_features={self.cat_features}")
         if self.rank_features:
             repr_.append(f"rank_features={self.rank_features}")
         if self.hierarchy:
             repr_.append(f"hierarchy={self.hierarchy}")
-        if self.numerical_na_mode != "min":
-            repr_.append(f"numerical_na_mode={self.numerical_na_mode!r}")
-        if self.categorical_na_mode != "as_category":
-            repr_.append(f"categorical_na_mode={self.categorical_na_mode!r}")
-        if self.categorical_na_filler != "missing_value":
-            repr_.append(f"categorical_na_filler={self.categorical_na_filler!r}")
+        if self.num_na_mode != "min":
+            repr_.append(f"num_na_mode={self.num_na_mode!r}")
+        if self.cat_na_mode != "as_category":
+            repr_.append(f"cat_na_mode={self.cat_na_mode!r}")
+        if self.cat_na_filler != "missing_value":
+            repr_.append(f"cat_na_filler={self.cat_na_filler!r}")
 
         return (
             f"{self.__class__.__name__}({', '.join(repr_)})"
@@ -494,8 +492,8 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         check__data(
             X=X,
             y=y,
-            numerical_features=self.numerical_features,
-            categorical_features=self.categorical_features,
+            num_features=self.num_features,
+            cat_features=self.cat_features,
             rank_features=self.rank_features,
         )
 
@@ -519,9 +517,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         max_childs = float("+inf") if self.max_childs is None else self.max_childs
 
         known_features = (
-            self.numerical_features
-            + self.categorical_features
-            + list(self.rank_features.keys())
+            self.num_features + self.cat_features + list(self.rank_features.keys())
         )
         unknown_num_features = (
             X.drop(columns=known_features).select_dtypes("number").columns.to_list()
@@ -531,22 +527,22 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             .select_dtypes(include=["category", "object"]).columns.to_list()
         )
         if unknown_num_features:
-            self.numerical_features.extend(unknown_num_features)
-            for numerical_feature in unknown_num_features:
-                if numerical_feature not in self.feature_na_mode:
-                    self.feature_na_mode[numerical_feature] = self.numerical_na_mode
+            self.num_features.extend(unknown_num_features)
+            for num_feature in unknown_num_features:
+                if num_feature not in self.feature_na_mode:
+                    self.feature_na_mode[num_feature] = self.num_na_mode
             self.logger.info(
                 f"[{self.__class__.__name__}] [Info] {unknown_num_features} are"
-                " added to `numerical_features`."
+                " added to `num_features`."
             )
         if unknown_cat_features:
-            self.categorical_features.extend(unknown_cat_features)
-            for categorical_feature in unknown_cat_features:
-                if categorical_feature not in self.feature_na_mode:
-                    self.feature_na_mode[categorical_feature] = self.categorical_na_mode
+            self.cat_features.extend(unknown_cat_features)
+            for cat_feature in unknown_cat_features:
+                if cat_feature not in self.feature_na_mode:
+                    self.feature_na_mode[cat_feature] = self.cat_na_mode
             self.logger.info(
                 f"[{self.__class__.__name__}] [Info] {unknown_cat_features} are"
-                " added to `categorical_features`."
+                " added to `cat_features`."
             )
 
         self._all_features = X.columns.to_list()
@@ -558,7 +554,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             elif na_mode == "max":
                 na_filler = X[feature].max()
             elif na_mode == "as_category":
-                na_filler = self.categorical_na_filler
+                na_filler = self.cat_na_filler
             else:
                 continue
             self._feature_na_filler[feature] = na_filler
@@ -575,8 +571,8 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             max_leaf_nodes=max_leaf_nodes,
             min_impurity_decrease=self.min_impurity_decrease,
             max_childs=max_childs,
-            numerical_features=self.numerical_features,
-            categorical_features=self.categorical_features,
+            num_features=self.num_features,
+            cat_features=self.cat_features,
             rank_features=self.rank_features,
             feature_na_mode=self.feature_na_mode,
         )

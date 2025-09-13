@@ -24,8 +24,8 @@ SELECTED = [NUM_FEATURE, CAT_FEATURE, RANK_FEATURE]
 def tree():
     return SmartDecisionTreeClassifier(
         max_depth=1,
-        numerical_features=[NUM_FEATURE],
-        categorical_features=[CAT_FEATURE],
+        num_features=[NUM_FEATURE],
+        cat_features=[CAT_FEATURE],
         rank_features={RANK_FEATURE: RANK_VALUES},
     )
 
@@ -39,23 +39,23 @@ def tree():
         ("valid", "contain_na", pytest.raises(ValueError, match="y must not contain NA.")),
         ("not_df", "valid", pytest.raises(ValueError, match="X must be a pandas.DataFrame.")),
         (
-            "missing_numerical",
+            "missing_num",
             "valid",
             pytest.raises(
                 ValueError,
                 match=(
-                    f"`numerical_features` contain feature {NUM_FEATURE!r},"
+                    f"`num_features` contain feature {NUM_FEATURE!r},"
                     " which isnt present in the training data."
                 ),
             ),
         ),
         (
-            "missing_categorical",
+            "missing_cat",
             "valid",
             pytest.raises(
                 ValueError,
                 match=(
-                    f"`categorical_features` contain feature {CAT_FEATURE!r},"
+                    f"`cat_features` contain feature {CAT_FEATURE!r},"
                     " which isnt present in the training data."
                 ),
             ),
@@ -74,7 +74,7 @@ def tree():
     ],
     ids=[
         "valid", "not_series", "short", "not_df", "contain_na",
-        "missing_numerical", "missing_categorical", "missing_rank",
+        "missing_num", "missing_cat", "missing_rank",
     ],
 )
 def test__check_data__fit(X, y, X_scenario, y_scenario, tree, expected_context):
@@ -82,8 +82,8 @@ def test__check_data__fit(X, y, X_scenario, y_scenario, tree, expected_context):
     X_map = {
         "valid": X[SELECTED],
         "not_df": "X",
-        "missing_numerical": X[SELECTED].drop(columns=NUM_FEATURE),
-        "missing_categorical": X[SELECTED].drop(columns=CAT_FEATURE),
+        "missing_num": X[SELECTED].drop(columns=NUM_FEATURE),
+        "missing_cat": X[SELECTED].drop(columns=CAT_FEATURE),
         "missing_rank": X[SELECTED].drop(columns=RANK_FEATURE),
     }
     y_map = {

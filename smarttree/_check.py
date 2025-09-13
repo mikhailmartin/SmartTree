@@ -10,13 +10,13 @@ def check__params(
     max_leaf_nodes=None,
     min_impurity_decrease=None,
     max_childs=None,
-    numerical_features=None,
-    categorical_features=None,
+    num_features=None,
+    cat_features=None,
     rank_features=None,
     hierarchy=None,
-    numerical_na_mode=None,
-    categorical_na_mode=None,
-    categorical_na_filler=None,
+    num_na_mode=None,
+    cat_na_mode=None,
+    cat_na_filler=None,
     feature_na_mode=None,
 ):
     if criterion is not None:
@@ -45,11 +45,11 @@ def check__params(
     if max_childs is not None:
         _check__max_childs(max_childs)
 
-    if numerical_features is not None:
-        _check__numerical_features(numerical_features)
+    if num_features is not None:
+        _check__num_features(num_features)
 
-    if categorical_features is not None:
-        _check__categorical_features(categorical_features)
+    if cat_features is not None:
+        _check__cat_features(cat_features)
 
     if rank_features is not None:
         _check__rank_features(rank_features)
@@ -57,14 +57,14 @@ def check__params(
     if hierarchy is not None:
         _check__hierarchy(hierarchy)
 
-    if numerical_na_mode is not None:
-        _check__numerical_na_mode(numerical_na_mode)
+    if num_na_mode is not None:
+        _check__num_na_mode(num_na_mode)
 
-    if categorical_na_mode is not None:
-        _check__categorical_na_mode(categorical_na_mode)
+    if cat_na_mode is not None:
+        _check__cat_na_mode(cat_na_mode)
 
-    if categorical_na_filler is not None:
-        _check__categorical_na_filler(categorical_na_filler)
+    if cat_na_filler is not None:
+        _check__cat_na_filler(cat_na_filler)
 
     if feature_na_mode is not None:
         _check__feature_na_mode(feature_na_mode)
@@ -163,33 +163,33 @@ def _check__max_childs(max_childs) -> None:
         )
 
 
-def _check__numerical_features(numerical_features):
-    if isinstance(numerical_features, list):
-        for numerical_feature in numerical_features:
-            if not isinstance(numerical_feature, str):
+def _check__num_features(num_features):
+    if isinstance(num_features, list):
+        for num_feature in num_features:
+            if not isinstance(num_feature, str):
                 raise ValueError(
-                    "If `numerical_features` is a list, it must consists of strings."
-                    f" The element {numerical_feature} of the list isnt a string."
+                    "If `num_features` is a list, it must consists of strings."
+                    f" The element {num_feature} of the list isnt a string."
                 )
-    elif not isinstance(numerical_features, str):
+    elif not isinstance(num_features, str):
         raise ValueError(
-            "`numerical_features` must be a string or list of strings."
-            f" The current value of `numerical_features` is {numerical_features!r}."
+            "`num_features` must be a string or list of strings."
+            f" The current value of `num_features` is {num_features!r}."
         )
 
 
-def _check__categorical_features(categorical_features):
-    if isinstance(categorical_features, list):
-        for categorical_feature in categorical_features:
-            if not isinstance(categorical_feature, str):
+def _check__cat_features(cat_features):
+    if isinstance(cat_features, list):
+        for cat_feature in cat_features:
+            if not isinstance(cat_feature, str):
                 raise ValueError(
-                    "If `categorical_features` is a list, it must consists of strings."
-                    f" The element {categorical_feature} of the list isnt a string."
+                    "If `cat_features` is a list, it must consists of strings."
+                    f" The element {cat_feature} of the list isnt a string."
                 )
-    elif not isinstance(categorical_features, str):
+    elif not isinstance(cat_features, str):
         raise ValueError(
-            "`categorical_features` must be a string or list of strings."
-            f" The current value of `categorical_features` is {categorical_features!r}."
+            "`cat_features` must be a string or list of strings."
+            f" The current value of `cat_features` is {cat_features!r}."
         )
 
 
@@ -240,27 +240,27 @@ def _check__hierarchy(hierarchy):
                     )
 
 
-def _check__numerical_na_mode(numerical_na_mode):
-    if numerical_na_mode not in ("min", "max", "include_all", "include_best"):
+def _check__num_na_mode(num_na_mode):
+    if num_na_mode not in ("min", "max", "include_all", "include_best"):
         raise ValueError(
-            "`numerical_na_mode` must be Literal['min', 'max', 'include_all', 'include_best']."
-            f" The current value of `numerical_na_mode` is {numerical_na_mode!r}."
+            "`num_na_mode` must be Literal['min', 'max', 'include_all', 'include_best']."
+            f" The current value of `num_na_mode` is {num_na_mode!r}."
         )
 
 
-def _check__categorical_na_mode(categorical_na_mode):
-    if categorical_na_mode not in ("as_category", "include_all", "include_best"):
+def _check__cat_na_mode(cat_na_mode):
+    if cat_na_mode not in ("as_category", "include_all", "include_best"):
         raise ValueError(
-            "`categorical_na_mode` must be Literal['as_category', 'include_all', 'include_best']."
-            f" The current value of `categorical_na_mode` is {categorical_na_mode!r}."
+            "`cat_na_mode` must be Literal['as_category', 'include_all', 'include_best']."
+            f" The current value of `cat_na_mode` is {cat_na_mode!r}."
         )
 
 
-def _check__categorical_na_filler(categorical_na_filler):
-    if not isinstance(categorical_na_filler, str):
+def _check__cat_na_filler(cat_na_filler):
+    if not isinstance(cat_na_filler, str):
         raise ValueError(
-            "`categorical_na_filler` must be a string."
-            f" The current value of `categorical_na_filler` is {categorical_na_filler!r}."
+            "`cat_na_filler` must be a string."
+            f" The current value of `cat_na_filler` is {cat_na_filler!r}."
         )
 
 
@@ -288,8 +288,8 @@ def check__data(
     *,
     X=None,
     y=None,
-    numerical_features=None,
-    categorical_features=None,
+    num_features=None,
+    cat_features=None,
     rank_features=None,
     all_features=None,
 ):
@@ -302,11 +302,11 @@ def check__data(
     if X is not None and y is not None:
         _check__X_and_y(X, y)
 
-    if numerical_features is not None:
-        _check__numerical_features_in(X, numerical_features)
+    if num_features is not None:
+        _check__num_features_in(X, num_features)
 
-    if categorical_features is not None:
-        _check__categorical_features_in(X, categorical_features)
+    if cat_features is not None:
+        _check__cat_features_in(X, cat_features)
 
     if rank_features is not None:
         _check__rank_features_in(X, rank_features)
@@ -333,20 +333,20 @@ def _check__X_and_y(X, y):
         raise ValueError("X and y must be the equal length.")
 
 
-def _check__numerical_features_in(X, numerical_features):
-    for numerical_feature in numerical_features:
-        if numerical_feature not in X.columns:
+def _check__num_features_in(X, num_features):
+    for num_feature in num_features:
+        if num_feature not in X.columns:
             raise ValueError(
-                f"`numerical_features` contain feature {numerical_feature!r},"
+                f"`num_features` contain feature {num_feature!r},"
                 " which isnt present in the training data."
             )
 
 
-def _check__categorical_features_in(X, categorical_features):
-    for categorical_feature in categorical_features:
-        if categorical_feature not in X.columns:
+def _check__cat_features_in(X, cat_features):
+    for cat_feature in cat_features:
+        if cat_feature not in X.columns:
             raise ValueError(
-                f"`categorical_features` contain feature {categorical_feature!r},"
+                f"`cat_features` contain feature {cat_feature!r},"
                 " which isnt present in the training data."
             )
 

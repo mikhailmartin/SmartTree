@@ -164,7 +164,7 @@ class BaseColumnSplitter(ABC):
         return entropy
 
 
-class NumericalColumnSplitter(BaseColumnSplitter):
+class NumColumnSplitter(BaseColumnSplitter):
 
     def __init__(
         self,
@@ -262,7 +262,7 @@ class NumericalColumnSplitter(BaseColumnSplitter):
         return information_gain, child_masks, -1
 
 
-class CategoricalColumnSplitter(BaseColumnSplitter):
+class CatColumnSplitter(BaseColumnSplitter):
 
     def __init__(
         self,
