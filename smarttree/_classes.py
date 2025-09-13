@@ -527,7 +527,8 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             X.drop(columns=known_features).select_dtypes("number").columns.to_list()
         )
         unknown_cat_features = (
-            X.drop(columns=known_features).select_dtypes(include=["category", "object"]).columns.to_list()
+            X.drop(columns=known_features)
+            .select_dtypes(include=["category", "object"]).columns.to_list()
         )
         if unknown_num_features:
             self.numerical_features.extend(unknown_num_features)

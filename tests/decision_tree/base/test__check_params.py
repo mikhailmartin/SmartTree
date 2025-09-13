@@ -501,8 +501,8 @@ def test__check_params__hierarchy(hierarchy, expected):
             raises(
                 ValueError,
                 match=re.escape(
-                    "`numerical_na_mode` must be Literal['min', 'max', 'include_all', 'include_best']."
-                    " The current value of `numerical_na_mode` is 'smth'."
+                    "`numerical_na_mode` must be Literal['min', 'max', 'include_all',"
+                    " 'include_best']. The current value of `numerical_na_mode` is 'smth'."
                 ),
             ),
         ),
@@ -526,8 +526,8 @@ def test__check_params__numerical_na_mode(numerical_na_mode, expected):
             raises(
                 ValueError,
                 match=re.escape(
-                    "`categorical_na_mode` must be Literal['as_category', 'include_all', 'include_best']."
-                    " The current value of `categorical_na_mode` is 'smth'."
+                    "`categorical_na_mode` must be Literal['as_category', 'include_all',"
+                    " 'include_best']. The current value of `categorical_na_mode` is 'smth'."
                 ),
             ),
         ),

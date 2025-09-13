@@ -73,28 +73,29 @@ class BaseColumnSplitter(ABC):
               boolean mask of parent node.
             child_masks: pd.Series
               list of boolean masks of child nodes.
-            na_mode: TODO.
+            na_mode: {"include_all", ...}, default=None
+              If "include_all" use normalization.
 
         Returns:
             float: information gain.
 
-        References:
-            https://scikit-learn.org/stable/modules/generated/sklearn.tree.DecisionTreeClassifier.html
-
         Formula in LaTeX:
             \begin{align*}
-            \text{Information Gain} = \frac{N_{\text{parent}}}{N} \cdot \Biggl( & \text{impurity}_{\text{parent}} - \\
-            & \sum^C_{i=1} \frac{N_{\text{child}_i}}{N_{\text{parent}}} \cdot \text{impurity}_{\text{child}_i} \Biggr)
+            \text{Information Gain} =
+            \frac{N_{\text{parent}}}{N} \cdot
+            \Biggl( & \text{impurity}_{\text{parent}} - \\
+            & \sum^C_{i=1} \frac{N_{\text{child}_i}}{N_{\text{parent}}}
+            \cdot \text{impurity}_{\text{child}_i} \Biggr)
             \end{align*}
             where:
             \begin{itemize}
                 \item $\text{Information Gain}$ — information gain;
-                \item $N$ — the number of samples in the entire training set;
-                \item $N_{\text{parent}}$ — the number of samples in the parent node;
-                \item $\text{impurity}_{\text{parent}}$ — the parent node impurity;
-                \item $C$ — the number of child nodes;
-                \item $N_{\text{child}_i}$ — the number of samples in the child node;
-                \item $\text{impurity}_{\text{child}_i}$ — the child node impurity.
+                \item $N$ — number of samples in entire training set;
+                \item $N_{\text{parent}}$ — number of samples in parent node;
+                \item $\text{impurity}_{\text{parent}}$ — parent node impurity;
+                \item $C$ — number of child nodes;
+                \item $N_{\text{child}_i}$ — number of samples in child node;
+                \item $\text{impurity}_{\text{child}_i}$ — child node impurity.
             \end{itemize}
         """
         N = self.dataset.size
