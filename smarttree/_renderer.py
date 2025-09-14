@@ -1,6 +1,6 @@
 from graphviz import Digraph
 
-from ._tree_node import TreeNode
+from ._tree import TreeNode
 from ._types import ClassificationCriterionType
 
 
@@ -15,7 +15,7 @@ class Renderer:
 
     def render(
         self,
-        tree: TreeNode,
+        root: TreeNode,
         *,
         show_impurity: bool = False,
         show_num_samples: bool = False,
@@ -24,7 +24,7 @@ class Renderer:
         **kwargs,
     ) -> Digraph:
         self.__add_node(
-            node=tree,
+            node=root,
             parent_name=None,
             show_impurity=show_impurity,
             show_num_samples=show_num_samples,

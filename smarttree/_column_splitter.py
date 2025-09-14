@@ -8,9 +8,10 @@ from typing import NamedTuple
 
 import numpy as np
 import pandas as pd
+from numpy.typing import NDArray
 
 from ._dataset import Dataset
-from ._tree_node import TreeNode
+from ._tree import TreeNode
 from ._types import ClassificationCriterionType, NaModeType
 
 
@@ -202,16 +203,15 @@ class NumColumnSplitter(BaseColumnSplitter):
 
         return best_split_result
 
-    def __get_thresholds(self, array: np.ndarray) -> np.ndarray:
+    def __get_thresholds(self, array: NDArray) -> NDArray:
 
-        array.sort()
-        array = np.unique(array)
+        array = np.sort(np.unique(array))
         thresholds = np.array([]) if len(array) <= 1 else self.__moving_average(array)
 
         return thresholds
 
     @staticmethod
-    def __moving_average(array: np.ndarray, window: int = 2) -> np.ndarray:
+    def __moving_average(array: NDArray, window: int = 2) -> NDArray:
         return np.convolve(array, np.ones(window), mode="valid") / window
 
     def __num_split(

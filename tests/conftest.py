@@ -6,11 +6,11 @@ import pytest
 from numpy.typing import NDArray
 
 from smarttree import BaseSmartDecisionTree
-from smarttree._tree_node import TreeNode
+from smarttree._tree import TreeNode
 from smarttree._types import NaModeType
 
 
-NUMERICAL_FEATURES = [
+NUM_FEATURES = [
     "2. Возраст",
     "4. Если имеете супруга или партнера, как долго вы живете вместе (в годах)?",
     "6. Жив ли хотя бы один из Ваших родителей (да/нет)?",
@@ -30,7 +30,7 @@ NUMERICAL_FEATURES = [
     "34. Заболевания щитовидной железы (да/нет)",
     "35. Наследственность (да/нет)",
 ]
-CATEGORICAL_FEATURES = [
+CAT_FEATURES = [
     "3. Семейное положение",
     "23. Каков тип Вашего дома?",
     "25. Каким транспортом Вы обычно пользуетесь?",
@@ -131,13 +131,13 @@ def X(data) -> pd.DataFrame:
 
 
 @pytest.fixture(scope="session")
-def numerical_features() -> list[str]:
-    return NUMERICAL_FEATURES
+def num_features() -> list[str]:
+    return NUM_FEATURES
 
 
 @pytest.fixture(scope="session")
-def categorical_features() -> list[str]:
-    return CATEGORICAL_FEATURES
+def cat_features() -> list[str]:
+    return CAT_FEATURES
 
 
 @pytest.fixture(scope="session")
@@ -147,13 +147,13 @@ def rank_features() -> dict[str: list]:
 
 @pytest.fixture(scope="session")
 def feature_na_mode(
-    numerical_features, categorical_features, rank_features
+    num_features, cat_features, rank_features
 ) -> dict[str, NaModeType | None]:
 
     result = dict()
-    for numerical_feature in numerical_features:
+    for numerical_feature in num_features:
         result[numerical_feature] = "min"
-    for categorical_feature in categorical_features:
+    for categorical_feature in cat_features:
         result[categorical_feature] = "as_category"
     for rank_feature in rank_features:
         result[rank_feature] = None

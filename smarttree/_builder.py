@@ -1,12 +1,12 @@
 import bisect
 import math
-from collections import defaultdict
 
 import numpy as np
 import pandas as pd
+from numpy.typing import NDArray
 
 from ._node_splitter import NodeSplitter
-from ._tree_node import TreeNode
+from ._tree import Tree, TreeNode
 from ._types import ClassificationCriterionType
 
 
@@ -35,11 +35,9 @@ class Builder:
                 self.impurity = self.entropy
 
         if self.criterion in ("gini", "entropy", "log_loss"):
-            self.class_names = sorted(self.y.unique())
+            self.class_names = np.sort(self.y.unique())
 
-        self.node_counter: int = 0
-
-    def build(self) -> tuple[TreeNode, defaultdict[str, float]]:
+    def build(self, tree: Tree) -> None:
 
         for value in self.hierarchy.values():
             if isinstance(value, list):
@@ -48,25 +46,27 @@ class Builder:
             else:  # str
                 self.available_features.remove(value)
 
-        root = self.create_node(
-            mask=self.y.apply(lambda x: True),
+        mask = self.y.apply(lambda x: True)
+        root = tree.create_node(
+            mask=mask,
             hierarchy=self.hierarchy,
+            distribution=self.distribution(mask),
+            impurity=self.impurity(mask),
+            label=self.y[mask].mode()[0],
             available_features=self.available_features,
             depth=0,
+            is_root=True,
         )
 
         splittable_leaf_nodes: list[TreeNode] = []
-        feature_importances: defaultdict[str, float] = defaultdict(float)
 
-        if self.splitter.is_splittable(root):
+        if self.splitter.is_splittable(root, tree.leaf_counter):
             splittable_leaf_nodes.append(root)
 
-        while (
-            len(splittable_leaf_nodes) > 0
-            and self.splitter.leaf_counter < self.max_leaf_nodes
-        ):
+        while len(splittable_leaf_nodes) > 0 and tree.leaf_counter < self.max_leaf_nodes:
+
             node = splittable_leaf_nodes.pop()
-            feature_importances[node.split_feature] += node.information_gain
+            tree.feature_importances[node.split_feature] += node.information_gain
 
             for child_mask, feature_value in zip(node.child_masks, node.feature_values):
                 # add opened features
@@ -77,17 +77,19 @@ class Builder:
                     else:  # str
                         node.available_features.append(value)
 
-                child_node = self.create_node(
+                child_node = tree.create_node(
                     mask=child_mask,
                     hierarchy=node.hierarchy,
+                    distribution=self.distribution(child_mask),
+                    impurity=self.impurity(child_mask),
+                    label=self.y[child_mask].mode()[0],
                     available_features=node.available_features,
-                    depth=node.depth + 1,
+                    depth=node.depth+1,
                 )
                 child_node.feature_value = feature_value
-                self.splitter.leaf_counter += 1
 
                 node.childs.append(child_node)
-                if self.splitter.is_splittable(child_node):
+                if self.splitter.is_splittable(child_node, tree.leaf_counter):
                     bisect.insort(
                         splittable_leaf_nodes,
                         child_node,
@@ -95,40 +97,12 @@ class Builder:
                     )
 
             node.is_leaf = False
-            self.splitter.leaf_counter -= 1
+            tree.leaf_counter -= 1
 
-        return root, feature_importances
-
-    def create_node(
-        self,
-        mask: pd.Series,
-        hierarchy: dict[str, str | list[str]],
-        available_features: list[str],
-        depth: int,
-    ) -> TreeNode:
-        """Creates a node of the tree."""
-        tree_node = TreeNode(
-            number=self.node_counter,
-            num_samples=mask.sum(),
-            distribution=self.distribution(mask),
-            impurity=self.impurity(mask),
-            label=self.y[mask].mode()[0],
-            depth=depth,
-            mask=mask,
-            hierarchy=hierarchy.copy(),
-            available_features=available_features.copy(),
-        )
-        self.node_counter += 1
-        return tree_node
-
-    def distribution(self, mask: pd.Series) -> np.ndarray:
-        """Calculates the class distribution."""
-        distribution = np.array([
-            (mask & (self.y == class_name)).sum()
-            for class_name in self.class_names
+    def distribution(self, mask: pd.Series) -> NDArray[np.integer]:
+        return np.array([
+            (mask & (self.y == class_name)).sum() for class_name in self.class_names
         ])
-
-        return distribution
 
     def gini_index(self, mask: pd.Series) -> float:
         r"""

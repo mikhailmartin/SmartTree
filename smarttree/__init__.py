@@ -1,5 +1,5 @@
 from ._classes import BaseSmartDecisionTree, SmartDecisionTreeClassifier
-from ._tree_node import TreeNode
+from ._tree import TreeNode
 
 
 __all__ = [

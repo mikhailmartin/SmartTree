@@ -4,7 +4,7 @@ import pandas as pd
 
 from ._column_splitter import CatColumnSplitter, NumColumnSplitter, RankColumnSplitter
 from ._dataset import Dataset
-from ._tree_node import TreeNode
+from ._tree import TreeNode
 from ._types import ClassificationCriterionType, NaModeType, SplitType
 
 
@@ -49,7 +49,6 @@ class NodeSplitter:
         self.max_depth = max_depth
         self.min_samples_split = min_samples_split
         self.min_impurity_decrease = min_impurity_decrease
-        self.leaf_counter: int = 0
 
         self.feature_split_type: dict[str, SplitType] = dict()
         for num_feature in num_features:
@@ -85,7 +84,7 @@ class NodeSplitter:
             feature_na_mode=feature_na_mode,
         )
 
-    def is_splittable(self, node: TreeNode) -> bool:
+    def is_splittable(self, node: TreeNode, leaf_counter: int) -> bool:
         """
         Checks whether a tree node can be split.
 
@@ -97,7 +96,7 @@ class NodeSplitter:
         if node.num_samples < self.min_samples_split:
             return False
 
-        split_result = self.find_best_split_for(node)
+        split_result = self.find_best_split_for(node, leaf_counter)
         if split_result.information_gain >= self.min_impurity_decrease:
             node.information_gain = split_result.information_gain
             node.split_type = split_result.split_type
@@ -108,7 +107,7 @@ class NodeSplitter:
         else:
             return False
 
-    def find_best_split_for(self, node: TreeNode) -> NodeSplitResult:
+    def find_best_split_for(self, node: TreeNode, leaf_counter: int) -> NodeSplitResult:
 
         best_split_result = NodeSplitResult.no_split()
         for feature in node.available_features:
@@ -117,7 +116,7 @@ class NodeSplitter:
                 case "numerical":
                     split_result = self.num_col_splitter.split(node, feature)
                 case "categorical":
-                    split_result = self.cat_col_splitter.split(node, feature, self.leaf_counter)
+                    split_result = self.cat_col_splitter.split(node, feature, leaf_counter)
                 case "rank":
                     split_result = self.rank_col_splitter.split(node, feature)
 
