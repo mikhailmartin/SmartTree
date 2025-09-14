@@ -151,10 +151,10 @@ def feature_na_mode(
 ) -> dict[str, NaModeType | None]:
 
     result = dict()
-    for numerical_feature in num_features:
-        result[numerical_feature] = "min"
-    for categorical_feature in cat_features:
-        result[categorical_feature] = "as_category"
+    for num_feature in num_features:
+        result[num_feature] = "min"
+    for cat_feature in cat_features:
+        result[cat_feature] = "as_category"
     for rank_feature in rank_features:
         result[rank_feature] = None
 
