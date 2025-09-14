@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "smarttree"
 version = "0.1.0"
-description = ""
+description = "Custom Decision Tree with bells and whistles"
 authors = ["Mikhail Martin <mikhailmartin95@yandex.ru>"]
 readme = "README.md"
 
