@@ -10,4 +10,4 @@ from smarttree._exceptions import NotFittedError
 )
 def test__not_fitted__property(concrete_smart_tree, property_name):
     with pytest.raises(NotFittedError):
-        property_ = getattr(concrete_smart_tree, property_name)
+        getattr(concrete_smart_tree, property_name)
