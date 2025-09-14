@@ -16,7 +16,7 @@ from ._check import check__data, check__params
 from ._exceptions import NotFittedError
 from ._node_splitter import NodeSplitter
 from ._renderer import Renderer
-from ._tree_node import TreeNode
+from ._tree import Tree, TreeNode
 from ._types import (
     CatNaModeType,
     ClassificationCriterionType,
@@ -118,7 +118,7 @@ class BaseSmartDecisionTree(ABC):
         self.logger.setLevel(verbose)
 
         self._is_fitted: bool = False
-        self._root: TreeNode | None = None
+        self._tree: Tree | None = None
         self._feature_importances: dict = dict()
         self._feature_na_filler: dict[str, int | float | str] = dict()
 
@@ -188,15 +188,15 @@ class BaseSmartDecisionTree(ABC):
         return self.__feature_na_mode
 
     @property
-    def tree(self) -> TreeNode:
+    def tree_(self) -> Tree:
         self._check_is_fitted()
-        assert self._root is not None
-        return self._root
+        assert self._tree is not None
+        return self._tree
 
     @property
     def feature_importances_(self) -> dict[str, float]:
         self._check_is_fitted()
-        return self._feature_importances
+        return self.tree_.feature_importances
 
     @abstractmethod
     def fit(self, X: pd.DataFrame, y: pd.Series) -> Self:
@@ -577,6 +577,8 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             feature_na_mode=self.feature_na_mode,
         )
 
+        self._tree = Tree()
+
         builder = Builder(
             X=X,
             y=y,
@@ -585,10 +587,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             max_leaf_nodes=max_leaf_nodes,
             hierarchy=self.hierarchy,
         )
-        root, feature_importances = builder.build()
-
-        self._root = root
-        self._feature_importances = feature_importances
+        builder.build(self._tree)
 
         self._is_fitted = True
 
@@ -627,7 +626,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         X = self.__preprocess(X)
 
         distributions = np.array([
-            self.__get_distribution(self.tree, point) for _, point in X.iterrows()
+            self.__get_distribution(self.tree_.root, point) for _, point in X.iterrows()
         ])
 
         return distributions / distributions.sum(axis=1, keepdims=True)
@@ -733,7 +732,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         """
         renderer = Renderer(criterion=self.criterion, rounded=rounded)
         graph = renderer.render(
-            tree=self.tree,
+            root=self.tree_.root,
             show_impurity=show_impurity,
             show_num_samples=show_num_samples,
             show_distribution=show_distribution,

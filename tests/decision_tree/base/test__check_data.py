@@ -21,7 +21,7 @@ SELECTED = [NUM_FEATURE, CAT_FEATURE, RANK_FEATURE]
 
 
 @pytest.fixture(scope="function")
-def tree():
+def decision_tree():
     return SmartDecisionTreeClassifier(
         max_depth=1,
         num_features=[NUM_FEATURE],
@@ -77,7 +77,7 @@ def tree():
         "missing_num", "missing_cat", "missing_rank",
     ],
 )
-def test__check_data__fit(X, y, X_scenario, y_scenario, tree, expected_context):
+def test__check_data__fit(X, y, X_scenario, y_scenario, decision_tree, expected_context):
 
     X_map = {
         "valid": X[SELECTED],
@@ -97,7 +97,7 @@ def test__check_data__fit(X, y, X_scenario, y_scenario, tree, expected_context):
     y_fit = y_map[y_scenario]
 
     with expected_context:
-        tree.fit(X_fit, y_fit)
+        decision_tree.fit(X_fit, y_fit)
 
 
 @pytest.mark.parametrize(
@@ -120,7 +120,7 @@ def test__check_data__fit(X, y, X_scenario, y_scenario, tree, expected_context):
     ],
     ids=["valid", "not_df", "renamed"],
 )
-def test__check_data__predict(X, y, X_scenario, tree, expected_context):
+def test__check_data__predict(X, y, X_scenario, decision_tree, expected_context):
 
     X_map = {
         "valid": X[SELECTED],
@@ -131,8 +131,8 @@ def test__check_data__predict(X, y, X_scenario, tree, expected_context):
     X_predict_proba = X_map[X_scenario]
 
     with expected_context:
-        tree.fit(X[SELECTED], y)
-        _ = tree.predict(X_predict_proba)
+        decision_tree.fit(X[SELECTED], y)
+        _ = decision_tree.predict(X_predict_proba)
 
 
 @pytest.mark.parametrize(
@@ -158,7 +158,7 @@ def test__check_data__predict(X, y, X_scenario, tree, expected_context):
     ],
     ids=["valid", "not_df", "not_series", "short", "renamed"],
 )
-def test__check_data__score(X, y, X_scenario, y_scenario, tree, expected_context):
+def test__check_data__score(X, y, X_scenario, y_scenario, decision_tree, expected_context):
 
     X_map = {
         "valid": X[SELECTED],
@@ -175,5 +175,5 @@ def test__check_data__score(X, y, X_scenario, y_scenario, tree, expected_context
     y_score = y_map[y_scenario]
 
     with expected_context:
-        tree.fit(X[SELECTED], y)
-        _ = tree.score(X_score, y_score)
+        decision_tree.fit(X[SELECTED], y)
+        _ = decision_tree.score(X_score, y_score)

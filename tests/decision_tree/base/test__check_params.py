@@ -2,7 +2,6 @@ import re
 from contextlib import nullcontext as does_not_raise
 
 import pytest
-from pytest import raises
 
 from smarttree import SmartDecisionTreeClassifier
 from smarttree._types import (
@@ -14,14 +13,14 @@ from smarttree._types import (
 
 
 @pytest.mark.parametrize(
-    ("criterion", "expected"),
+    ("criterion", "expected_context"),
     [
         ("gini", does_not_raise()),
         ("entropy", does_not_raise()),
         ("log_loss", does_not_raise()),
         (
             "gjni",
-            raises(
+            pytest.raises(
                 ValueError,
                 match=re.escape(
                     "`criterion` mist be Literal['entropy', 'log_loss', 'gini']."
@@ -32,20 +31,20 @@ from smarttree._types import (
     ],
     ids=["gini", "entropy", "log_loss", "invalid"]
 )
-def test__check_param__criterion(criterion, expected):
-    with expected:
+def test__check_param__criterion(criterion, expected_context):
+    with expected_context:
         criterion: ClassificationCriterionType
         SmartDecisionTreeClassifier(criterion=criterion)
 
 
 @pytest.mark.parametrize(
-    ("max_depth", "expected"),
+    ("max_depth", "expected_context"),
     [
         (None, does_not_raise()),
         (2, does_not_raise()),
         (
             -1,
-            raises(
+            pytest.raises(
                 ValueError,
                 match=(
                     "`max_depth` must be an integer and strictly greater than 0."
@@ -55,7 +54,7 @@ def test__check_param__criterion(criterion, expected):
         ),
         (
             1.5,
-            raises(
+            pytest.raises(
                 ValueError,
                 match=(
                     "`max_depth` must be an integer and strictly greater than 0."
@@ -65,7 +64,7 @@ def test__check_param__criterion(criterion, expected):
         ),
         (
             "string",
-            raises(
+            pytest.raises(
                 ValueError,
                 match=(
                     "`max_depth` must be an integer and strictly greater than 0."
@@ -76,18 +75,18 @@ def test__check_param__criterion(criterion, expected):
     ],
     ids=["None", "2", "negative", "float", "str"],
 )
-def test__check_param__max_depth(max_depth, expected):
-    with expected:
+def test__check_param__max_depth(max_depth, expected_context):
+    with expected_context:
         SmartDecisionTreeClassifier(max_depth=max_depth)
 
 
 @pytest.mark.parametrize(
-    ("min_samples_split", "expected"),
+    ("min_samples_split", "expected_context"),
     [
         (2, does_not_raise()),
         (
             1,
-            raises(
+            pytest.raises(
                 ValueError,
                 match=re.escape(
                     "`min_samples_split` must be an integer and lie in the range"
@@ -99,7 +98,7 @@ def test__check_param__max_depth(max_depth, expected):
         (.5, does_not_raise()),
         (
             0.0,
-            raises(
+            pytest.raises(
                 ValueError,
                 match=re.escape(
                     "`min_samples_split` must be an integer and lie in the range"
@@ -110,7 +109,7 @@ def test__check_param__max_depth(max_depth, expected):
         ),
         (
             1.0,
-            raises(
+            pytest.raises(
                 ValueError,
                 match=re.escape(
                     "`min_samples_split` must be an integer and lie in the range"
@@ -121,7 +120,7 @@ def test__check_param__max_depth(max_depth, expected):
         ),
         (
             "string",
-            raises(
+            pytest.raises(
                 ValueError,
                 match=re.escape(
                     "`min_samples_split` must be an integer and lie in the range"
@@ -133,18 +132,18 @@ def test__check_param__max_depth(max_depth, expected):
     ],
     ids=["int(2)", "int(1)", "float(0.5)", "float(0.0)", "float(1.0)", "str"],
 )
-def test__check_param__min_samples_split(min_samples_split, expected):
-    with expected:
+def test__check_param__min_samples_split(min_samples_split, expected_context):
+    with expected_context:
         SmartDecisionTreeClassifier(min_samples_split=min_samples_split)
 
 
 @pytest.mark.parametrize(
-    ("min_samples_leaf", "expected"),
+    ("min_samples_leaf", "expected_context"),
     [
         (1, does_not_raise()),
         (
             0,
-            raises(
+            pytest.raises(
                 ValueError,
                 match=re.escape(
                     "`min_samples_leaf` must be an integer and lie in the range"
@@ -156,7 +155,7 @@ def test__check_param__min_samples_split(min_samples_split, expected):
         (.5, does_not_raise()),
         (
             0.0,
-            raises(
+            pytest.raises(
                 ValueError,
                 match=re.escape(
                     "`min_samples_leaf` must be an integer and lie in the range"
@@ -167,7 +166,7 @@ def test__check_param__min_samples_split(min_samples_split, expected):
         ),
         (
             1.0,
-            raises(
+            pytest.raises(
                 ValueError,
                 match=re.escape(
                     "`min_samples_leaf` must be an integer and lie in the range"
@@ -178,7 +177,7 @@ def test__check_param__min_samples_split(min_samples_split, expected):
         ),
         (
             "string",
-            raises(
+            pytest.raises(
                 ValueError,
                 match=re.escape(
                     "`min_samples_leaf` must be an integer and lie in the range"
@@ -190,17 +189,17 @@ def test__check_param__min_samples_split(min_samples_split, expected):
     ],
     ids=["int(1)", "int(0)", "float(0.5)", "float(0.0)", "float(1.0)", "str"],
 )
-def test__check_params__min_samples_leaf(min_samples_leaf, expected):
-    with expected:
+def test__check_params__min_samples_leaf(min_samples_leaf, expected_context):
+    with expected_context:
         SmartDecisionTreeClassifier(min_samples_leaf=min_samples_leaf)
 
 
 @pytest.mark.parametrize(
-    ("max_leaf_nodes", "expected"),
+    ("max_leaf_nodes", "expected_context"),
     [
         (
             .0,
-            raises(
+            pytest.raises(
                 ValueError,
                 match=re.escape(
                     "`max_leaf_nodes` must be an integer and strictly greater than 2."
@@ -211,7 +210,7 @@ def test__check_params__min_samples_leaf(min_samples_leaf, expected):
         (2, does_not_raise()),
         (
             1,
-            raises(
+            pytest.raises(
                 ValueError,
                 match=re.escape(
                     "`max_leaf_nodes` must be an integer and strictly greater than 2."
@@ -221,7 +220,7 @@ def test__check_params__min_samples_leaf(min_samples_leaf, expected):
         ),
         (
             "string",
-            raises(
+            pytest.raises(
                 ValueError,
                 match=re.escape(
                     "`max_leaf_nodes` must be an integer and strictly greater than 2."
@@ -232,18 +231,18 @@ def test__check_params__min_samples_leaf(min_samples_leaf, expected):
     ],
     ids=["float", "2", "1", "str"],
 )
-def test__check_params__max_leaf_nodes(max_leaf_nodes, expected):
-    with expected:
+def test__check_params__max_leaf_nodes(max_leaf_nodes, expected_context):
+    with expected_context:
         SmartDecisionTreeClassifier(max_leaf_nodes=max_leaf_nodes)
 
 
 @pytest.mark.parametrize(
-    ("min_impurity_decrease", "expected"),
+    ("min_impurity_decrease", "expected_context"),
     [
         (.0, does_not_raise()),
         (
             -1.,
-            raises(
+            pytest.raises(
                 ValueError,
                 match=re.escape(
                     "`min_impurity_decrease` must be float and non-negative."
@@ -253,7 +252,7 @@ def test__check_params__max_leaf_nodes(max_leaf_nodes, expected):
         ),
         (
             "string",
-            raises(
+            pytest.raises(
                 ValueError,
                 match=re.escape(
                     "`min_impurity_decrease` must be float and non-negative."
@@ -264,19 +263,19 @@ def test__check_params__max_leaf_nodes(max_leaf_nodes, expected):
     ],
     ids=["float(0.0)", "float(negative)", "str"]
 )
-def test__check_params__min_impurity_decrease(min_impurity_decrease, expected):
-    with expected:
+def test__check_params__min_impurity_decrease(min_impurity_decrease, expected_context):
+    with expected_context:
         SmartDecisionTreeClassifier(min_impurity_decrease=min_impurity_decrease)
 
 
 @pytest.mark.parametrize(
-    ("max_childs", "expected"),
+    ("max_childs", "expected_context"),
     [
         (None, does_not_raise()),
         (2, does_not_raise()),
         (
             float("+inf"),
-            raises(
+            pytest.raises(
                 ValueError,
                 match=re.escape(
                     "`max_childs` must be integer and strictly greater than 2."
@@ -286,7 +285,7 @@ def test__check_params__min_impurity_decrease(min_impurity_decrease, expected):
         ),
         (
             1,
-            raises(
+            pytest.raises(
                 ValueError,
                 match=re.escape(
                     "`max_childs` must be integer and strictly greater than 2."
@@ -296,7 +295,7 @@ def test__check_params__min_impurity_decrease(min_impurity_decrease, expected):
         ),
         (
             "string",
-            raises(
+            pytest.raises(
                 ValueError,
                 match=re.escape(
                     "`max_childs` must be integer and strictly greater than 2."
@@ -307,20 +306,20 @@ def test__check_params__min_impurity_decrease(min_impurity_decrease, expected):
     ],
     ids=["None", "2", "float", "1", "str"],
 )
-def test__check_params__max_childs(max_childs, expected):
-    with expected:
+def test__check_params__max_childs(max_childs, expected_context):
+    with expected_context:
         SmartDecisionTreeClassifier(max_childs=max_childs)
 
 
 @pytest.mark.parametrize(
-    ("num_features", "expected"),
+    ("num_features", "expected_context"),
     [
         (None, does_not_raise()),
         ("feature", does_not_raise()),
         (["feature"], does_not_raise()),
         (
             1.,
-            raises(
+            pytest.raises(
                 ValueError,
                 match=(
                     "`num_features` must be a string or list of strings."
@@ -330,7 +329,7 @@ def test__check_params__max_childs(max_childs, expected):
         ),
         (
             [1.],
-            raises(
+            pytest.raises(
                 ValueError,
                 match=(
                     "If `num_features` is a list, it must consists of strings."
@@ -341,20 +340,20 @@ def test__check_params__max_childs(max_childs, expected):
     ],
     ids=["None", "str", "list[str]", "float", "list[float]"],
 )
-def test__check_params__num_features(num_features, expected):
-    with expected:
+def test__check_params__num_features(num_features, expected_context):
+    with expected_context:
         SmartDecisionTreeClassifier(num_features=num_features)
 
 
 @pytest.mark.parametrize(
-    ("cat_features", "expected"),
+    ("cat_features", "expected_context"),
     [
         (None, does_not_raise()),
         ("feature", does_not_raise()),
         (["feature"], does_not_raise()),
         (
             1.,
-            raises(
+            pytest.raises(
                 ValueError,
                 match=(
                     "`cat_features` must be a string or list of strings."
@@ -364,7 +363,7 @@ def test__check_params__num_features(num_features, expected):
         ),
         (
             [1.],
-            raises(
+            pytest.raises(
                 ValueError,
                 match=(
                     "If `cat_features` is a list, it must consists of strings."
@@ -375,19 +374,19 @@ def test__check_params__num_features(num_features, expected):
     ],
     ids=["None", "str", "list[str]", "float", "list[float]"],
 )
-def test__check_params__cat_features(cat_features, expected):
-    with expected:
+def test__check_params__cat_features(cat_features, expected_context):
+    with expected_context:
         SmartDecisionTreeClassifier(cat_features=cat_features)
 
 
 @pytest.mark.parametrize(
-    ("rank_features", "expected"),
+    ("rank_features", "expected_context"),
     [
         (None, does_not_raise()),
         ({"feature": ["a", "b", "c"]}, does_not_raise()),
         (
             1,
-            raises(
+            pytest.raises(
                 ValueError,
                 match=(
                     "`rank_features` must be a dictionary"
@@ -397,7 +396,7 @@ def test__check_params__cat_features(cat_features, expected):
         ),
         (
             {1: ["a", "b", "c"]},
-            raises(
+            pytest.raises(
                 ValueError,
                 match=(
                     "Keys in `rank_features` must be a strings."
@@ -407,7 +406,7 @@ def test__check_params__cat_features(cat_features, expected):
         ),
         (
             {"feature": "value"},
-            raises(
+            pytest.raises(
                 ValueError,
                 match=(
                     "Values in `rank_features` must be lists."
@@ -418,20 +417,20 @@ def test__check_params__cat_features(cat_features, expected):
     ],
     ids=["None", "dict[str, list[str]", "int", "dict[int, list[str]]", "dict[str, str]"],
 )
-def test__check_params__rank_features(rank_features, expected):
-    with expected:
+def test__check_params__rank_features(rank_features, expected_context):
+    with expected_context:
         SmartDecisionTreeClassifier(rank_features=rank_features)
 
 
 @pytest.mark.parametrize(
-    ("hierarchy", "expected"),
+    ("hierarchy", "expected_context"),
     [
         (None, does_not_raise()),
         ({"feature_key": "feature"}, does_not_raise()),
         ({"feature_key": ["feature1", "feature2"]}, does_not_raise()),
         (
             "feature",
-            raises(
+            pytest.raises(
                 ValueError,
                 match=re.escape(
                     "`hierarchy` must be a dictionary"
@@ -442,7 +441,7 @@ def test__check_params__rank_features(rank_features, expected):
         ),
         (
             {1: "feature"},
-            raises(
+            pytest.raises(
                 ValueError,
                 match=(
                     "`hierarchy` must be a dictionary"
@@ -453,7 +452,7 @@ def test__check_params__rank_features(rank_features, expected):
         ),
         (
             {"feature_key": 1},
-            raises(
+            pytest.raises(
                 ValueError,
                 match=re.escape(
                     "`hierarchy` must be a dictionary"
@@ -464,7 +463,7 @@ def test__check_params__rank_features(rank_features, expected):
         ),
         (
             {"feature_key": ["feature1", 1]},
-            raises(
+            pytest.raises(
                 ValueError,
                 match=(
                     "`hierarchy` must be a dictionary"
@@ -484,13 +483,13 @@ def test__check_params__rank_features(rank_features, expected):
         "dict[str, list[str | int]]",
     ],
 )
-def test__check_params__hierarchy(hierarchy, expected):
-    with expected:
+def test__check_params__hierarchy(hierarchy, expected_context):
+    with expected_context:
         SmartDecisionTreeClassifier(hierarchy=hierarchy)
 
 
 @pytest.mark.parametrize(
-    ("num_na_mode", "expected"),
+    ("num_na_mode", "expected_context"),
     [
         ("min", does_not_raise()),
         ("max", does_not_raise()),
@@ -498,7 +497,7 @@ def test__check_params__hierarchy(hierarchy, expected):
         ("include_best", does_not_raise()),
         (
             "smth",
-            raises(
+            pytest.raises(
                 ValueError,
                 match=re.escape(
                     "`num_na_mode` must be Literal['min', 'max', 'include_all', 'include_best']."
@@ -509,21 +508,21 @@ def test__check_params__hierarchy(hierarchy, expected):
     ],
     ids=["min", "max", "include_all", "include_best", "invalid"],
 )
-def test__check_params__num_na_mode(num_na_mode, expected):
-    with expected:
+def test__check_params__num_na_mode(num_na_mode, expected_context):
+    with expected_context:
         num_na_mode: NumNaModeType
         SmartDecisionTreeClassifier(num_na_mode=num_na_mode)
 
 
 @pytest.mark.parametrize(
-    ("cat_na_mode", "expected"),
+    ("cat_na_mode", "expected_context"),
     [
         ("as_category", does_not_raise()),
         ("include_all", does_not_raise()),
         ("include_best", does_not_raise()),
         (
             "smth",
-            raises(
+            pytest.raises(
                 ValueError,
                 match=re.escape(
                     "`cat_na_mode` must be Literal['as_category', 'include_all', 'include_best']."
@@ -534,19 +533,19 @@ def test__check_params__num_na_mode(num_na_mode, expected):
     ],
     ids=["as_category", "include_all", "include_best", "invalid"],
 )
-def test__check_params__cat_na_mode(cat_na_mode, expected):
-    with expected:
+def test__check_params__cat_na_mode(cat_na_mode, expected_context):
+    with expected_context:
         cat_na_mode: CatNaModeType
         SmartDecisionTreeClassifier(cat_na_mode=cat_na_mode)
 
 
 @pytest.mark.parametrize(
-    ("cat_na_filler", "expected"),
+    ("cat_na_filler", "expected_context"),
     [
         ("na", does_not_raise()),
         (
             1,
-            raises(
+            pytest.raises(
                 ValueError,
                 match=(
                     "`cat_na_filler` must be a string."
@@ -557,19 +556,19 @@ def test__check_params__cat_na_mode(cat_na_mode, expected):
     ],
     ids=["str", "int"],
 )
-def test__check_param__cat_na_filler(cat_na_filler, expected):
-    with expected:
+def test__check_param__cat_na_filler(cat_na_filler, expected_context):
+    with expected_context:
         SmartDecisionTreeClassifier(cat_na_filler=cat_na_filler)
 
 
 @pytest.mark.parametrize(
-    ("min_samples_split", "min_samples_leaf", "expected"),
+    ("min_samples_split", "min_samples_leaf", "expected_context"),
     [
         (2, 1, does_not_raise()),
         (
             2,
             2,
-            raises(
+            pytest.raises(
                 ValueError,
                 match=(
                     "`min_samples_split` must be strictly 2 times greater than"
@@ -582,21 +581,21 @@ def test__check_param__cat_na_filler(cat_na_filler, expected):
     ids=["valid", "invalid"],
 )
 def test__check_params__min_samples_split__min_samples_leaf(
-    min_samples_split, min_samples_leaf, expected
+    min_samples_split, min_samples_leaf, expected_context
 ):
-    with expected:
+    with expected_context:
         SmartDecisionTreeClassifier(
             min_samples_split=min_samples_split, min_samples_leaf=min_samples_leaf
         )
 
 
 @pytest.mark.parametrize(
-    ("feature_na_mode", "expected"),
+    ("feature_na_mode", "expected_context"),
     [
         ({"feature": "min"}, does_not_raise()),
         (
             "string",
-            raises(
+            pytest.raises(
                 ValueError,
                 match=(
                     "`feature_na_mode` must be a dictionary {feature name: NA mode}."
@@ -606,7 +605,7 @@ def test__check_params__min_samples_split__min_samples_leaf(
         ),
         (
             {1: "min"},
-            raises(
+            pytest.raises(
                 ValueError,
                 match=(
                     "Keys in `feature_na_mode` must be a strings."
@@ -616,7 +615,7 @@ def test__check_params__min_samples_split__min_samples_leaf(
         ),
         (
             {"feature": "mex"},
-            raises(
+            pytest.raises(
                 ValueError,
                 match=re.escape(
                     "Values in `feature_na_mode` must be "
@@ -628,7 +627,7 @@ def test__check_params__min_samples_split__min_samples_leaf(
     ],
     ids=["valid", "not_dict", "invalid_key", "invalid_value"],
 )
-def test__check_params__feature_na_mode(feature_na_mode, expected):
-    with expected:
+def test__check_params__feature_na_mode(feature_na_mode, expected_context):
+    with expected_context:
         feature_na_mode: dict[str, NaModeType | None]
         SmartDecisionTreeClassifier(feature_na_mode=feature_na_mode)
