@@ -103,3 +103,16 @@ class Tree:
             self.root = node
 
         return node
+
+    def compute_feature_importances(self) -> dict[str, float]:
+
+        amount = 0.0
+        for importance in self.feature_importances.values():
+            amount += importance
+
+        normalized_feature_importances = dict()
+        for feature, importance in self.feature_importances.items():
+            normalized_feature_importances[feature] = importance / amount
+
+        return normalized_feature_importances
+

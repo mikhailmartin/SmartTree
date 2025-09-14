@@ -32,5 +32,4 @@ def test__not_fitted__method(not_fitted_tree, X, y, method_call):
 )
 def test__not_fitted__property(not_fitted_tree, property_name):
     with pytest.raises(NotFittedError):
-        property_ = getattr(not_fitted_tree, property_name)
-        _ = property_
+        getattr(not_fitted_tree, property_name)

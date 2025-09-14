@@ -193,10 +193,16 @@ class BaseSmartDecisionTree(ABC):
         assert self._tree is not None
         return self._tree
 
+    def get_n_leaves(self) -> int:
+        return self.tree_.leaf_counter
+
+    def get_depth(self) -> int:
+        return self.tree_.max_depth
+
     @property
     def feature_importances_(self) -> dict[str, float]:
         self._check_is_fitted()
-        return self.tree_.feature_importances
+        return self.tree_.compute_feature_importances()
 
     @abstractmethod
     def fit(self, X: pd.DataFrame, y: pd.Series) -> Self:
