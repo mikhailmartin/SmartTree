@@ -443,6 +443,57 @@ def test__check_params__features_contain_duplicates(params_to_set, expected_cont
 
 
 @pytest.mark.parametrize(
+    ("n_features", "c_features", "r_features", "expected_context"),
+    [
+        ("f1", "f2", None, does_not_raise()),
+        (
+            "f1",
+            "f1",
+            None,
+            pytest.raises(
+                ValueError,
+                match=(
+                    "Following feature names are ambiguous, they are defined in"
+                    " both 'num_features' and 'cat_features': {'f1'}."
+                ),
+            ),
+        ),
+        ("f1", None, {"f2": ["v2"]}, does_not_raise()),
+        (
+            "f1",
+            None,
+            {"f1": ["v1"]},
+            pytest.raises(
+                ValueError,
+                match=(
+                    "Following feature names are ambiguous, they are defined in"
+                    " both 'num_features' and 'rank_features': {'f1'}."
+                ),
+            ),
+        ),
+        (None, "f1", {"f2": ["v2"]}, does_not_raise()),
+        (
+            None,
+            "f1",
+            {"f1": ["v1"]},
+            pytest.raises(
+                ValueError,
+                match=(
+                    "Following feature names are ambiguous, they are defined in"
+                    " both 'cat_features' and 'rank_features': {'f1'}."
+                ),
+            ),
+        ),
+    ],
+)
+def test__check_params__ambiguous(n_features, c_features, r_features, expected_context):
+    with expected_context:
+        SmartDecisionTreeClassifier(
+            num_features=n_features, cat_features=c_features, rank_features=r_features
+        )
+
+
+@pytest.mark.parametrize(
     ("hierarchy", "expected_context"),
     [
         (None, does_not_raise()),
