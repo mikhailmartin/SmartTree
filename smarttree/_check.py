@@ -47,9 +47,13 @@ def check__params(
 
     if num_features is not None:
         _check__num_features(num_features)
+        param_name = "num_features"
+        _check__features_contain_duplicates(param_name, num_features)
 
     if cat_features is not None:
         _check__cat_features(cat_features)
+        param_name = "cat_features"
+        _check__features_contain_duplicates(param_name, cat_features)
 
     if rank_features is not None:
         _check__rank_features(rank_features)
@@ -210,6 +214,11 @@ def _check__rank_features(rank_features):
                 "Values in `rank_features` must be lists."
                 f" The value {value_list} of the key {rank_feature} isnt a list."
             )
+
+
+def _check__features_contain_duplicates(param_name, features):
+    if isinstance(features, list) and len(features) != len(set(features)):
+        raise ValueError(f"`{param_name}` contains duplicates.")
 
 
 def _check__hierarchy(hierarchy):
