@@ -423,6 +423,26 @@ def test__check_params__rank_features(rank_features, expected_context):
 
 
 @pytest.mark.parametrize(
+    ("params_to_set", "expected_context"),
+    [
+        ({"num_features": ["f1", "f2"]}, does_not_raise()),
+        (
+            {"num_features": ["f1", "f1"]},
+            pytest.raises(ValueError, match="`num_features` contains duplicates.")
+        ),
+        ({"cat_features": ["f1", "f2"]}, does_not_raise()),
+        (
+            {"cat_features": ["f1", "f1"]},
+            pytest.raises(ValueError, match="`cat_features` contains duplicates.")
+        ),
+    ],
+)
+def test__check_params__features_contain_duplicates(params_to_set, expected_context):
+    with expected_context:
+        SmartDecisionTreeClassifier(**params_to_set)
+
+
+@pytest.mark.parametrize(
     ("hierarchy", "expected_context"),
     [
         (None, does_not_raise()),
