@@ -58,6 +58,18 @@ def check__params(
     if rank_features is not None:
         _check__rank_features(rank_features)
 
+    if num_features is not None and cat_features is not None:
+        param_name1, param_name2 = "num_features", "cat_features"
+        _check__ambiguous(num_features, cat_features, param_name1, param_name2)
+
+    if num_features is not None and rank_features is not None:
+        param_name1, param_name2 = "num_features", "rank_features"
+        _check__ambiguous(num_features, list(rank_features.keys()), param_name1, param_name2)
+
+    if cat_features is not None and rank_features is not None:
+        param_name1, param_name2 = "cat_features", "rank_features"
+        _check__ambiguous(cat_features, list(rank_features.keys()), param_name1, param_name2)
+
     if hierarchy is not None:
         _check__hierarchy(hierarchy)
 
@@ -219,6 +231,17 @@ def _check__rank_features(rank_features):
 def _check__features_contain_duplicates(param_name, features):
     if isinstance(features, list) and len(features) != len(set(features)):
         raise ValueError(f"`{param_name}` contains duplicates.")
+
+
+def _check__ambiguous(features1, features2, param_name1, param_name2):
+    set_features1 = {features1} if isinstance(features1, str) else set(features1)
+    set_features2 = {features2} if isinstance(features2, str) else set(features2)
+    intersection = set_features1 & set_features2
+    if intersection:
+        raise ValueError(
+            "Following feature names are ambiguous, they are defined in both"
+            f" '{param_name1}' and '{param_name2}': {intersection}."
+        )
 
 
 def _check__hierarchy(hierarchy):
