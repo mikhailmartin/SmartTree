@@ -317,16 +317,16 @@ def _check__feature_na_mode(feature_na_mode):
 
 
 def check__data(
+    X,
     *,
-    X=None,
     y=None,
     num_features=None,
     cat_features=None,
     rank_features=None,
     all_features=None,
 ):
-    if X is not None:
-        _check__X(X)
+    _check__X(X)
+    X = X.copy()
 
     if y is not None:
         _check__y(y)
@@ -345,6 +345,11 @@ def check__data(
 
     if all_features is not None:
         _check__all_features_in(X, all_features)
+
+    if y is not None:
+        return X, y
+    else:
+        return X
 
 
 def _check__X(X):
@@ -369,9 +374,17 @@ def _check__num_features_in(X, num_features):
     for num_feature in num_features:
         if num_feature not in X.columns:
             raise ValueError(
-                f"`num_features` contain feature {num_feature!r},"
+                f"`num_features` contain feature '{num_feature}',"
                 " which isnt present in the training data."
             )
+        if not pd.api.types.is_numeric_dtype(X[num_feature]):
+            try:
+                X[num_feature] = pd.to_numeric(X[num_feature])
+            except ValueError:
+                raise ValueError(
+                    f"`num_features` contain feature '{num_feature}',"
+                    " which isnt numeric or convertable to numeric."
+                )
 
 
 def _check__cat_features_in(X, cat_features):

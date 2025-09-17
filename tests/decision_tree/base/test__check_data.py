@@ -71,10 +71,21 @@ def decision_tree():
                 ),
             ),
         ),
+        (
+            "not_num_dtype",
+            "valid",
+            pytest.raises(
+                ValueError,
+                match=(
+                    f"`num_features` contain feature '{NUM_FEATURE}',"
+                    " which isnt numeric or convertable to numeric."
+                ),
+            ),
+        ),
     ],
     ids=[
         "valid", "not_series", "short", "not_df", "contain_na",
-        "missing_num", "missing_cat", "missing_rank",
+        "missing_num", "missing_cat", "missing_rank", "not_num_dtype",
     ],
 )
 def test__check_data__fit(X, y, X_scenario, y_scenario, decision_tree, expected_context):
@@ -85,6 +96,9 @@ def test__check_data__fit(X, y, X_scenario, y_scenario, decision_tree, expected_
         "missing_num": X[SELECTED].drop(columns=NUM_FEATURE),
         "missing_cat": X[SELECTED].drop(columns=CAT_FEATURE),
         "missing_rank": X[SELECTED].drop(columns=RANK_FEATURE),
+        "not_num_dtype": X[SELECTED].rename(
+            columns={NUM_FEATURE: CAT_FEATURE, CAT_FEATURE: NUM_FEATURE}
+        )
     }
     y_map = {
         "valid": y,
