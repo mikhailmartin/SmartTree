@@ -495,7 +495,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             y: pd.Series
               The target values.
         """
-        check__data(
+        X, y = check__data(
             X=X,
             y=y,
             num_features=self.num_features,
@@ -627,7 +627,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             ndarray: The class probabilities of the input samples. The order of
             the classes corresponds to that in the attribute :term:`class_names`.
         """
-        check__data(X=X, all_features=self.all_features)
+        X = check__data(X=X, all_features=self.all_features)
 
         X = self.__preprocess(X)
 
@@ -699,7 +699,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         sample_weight: pd.Series | None = None,
     ) -> float | np.floating:
         """Returns the accuracy metric."""
-        check__data(X=X, y=y, all_features=self.all_features)
+        X, y = check__data(X=X, y=y, all_features=self.all_features)
         return accuracy_score(y, self.predict(X), sample_weight=sample_weight)
 
     @lru_cache
