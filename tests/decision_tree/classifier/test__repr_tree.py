@@ -178,6 +178,7 @@ def test_repr_tree__hierarchy(hierarchy, expected):
         ("include_best", f"{CLASS_NAME}()"),
         ("include_all", f"{CLASS_NAME}(na_mode='include_all')"),
     ],
+    ids=["default value", "not default value"],
 )
 def test_repr_tree__na_mode(na_mode, expected):
     na_mode: CommonNaModeType
@@ -223,4 +224,17 @@ def test_repr_tree__cat_na_mode(cat_na_mode, expected):
 )
 def test_repr_tree__cat_na_filler(cat_na_filler, expected):
     tree_classifier = SmartDecisionTreeClassifier(cat_na_filler=cat_na_filler)
+    assert repr(tree_classifier) == expected
+
+
+@pytest.mark.parametrize(
+    ("rank_na_mode", "expected"),
+    [
+        (None, f"{CLASS_NAME}()"),
+        ("include_all", f"{CLASS_NAME}(rank_na_mode='include_all')"),
+    ],
+    ids=["default value", "not default value"],
+)
+def test_repr_tree_rank_na_mode(rank_na_mode, expected):
+    tree_classifier = SmartDecisionTreeClassifier(rank_na_mode=rank_na_mode)
     assert repr(tree_classifier) == expected

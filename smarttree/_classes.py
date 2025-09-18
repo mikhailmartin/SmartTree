@@ -48,6 +48,7 @@ class BaseSmartDecisionTree(ABC):
         num_na_mode: NumNaModeType | None = None,
         cat_na_mode: CatNaModeType | None = None,
         cat_na_filler: str = "missing_value",
+        rank_na_mode: CommonNaModeType | None = None,
         feature_na_mode: dict[str, NaModeType] | None = None,
         verbose: VerboseType = "WARNING",
     ) -> None:
@@ -68,6 +69,7 @@ class BaseSmartDecisionTree(ABC):
             num_na_mode=num_na_mode,
             cat_na_mode=cat_na_mode,
             cat_na_filler=cat_na_filler,
+            rank_na_mode=rank_na_mode,
             feature_na_mode=feature_na_mode,
         )
 
@@ -102,6 +104,7 @@ class BaseSmartDecisionTree(ABC):
         self.__num_na_mode = num_na_mode
         self.__cat_na_mode = cat_na_mode
         self.__cat_na_filler = cat_na_filler
+        self.__rank_na_mode = rank_na_mode
         self.__feature_na_mode: dict[str, NaModeType] = feature_na_mode or dict()
 
         self.logger = logging.getLogger()
@@ -178,6 +181,10 @@ class BaseSmartDecisionTree(ABC):
         return self.__cat_na_filler
 
     @property
+    def rank_na_mode(self) -> CommonNaModeType | None:
+        return self.__rank_na_mode
+
+    @property
     def feature_na_mode(self) -> dict[str, NaModeType]:
         return self.__feature_na_mode
 
@@ -242,6 +249,7 @@ class BaseSmartDecisionTree(ABC):
             "num_na_mode": self.num_na_mode,
             "cat_na_mode": self.cat_na_mode,
             "cat_na_filler": self.cat_na_filler,
+            "rank_na_mode": self.rank_na_mode,
             "feature_na_mode": self.feature_na_mode,
         }
 
@@ -398,6 +406,16 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
           training and predicting missing values will be filled with
           `categorical_na_filler`.
 
+        rank_na_mode: {"include_all", "include_best"}, default=None
+          The mode of handling missing values in a rank feature.
+
+          - If "include_all", then while training samples with missing values
+            are included into all child nodes. While predicting decision is
+            weighted mean of all decisions in child nodes.
+          - If "include_best", then while training and prediction samples with
+            missing values are included into the best child node according to
+            information gain.
+
         feature_na_mode: dict[str, {"min", "max", "as_category", "include_all", "include_best"}],
                          default=None
           The mode of handling missing values in a feature.
@@ -425,6 +443,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         num_na_mode: NumNaModeType | None = None,
         cat_na_mode: CatNaModeType | None = None,
         cat_na_filler: str = "missing_value",
+        rank_na_mode: CommonNaModeType | None = None,
         feature_na_mode: dict[str, NaModeType] | None = None,
         verbose: VerboseType = "WARNING",
     ) -> None:
@@ -445,6 +464,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             num_na_mode=num_na_mode,
             cat_na_mode=cat_na_mode,
             cat_na_filler=cat_na_filler,
+            rank_na_mode=rank_na_mode,
             feature_na_mode=feature_na_mode,
             verbose=verbose,
         )
@@ -489,6 +509,8 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             repr_.append(f"cat_na_mode={self.cat_na_mode!r}")
         if self.cat_na_filler != "missing_value":
             repr_.append(f"cat_na_filler={self.cat_na_filler!r}")
+        if self.rank_na_mode:
+            repr_.append(f"rank_na_mode={self.rank_na_mode!r}")
 
         return (
             f"{self.__class__.__name__}({', '.join(repr_)})"
@@ -562,6 +584,8 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             self.feature_na_mode.update({f: self.num_na_mode for f in self.num_features})
         if self.cat_na_mode is not None:
             self.feature_na_mode.update({f: self.cat_na_mode for f in self.cat_features})
+        if self.rank_na_mode is not None:
+            self.feature_na_mode.update({f: self.rank_na_mode for f in self.rank_features})
         self.feature_na_mode.update(temp_feature_na_mode)
 
         self.__classes = np.sort(y.unique())
