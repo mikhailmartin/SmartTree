@@ -41,7 +41,7 @@ class BaseColumnSplitter(ABC):
         criterion: ClassificationCriterionType,
         min_samples_split: int,
         min_samples_leaf: int,
-        feature_na_mode: dict[str, NaModeType | None],
+        feature_na_mode: dict[str, NaModeType],
     ) -> None:
 
         self.dataset = dataset
@@ -173,7 +173,7 @@ class NumColumnSplitter(BaseColumnSplitter):
         criterion: ClassificationCriterionType,
         min_samples_split: int,
         min_samples_leaf: int,
-        feature_na_mode: dict[str, NaModeType | None],
+        feature_na_mode: dict[str, NaModeType],
     ) -> None:
 
         super().__init__(
@@ -272,7 +272,7 @@ class CatColumnSplitter(BaseColumnSplitter):
         min_samples_leaf: int,
         max_leaf_nodes: int | float,
         max_childs: int | float,
-        feature_na_mode: dict[str, NaModeType | None],
+        feature_na_mode: dict[str, NaModeType],
     ) -> None:
 
         super().__init__(
@@ -397,7 +397,7 @@ class RankColumnSplitter(BaseColumnSplitter):
         min_samples_split: int,
         min_samples_leaf: int,
         rank_features: dict[str, list],
-        feature_na_mode: dict[str, NaModeType | None],
+        feature_na_mode: dict[str, NaModeType],
     ) -> None:
 
         super().__init__(

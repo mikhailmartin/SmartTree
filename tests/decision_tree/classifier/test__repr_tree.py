@@ -1,7 +1,12 @@
 import pytest
 
 from smarttree import SmartDecisionTreeClassifier
-from smarttree._types import CatNaModeType, ClassificationCriterionType, NumNaModeType
+from smarttree._types import (
+    CatNaModeType,
+    ClassificationCriterionType,
+    CommonNaModeType,
+    NumNaModeType,
+)
 
 
 CLASS_NAME = SmartDecisionTreeClassifier.__name__
@@ -168,9 +173,22 @@ def test_repr_tree__hierarchy(hierarchy, expected):
 
 
 @pytest.mark.parametrize(
+    ("na_mode", "expected"),
+    [
+        ("include_best", f"{CLASS_NAME}()"),
+        ("include_all", f"{CLASS_NAME}(na_mode='include_all')"),
+    ],
+)
+def test_repr_tree__na_mode(na_mode, expected):
+    na_mode: CommonNaModeType
+    tree_classifier = SmartDecisionTreeClassifier(na_mode=na_mode)
+    assert repr(tree_classifier) == expected
+
+
+@pytest.mark.parametrize(
     ("num_na_mode", "expected"),
     [
-        ("min", f"{CLASS_NAME}()"),
+        (None, f"{CLASS_NAME}()"),
         ("max", f"{CLASS_NAME}(num_na_mode='max')"),
     ],
     ids=["default value", "not default value"],
@@ -184,7 +202,7 @@ def test_repr_tree__num_na_mode(num_na_mode, expected):
 @pytest.mark.parametrize(
     ("cat_na_mode", "expected"),
     [
-        ("as_category", f"{CLASS_NAME}()"),
+        (None, f"{CLASS_NAME}()"),
         ("include_all", f"{CLASS_NAME}(cat_na_mode='include_all')"),
     ],
     ids=["default value", "not default value"],

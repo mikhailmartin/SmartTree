@@ -17,8 +17,9 @@ DEFAULT_PARAMS_FROM_GET = {
     "cat_features": [],
     "rank_features": {},
     "hierarchy": {},
-    "num_na_mode": "min",
-    "cat_na_mode": "as_category",
+    "na_mode": "include_best",
+    "num_na_mode": None,
+    "cat_na_mode": None,
     "cat_na_filler": "missing_value",
     "feature_na_mode": {},
 }
@@ -45,6 +46,7 @@ def test__get_params(concrete_smart_tree):
         ({"cat_features": ["cat_feature"]}, does_not_raise()),
         ({"rank_features": {"rank_feature": ["1", "2", "3"]}}, does_not_raise()),
         ({"hierarchy": {"num_feature": "rank_feature"}}, does_not_raise()),
+        ({"na_mode": "include_all"}, does_not_raise()),
         ({"num_na_mode": "max"}, does_not_raise()),
         ({"cat_na_mode": "as_category"}, does_not_raise()),
         ({"cat_na_filler": "NA"}, does_not_raise()),
@@ -58,7 +60,7 @@ def test__get_params(concrete_smart_tree):
                     " Valid parameters are: criterion, max_depth, min_samples_split,"
                     " min_samples_leaf, max_leaf_nodes, min_impurity_decrease,"
                     " max_childs, num_features, cat_features, rank_features, hierarchy,"
-                    " num_na_mode, cat_na_mode, cat_na_filler, feature_na_mode."
+                    " na_mode, num_na_mode, cat_na_mode, cat_na_filler, feature_na_mode."
                 ),
             ),
         ),
@@ -76,6 +78,7 @@ def test__get_params(concrete_smart_tree):
         "cat_features",
         "rank_features",
         "hierarchy",
+        "na_mode",
         "num_na_mode",
         "cat_na_mode",
         "cat_na_filler",
