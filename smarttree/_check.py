@@ -18,6 +18,7 @@ def check__params(
     num_na_mode=None,
     cat_na_mode=None,
     cat_na_filler=None,
+    rank_na_mode=None,
     feature_na_mode=None,
 ):
     if criterion is not None:
@@ -85,6 +86,9 @@ def check__params(
 
     if cat_na_filler is not None:
         _check__cat_na_filler(cat_na_filler)
+
+    if rank_na_mode is not None:
+        _check__rank_na_mode(rank_na_mode)
 
     if feature_na_mode is not None:
         _check__feature_na_mode(feature_na_mode)
@@ -279,7 +283,7 @@ def _check__hierarchy(hierarchy):
 def _check_na_mode(na_mode):
     if na_mode not in ("include_all", "include_best"):
         raise ValueError(
-            "`num_na_mode` must be Literal['include_all', 'include_best']."
+            "`na_mode` must be Literal['include_all', 'include_best']."
             f" The current value of `na_mode` is {na_mode!r}."
         )
 
@@ -305,6 +309,14 @@ def _check__cat_na_filler(cat_na_filler):
         raise ValueError(
             "`cat_na_filler` must be a string."
             f" The current value of `cat_na_filler` is {cat_na_filler!r}."
+        )
+
+
+def _check__rank_na_mode(rank_na_mode):
+    if rank_na_mode not in ("include_all", "include_best"):
+        raise ValueError(
+            "`rank_na_mode` must be Literal['include_all', 'include_best']."
+            f" The current value of `na_mode` is {rank_na_mode!r}."
         )
 
 
