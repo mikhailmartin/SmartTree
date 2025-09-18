@@ -316,7 +316,7 @@ def _check__rank_na_mode(rank_na_mode):
     if rank_na_mode not in ("include_all", "include_best"):
         raise ValueError(
             "`rank_na_mode` must be Literal['include_all', 'include_best']."
-            f" The current value of `na_mode` is {rank_na_mode!r}."
+            f" The current value of `rank_na_mode` is {rank_na_mode!r}."
         )
 
 
