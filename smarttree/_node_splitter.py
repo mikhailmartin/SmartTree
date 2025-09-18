@@ -43,7 +43,7 @@ class NodeSplitter:
         num_features: list[str],
         cat_features: list[str],
         rank_features: dict[str, list],
-        feature_na_mode: dict[str, NaModeType | None],
+        feature_na_mode: dict[str, NaModeType],
     ) -> None:
 
         self.max_depth = max_depth

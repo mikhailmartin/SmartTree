@@ -14,6 +14,7 @@ def check__params(
     cat_features=None,
     rank_features=None,
     hierarchy=None,
+    na_mode=None,
     num_na_mode=None,
     cat_na_mode=None,
     cat_na_filler=None,
@@ -72,6 +73,9 @@ def check__params(
 
     if hierarchy is not None:
         _check__hierarchy(hierarchy)
+
+    if na_mode is not None:
+        _check_na_mode(na_mode)
 
     if num_na_mode is not None:
         _check__num_na_mode(num_na_mode)
@@ -270,6 +274,14 @@ def _check__hierarchy(hierarchy):
                     raise ValueError(
                         f"{common_message} Value {elem} of opened feature isnt a string."
                     )
+
+
+def _check_na_mode(na_mode):
+    if na_mode not in ("include_all", "include_best"):
+        raise ValueError(
+            "`num_na_mode` must be Literal['include_all', 'include_best']."
+            f" The current value of `na_mode` is {na_mode!r}."
+        )
 
 
 def _check__num_na_mode(num_na_mode):

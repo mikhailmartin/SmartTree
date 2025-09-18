@@ -20,6 +20,7 @@ from ._tree import Tree, TreeNode
 from ._types import (
     CatNaModeType,
     ClassificationCriterionType,
+    CommonNaModeType,
     NaModeType,
     NumNaModeType,
     VerboseType,
@@ -43,10 +44,11 @@ class BaseSmartDecisionTree(ABC):
         cat_features: list[str] | str | None = None,
         rank_features: dict[str, list] | None = None,
         hierarchy: dict[str, str | list[str]] | None = None,
-        num_na_mode: NumNaModeType = "min",
-        cat_na_mode: CatNaModeType = "as_category",
+        na_mode: CommonNaModeType = "include_best",
+        num_na_mode: NumNaModeType | None = None,
+        cat_na_mode: CatNaModeType | None = None,
         cat_na_filler: str = "missing_value",
-        feature_na_mode: dict[str, NaModeType | None] | None = None,
+        feature_na_mode: dict[str, NaModeType] | None = None,
         verbose: VerboseType = "WARNING",
     ) -> None:
 
@@ -62,6 +64,7 @@ class BaseSmartDecisionTree(ABC):
             cat_features=cat_features,
             rank_features=rank_features,
             hierarchy=hierarchy,
+            na_mode=na_mode,
             num_na_mode=num_na_mode,
             cat_na_mode=cat_na_mode,
             cat_na_filler=cat_na_filler,
@@ -75,7 +78,7 @@ class BaseSmartDecisionTree(ABC):
         self.__max_leaf_nodes = max_leaf_nodes
         self.__min_impurity_decrease = min_impurity_decrease
         self.__max_childs = max_childs
-        self.__hierarchy = dict() if hierarchy is None else hierarchy
+        self.__hierarchy = hierarchy or dict()
 
         if num_features is None:
             self.__num_features = []
@@ -91,28 +94,15 @@ class BaseSmartDecisionTree(ABC):
         else:
             self.__cat_features = cat_features
 
-        self.__rank_features = dict() if rank_features is None else rank_features
+        self.__rank_features = rank_features or dict()
 
         self._all_features: list[str] = []
 
+        self.__na_mode = na_mode
         self.__num_na_mode = num_na_mode
         self.__cat_na_mode = cat_na_mode
         self.__cat_na_filler = cat_na_filler
-
-        self.__feature_na_mode: dict[str, NaModeType | None]
-        if feature_na_mode is None:
-            self.__feature_na_mode = dict()
-        else:
-            self.__feature_na_mode = feature_na_mode
-        for num_feature in self.num_features:
-            if num_feature not in self.__feature_na_mode:
-                self.__feature_na_mode[num_feature] = self.num_na_mode
-        for cat_feature in self.cat_features:
-            if cat_feature not in self.__feature_na_mode:
-                self.__feature_na_mode[cat_feature] = self.cat_na_mode
-        for rank_feature in self.rank_features:
-            if rank_feature not in self.__feature_na_mode:
-                self.__feature_na_mode[rank_feature] = None
+        self.__feature_na_mode: dict[str, NaModeType] = feature_na_mode or dict()
 
         self.logger = logging.getLogger()
         self.logger.setLevel(verbose)
@@ -172,11 +162,15 @@ class BaseSmartDecisionTree(ABC):
         return self.__hierarchy
 
     @property
-    def num_na_mode(self) -> NumNaModeType:
+    def na_mode(self) -> CommonNaModeType:
+        return self.__na_mode
+
+    @property
+    def num_na_mode(self) -> NumNaModeType | None:
         return self.__num_na_mode
 
     @property
-    def cat_na_mode(self) -> CatNaModeType:
+    def cat_na_mode(self) -> CatNaModeType | None:
         return self.__cat_na_mode
 
     @property
@@ -184,7 +178,7 @@ class BaseSmartDecisionTree(ABC):
         return self.__cat_na_filler
 
     @property
-    def feature_na_mode(self) -> dict[str, NaModeType | None]:
+    def feature_na_mode(self) -> dict[str, NaModeType]:
         return self.__feature_na_mode
 
     @property
@@ -244,6 +238,7 @@ class BaseSmartDecisionTree(ABC):
             "cat_features": self.cat_features,
             "rank_features": self.rank_features,
             "hierarchy": self.hierarchy,
+            "na_mode": self.na_mode,
             "num_na_mode": self.num_na_mode,
             "cat_na_mode": self.cat_na_mode,
             "cat_na_filler": self.cat_na_filler,
@@ -362,7 +357,17 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
           If provided, the algorithm will respect these dependencies when
           selecting features for splits.
 
-        num_na_mode: {"min", "max", "include_all", "include_best"}, default="min"
+        na_mode: {"include_all", "include_best"}, default="include_best"
+          The mode of handling missing values in a feature.
+
+          - If "include_all", then while training samples with missing values
+            are included into all child nodes. While predicting decision is
+            weighted mean of all decisions in child nodes.
+          - If "include_best", then while training and prediction samples with
+            missing values are included into the best child node according to
+            information gain.
+
+        num_na_mode: {"min", "max", "include_all", "include_best"}, default=None
           The mode of handling missing values in a numerical feature.
 
           - If "min", then missing values are filled with minimum value of
@@ -376,7 +381,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             missing values are included into the best child node according to
             information gain.
 
-        cat_na_mode: {"as_category", "include_all", "include_best"}, default="as_category"
+        cat_na_mode: {"as_category", "include_all", "include_best"}, default=None
           The mode of handling missing values in a categorical feature.
 
           - If "as_category", then while training and predicting missing values
@@ -416,10 +421,11 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         cat_features: list[str] | str | None = None,
         rank_features: dict[str, list] | None = None,
         hierarchy: dict[str, str | list[str]] | None = None,
-        num_na_mode: NumNaModeType = "min",
-        cat_na_mode: CatNaModeType = "as_category",
+        na_mode: CommonNaModeType = "include_best",
+        num_na_mode: NumNaModeType | None = None,
+        cat_na_mode: CatNaModeType | None = None,
         cat_na_filler: str = "missing_value",
-        feature_na_mode: dict[str, NaModeType | None] | None = None,
+        feature_na_mode: dict[str, NaModeType] | None = None,
         verbose: VerboseType = "WARNING",
     ) -> None:
 
@@ -435,6 +441,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             cat_features=cat_features,
             rank_features=rank_features,
             hierarchy=hierarchy,
+            na_mode=na_mode,
             num_na_mode=num_na_mode,
             cat_na_mode=cat_na_mode,
             cat_na_filler=cat_na_filler,
@@ -474,9 +481,11 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             repr_.append(f"rank_features={self.rank_features}")
         if self.hierarchy:
             repr_.append(f"hierarchy={self.hierarchy}")
-        if self.num_na_mode != "min":
+        if self.na_mode != "include_best":
+            repr_.append(f"na_mode={self.na_mode!r}")
+        if self.num_na_mode:
             repr_.append(f"num_na_mode={self.num_na_mode!r}")
-        if self.cat_na_mode != "as_category":
+        if self.cat_na_mode:
             repr_.append(f"cat_na_mode={self.cat_na_mode!r}")
         if self.cat_na_filler != "missing_value":
             repr_.append(f"cat_na_filler={self.cat_na_filler!r}")
@@ -534,24 +543,27 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         )
         if unknown_num_features:
             self.num_features.extend(unknown_num_features)
-            for num_feature in unknown_num_features:
-                if num_feature not in self.feature_na_mode:
-                    self.feature_na_mode[num_feature] = self.num_na_mode
             self.logger.info(
                 f"[{self.__class__.__name__}] [Info] {unknown_num_features} are"
                 " added to `num_features`."
             )
         if unknown_cat_features:
             self.cat_features.extend(unknown_cat_features)
-            for cat_feature in unknown_cat_features:
-                if cat_feature not in self.feature_na_mode:
-                    self.feature_na_mode[cat_feature] = self.cat_na_mode
             self.logger.info(
                 f"[{self.__class__.__name__}] [Info] {unknown_cat_features} are"
                 " added to `cat_features`."
             )
 
         self._all_features = X.columns.to_list()
+
+        temp_feature_na_mode = self.feature_na_mode.copy()
+        self.feature_na_mode.update({f: self.na_mode for f in self._all_features})
+        if self.num_na_mode is not None:
+            self.feature_na_mode.update({f: self.num_na_mode for f in self.num_features})
+        if self.cat_na_mode is not None:
+            self.feature_na_mode.update({f: self.cat_na_mode for f in self.cat_features})
+        self.feature_na_mode.update(temp_feature_na_mode)
+
         self.__classes = np.sort(y.unique())
 
         for feature, na_mode in self.feature_na_mode.items():
