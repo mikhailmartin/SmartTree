@@ -402,9 +402,8 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             information gain.
 
         cat_na_filler: str, default="missing_value"
-          If `categorical_na_mode` is set to "as_category", then during
-          training and predicting missing values will be filled with
-          `categorical_na_filler`.
+          If `cat_na_mode` is set to "as_category", then during training and
+          predicting missing values will be filled with `cat_na_filler`.
 
         rank_na_mode: {"include_all", "include_best"}, default=None
           The mode of handling missing values in a rank feature.
