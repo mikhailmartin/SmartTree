@@ -61,6 +61,22 @@ class BaseColumnSplitter(ABC):
     def split(self, *args, **kwargs) -> ColumnSplitResult:
         raise NotImplementedError
 
+    def include_all_split(
+        self,
+        parent_mask: pd.Series,
+        mask_na: pd.Series,
+        child_masks: list[pd.Series],
+    ) -> tuple[float, list[pd.Series], int]:
+
+        for i, child_mask in enumerate(child_masks):
+            child_masks[i] = child_mask | (parent_mask & mask_na)
+            if child_masks[i].sum() < self.min_samples_leaf:
+                return NO_INFORMATION_GAIN, [], -1
+
+        information_gain = self.information_gain(parent_mask, child_masks, "include_all")
+
+        return information_gain, child_masks, -1
+
     def include_best_split(
         self,
         parent_mask: pd.Series,
@@ -251,10 +267,7 @@ class NumColumnSplitter(BaseColumnSplitter):
 
         na_mode = self.feature_na_mode[split_feature]
         if na_mode == "include_all":
-            for i, child_mask in enumerate(child_masks):
-                child_masks[i] = child_mask | (parent_mask & mask_na)
-                if child_masks[i].sum() < self.min_samples_leaf:
-                    return NO_INFORMATION_GAIN, [], -1
+            return self.include_all_split(parent_mask, mask_na, child_masks)
 
         elif na_mode == "include_best":
             return self.include_best_split(parent_mask, mask_na, child_masks)
@@ -339,10 +352,7 @@ class CatColumnSplitter(BaseColumnSplitter):
 
         na_mode = self.feature_na_mode[split_feature]
         if na_mode == "include_all":
-            for i, child_mask in enumerate(child_masks):
-                child_masks[i] = child_mask | (parent_mask & mask_na)
-                if child_masks[i].sum() < self.min_samples_leaf:
-                    return NO_INFORMATION_GAIN, [], -1
+            return self.include_all_split(parent_mask, mask_na, child_masks)
 
         elif na_mode == "include_best":
             return self.include_best_split(parent_mask, mask_na, child_masks)
@@ -423,10 +433,7 @@ class RankColumnSplitter(BaseColumnSplitter):
 
         na_mode = self.feature_na_mode[split_feature]
         if na_mode == "include_all":
-            for i, child_mask in enumerate(child_masks):
-                child_masks[i] = child_mask | (parent_mask & mask_na)
-                if child_masks[i].sum() < self.min_samples_leaf:
-                    return NO_INFORMATION_GAIN, [], -1
+            return self.include_all_split(parent_mask, mask_na, child_masks)
 
         elif na_mode == "include_best":
             return self.include_best_split(parent_mask, mask_na, child_masks)
