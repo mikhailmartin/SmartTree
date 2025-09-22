@@ -10,11 +10,10 @@ import numpy as np
 import pandas as pd
 from numpy.typing import NDArray
 
+from ._cgini_index import cgini_index
 from ._dataset import Dataset
 from ._tree import TreeNode
 from ._types import ClassificationCriterionType, NaModeType
-
-from ._cgini_index import cgini_index
 
 
 NO_INFORMATION_GAIN = float("-inf")
