@@ -20,6 +20,7 @@ NO_INFORMATION_GAIN = float("-inf")
 
 
 class ColumnSplitResult(NamedTuple):
+
     information_gain: float
     feature_values: list[list]
     child_masks: list[pd.Series]

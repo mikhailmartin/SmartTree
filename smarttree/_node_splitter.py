@@ -9,6 +9,7 @@ from ._types import ClassificationCriterionType, NaModeType, SplitType
 
 
 class NodeSplitResult(NamedTuple):
+
     information_gain: float
     split_type: str
     split_feature: str
