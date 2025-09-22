@@ -4,7 +4,7 @@ from smarttree._node_splitter import NodeSplitter
 
 
 @pytest.fixture(scope="module")
-def concrete_node_splitter(
+def node_splitter(
     X, y, num_features, cat_features, rank_features, feature_na_mode
 ) -> NodeSplitter:
     return NodeSplitter(
@@ -24,10 +24,10 @@ def concrete_node_splitter(
     )
 
 
-def test__find_best_split(concrete_node_splitter, root_node):
-    concrete_node_splitter.find_best_split_for(root_node, leaf_counter=0)
+def test__find_best_split(node_splitter, root_node):
+    node_splitter.find_best_split_for(root_node, leaf_counter=0)
 
 
-def test__is_splittable(concrete_node_splitter, root_node):
-    concrete_node_splitter.find_best_split_for(root_node, leaf_counter=0)
-    concrete_node_splitter.is_splittable(root_node, leaf_counter=0)
+def test__is_splittable(node_splitter, root_node):
+    node_splitter.find_best_split_for(root_node, leaf_counter=0)
+    node_splitter.is_splittable(root_node, leaf_counter=0)

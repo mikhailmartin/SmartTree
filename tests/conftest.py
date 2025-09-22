@@ -1,4 +1,5 @@
 import os
+from itertools import chain
 
 import numpy as np
 import pandas as pd
@@ -151,12 +152,8 @@ def feature_na_mode(
 ) -> dict[str, NaModeType | None]:
 
     result = dict()
-    for num_feature in num_features:
-        result[num_feature] = "min"
-    for cat_feature in cat_features:
-        result[cat_feature] = "as_category"
-    for rank_feature in rank_features:
-        result[rank_feature] = None
+    for feature in chain(num_features, cat_features, rank_features):
+        result[feature] = "include_best"
 
     return result
 

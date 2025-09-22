@@ -74,7 +74,7 @@ class BaseColumnSplitter(ABC):
             if child_masks[i].sum() < self.min_samples_leaf:
                 return NO_INFORMATION_GAIN, [], -1
 
-        information_gain = self.information_gain(parent_mask, child_masks, "include_all")
+        information_gain = self.information_gain(parent_mask, child_masks, normalize=True)
 
         return information_gain, child_masks, -1
 
@@ -100,7 +100,7 @@ class BaseColumnSplitter(ABC):
         best_child_masks = []
         best_child_na_index = -1
         for child_na_index, child_masks in enumerate(candidates):
-            information_gain = self.information_gain(parent_mask, child_masks, "include_best")
+            information_gain = self.information_gain(parent_mask, child_masks)
             if best_information_gain < information_gain:
                 best_information_gain = information_gain
                 best_child_masks = child_masks
@@ -112,7 +112,7 @@ class BaseColumnSplitter(ABC):
         self,
         parent_mask: pd.Series,
         child_masks: list[pd.Series],
-        na_mode: NaModeType | None = None,
+        normalize: bool = False,
     ) -> float:
         r"""
         Calculates information gain of the split.
@@ -122,8 +122,9 @@ class BaseColumnSplitter(ABC):
               boolean mask of parent node.
             child_masks: pd.Series
               list of boolean masks of child nodes.
-            na_mode: {"include_all", ...}, default=None
-              If "include_all" use normalization.
+            normalize: bool, default=False
+              if True, normalizes information gain by split factor to handle
+              unbalanced splits. Uses child node counts for normalization.
 
         Returns:
             float: information gain.
@@ -160,7 +161,7 @@ class BaseColumnSplitter(ABC):
             impurity_child_i = self.impurity(child_mask_i)
             weighted_impurity_childs += (N_child_i / N_parent) * impurity_child_i
 
-        if na_mode == "include_all":
+        if normalize:
             norm_coef = N_parent / N_childs
             weighted_impurity_childs *= norm_coef
 
@@ -260,22 +261,22 @@ class NumColumnSplitter(BaseColumnSplitter):
         threshold: float,
     ) -> tuple[float, list[pd.Series], int]:
 
-        mask_na = parent_mask & self.dataset.mask_na[split_feature]
-
         mask_less = parent_mask & (self.dataset.X[split_feature] <= threshold)
         mask_more = parent_mask & (self.dataset.X[split_feature] > threshold)
         child_masks = [mask_less, mask_more]
 
-        na_mode = self.feature_na_mode[split_feature]
-        if na_mode == "include_all":
-            return self.include_all_split(parent_mask, mask_na, child_masks)
-
-        elif na_mode == "include_best":
-            return self.include_best_split(parent_mask, mask_na, child_masks)
-
-        information_gain = self.information_gain(parent_mask, child_masks, na_mode)
-
-        return information_gain, child_masks, -1
+        if self.dataset.has_na[split_feature]:
+            mask_na = parent_mask & self.dataset.mask_na[split_feature]
+            na_mode = self.feature_na_mode[split_feature]
+            if na_mode == "include_all":
+                return self.include_all_split(parent_mask, mask_na, child_masks)
+            elif na_mode == "include_best":
+                return self.include_best_split(parent_mask, mask_na, child_masks)
+            else:
+                assert False
+        else:
+            information_gain = self.information_gain(parent_mask, child_masks)
+            return information_gain, child_masks, -1
 
 
 class CatColumnSplitter(BaseColumnSplitter):
@@ -343,24 +344,24 @@ class CatColumnSplitter(BaseColumnSplitter):
         feature_values: list[list],
     ) -> tuple[float, list[pd.Series], int]:
 
-        mask_na = parent_mask & self.dataset.mask_na[split_feature]
-
         child_masks = []
         for partition in feature_values:
             partition_mask = self.dataset.X[split_feature].isin(partition)
             child_mask = parent_mask & partition_mask
             child_masks.append(child_mask)
 
-        na_mode = self.feature_na_mode[split_feature]
-        if na_mode == "include_all":
-            return self.include_all_split(parent_mask, mask_na, child_masks)
-
-        elif na_mode == "include_best":
-            return self.include_best_split(parent_mask, mask_na, child_masks)
-
-        information_gain = self.information_gain(parent_mask, child_masks, na_mode)
-
-        return information_gain, child_masks, -1
+        if self.dataset.has_na[split_feature]:
+            mask_na = parent_mask & self.dataset.mask_na[split_feature]
+            na_mode = self.feature_na_mode[split_feature]
+            if na_mode == "include_all":
+                return self.include_all_split(parent_mask, mask_na, child_masks)
+            elif na_mode == "include_best":
+                return self.include_best_split(parent_mask, mask_na, child_masks)
+            else:
+                assert False
+        else:
+            information_gain = self.information_gain(parent_mask, child_masks)
+            return information_gain, child_masks, -1
 
     def __cat_partitions(
         self,
@@ -424,24 +425,24 @@ class RankColumnSplitter(BaseColumnSplitter):
         feature_values: tuple[list, list],
     ) -> tuple[float, list[pd.Series], int]:
 
-        mask_na = parent_mask & self.dataset.mask_na[split_feature]
-
         feature_values_left, feature_values_right = feature_values
 
         mask_left = parent_mask & self.dataset.X[split_feature].isin(feature_values_left)
         mask_right = parent_mask & self.dataset.X[split_feature].isin(feature_values_right)
         child_masks = [mask_left, mask_right]
 
-        na_mode = self.feature_na_mode[split_feature]
-        if na_mode == "include_all":
-            return self.include_all_split(parent_mask, mask_na, child_masks)
-
-        elif na_mode == "include_best":
-            return self.include_best_split(parent_mask, mask_na, child_masks)
-
-        information_gain = self.information_gain(parent_mask, child_masks)
-
-        return information_gain, child_masks, -1
+        if self.dataset.has_na[split_feature]:
+            mask_na = parent_mask & self.dataset.mask_na[split_feature]
+            na_mode = self.feature_na_mode[split_feature]
+            if na_mode == "include_all":
+                return self.include_all_split(parent_mask, mask_na, child_masks)
+            elif na_mode == "include_best":
+                return self.include_best_split(parent_mask, mask_na, child_masks)
+            else:
+                assert False
+        else:
+            information_gain = self.information_gain(parent_mask, child_masks)
+            return information_gain, child_masks, -1
 
     @staticmethod
     def __rank_partitions(collection: list) -> Generator[tuple[list, list], None, None]:
