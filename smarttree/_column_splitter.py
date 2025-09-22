@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import math
 from abc import ABC, abstractmethod
 from collections.abc import Generator
 from copy import deepcopy
@@ -216,16 +215,9 @@ class BaseColumnSplitter(ABC):
         \overline{N} - effective number of states;
         p_i - probability of the i-th system state.
         """
-        N = mask.sum()
-
-        entropy = 0
-        for label in self.dataset.class_names:
-            N_i = (mask & (self.dataset.y == label)).sum()
-            if N_i != 0:
-                p_i = N_i / N
-                entropy -= p_i * math.log2(p_i)
-
-        return entropy
+        return CyBaseColumnSplitter.entropy(
+            mask, self.dataset.y, self.dataset.class_names
+        )
 
 
 class NumColumnSplitter(BaseColumnSplitter):
