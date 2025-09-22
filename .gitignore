@@ -1,9 +1,16 @@
 # PyCharm
 /.idea
+
 # IPython
 .ipynb_checkpoints/
+*.ipynb
+
 # bytecode
 __pycache__/
 
-*.ipynb
 /poetry.toml
+
+# Cython
+build
+*.pyd
+*.so

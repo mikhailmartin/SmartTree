@@ -14,6 +14,8 @@ from ._dataset import Dataset
 from ._tree import TreeNode
 from ._types import ClassificationCriterionType, NaModeType
 
+from ._cgini_index import cgini_index
+
 
 NO_INFORMATION_GAIN = float("-inf")
 
@@ -132,15 +134,16 @@ class BaseColumnSplitter(ABC):
             C - total number of classes;
             p_i - the probability of choosing a sample with class i.
         """
-        N = mask.sum()
-
-        gini_index = 1
-        for label in self.dataset.class_names:
-            N_i = (mask & (self.dataset.y == label)).sum()
-            p_i = N_i / N
-            gini_index -= pow(p_i, 2)
-
-        return gini_index
+        # N = mask.sum()
+        #
+        # gini_index = 1
+        # for label in self.dataset.class_names:
+        #     N_i = (mask & (self.dataset.y == label)).sum()
+        #     p_i = N_i / N
+        #     gini_index -= pow(p_i, 2)
+        #
+        # return gini_index
+        return cgini_index(mask, self.dataset.y, self.dataset.class_names)
 
     def entropy(self, mask: pd.Series) -> float:
         r"""
