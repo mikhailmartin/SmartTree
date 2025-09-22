@@ -62,6 +62,26 @@ class BaseColumnSplitter(ABC):
     def split(self, *args, **kwargs) -> ColumnSplitResult:
         raise NotImplementedError
 
+    def foo(
+        self,
+        parent_mask: pd.Series,
+        split_feature: str,
+        child_masks: list[pd.Series],
+    ) -> tuple[float, list[pd.Series], int]:
+
+        if self.dataset.has_na[split_feature]:
+            mask_na = parent_mask & self.dataset.mask_na[split_feature]
+            na_mode = self.feature_na_mode[split_feature]
+            if na_mode == "include_all":
+                return self.include_all_split(parent_mask, mask_na, child_masks)
+            elif na_mode == "include_best":
+                return self.include_best_split(parent_mask, mask_na, child_masks)
+            else:
+                assert False
+        else:
+            information_gain = self.information_gain(parent_mask, child_masks)
+            return information_gain, child_masks, -1
+
     def include_all_split(
         self,
         parent_mask: pd.Series,
@@ -256,7 +276,8 @@ class NumColumnSplitter(BaseColumnSplitter):
         return np.convolve(array, np.ones(window), mode="valid") / window
 
     def __num_split(
-        self, parent_mask: pd.Series,
+        self,
+        parent_mask: pd.Series,
         split_feature: str,
         threshold: float,
     ) -> tuple[float, list[pd.Series], int]:
@@ -265,18 +286,7 @@ class NumColumnSplitter(BaseColumnSplitter):
         mask_more = parent_mask & (self.dataset.X[split_feature] > threshold)
         child_masks = [mask_less, mask_more]
 
-        if self.dataset.has_na[split_feature]:
-            mask_na = parent_mask & self.dataset.mask_na[split_feature]
-            na_mode = self.feature_na_mode[split_feature]
-            if na_mode == "include_all":
-                return self.include_all_split(parent_mask, mask_na, child_masks)
-            elif na_mode == "include_best":
-                return self.include_best_split(parent_mask, mask_na, child_masks)
-            else:
-                assert False
-        else:
-            information_gain = self.information_gain(parent_mask, child_masks)
-            return information_gain, child_masks, -1
+        return self.foo(parent_mask, split_feature, child_masks)
 
 
 class CatColumnSplitter(BaseColumnSplitter):
@@ -350,18 +360,7 @@ class CatColumnSplitter(BaseColumnSplitter):
             child_mask = parent_mask & partition_mask
             child_masks.append(child_mask)
 
-        if self.dataset.has_na[split_feature]:
-            mask_na = parent_mask & self.dataset.mask_na[split_feature]
-            na_mode = self.feature_na_mode[split_feature]
-            if na_mode == "include_all":
-                return self.include_all_split(parent_mask, mask_na, child_masks)
-            elif na_mode == "include_best":
-                return self.include_best_split(parent_mask, mask_na, child_masks)
-            else:
-                assert False
-        else:
-            information_gain = self.information_gain(parent_mask, child_masks)
-            return information_gain, child_masks, -1
+        return self.foo(parent_mask, split_feature, child_masks)
 
     def __cat_partitions(
         self,
@@ -431,18 +430,7 @@ class RankColumnSplitter(BaseColumnSplitter):
         mask_right = parent_mask & self.dataset.X[split_feature].isin(feature_values_right)
         child_masks = [mask_left, mask_right]
 
-        if self.dataset.has_na[split_feature]:
-            mask_na = parent_mask & self.dataset.mask_na[split_feature]
-            na_mode = self.feature_na_mode[split_feature]
-            if na_mode == "include_all":
-                return self.include_all_split(parent_mask, mask_na, child_masks)
-            elif na_mode == "include_best":
-                return self.include_best_split(parent_mask, mask_na, child_masks)
-            else:
-                assert False
-        else:
-            information_gain = self.information_gain(parent_mask, child_masks)
-            return information_gain, child_masks, -1
+        return self.foo(parent_mask, split_feature, child_masks)
 
     @staticmethod
     def __rank_partitions(collection: list) -> Generator[tuple[list, list], None, None]:
