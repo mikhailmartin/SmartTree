@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 from numpy.typing import NDArray
 
-from ._cgini_index import cgini_index
+from ._cy_column_splitter import CyBaseColumnSplitter
 from ._dataset import Dataset
 from ._tree import TreeNode
 from ._types import ClassificationCriterionType, NaModeType
@@ -201,7 +201,9 @@ class BaseColumnSplitter(ABC):
             C - total number of classes;
             p_i - the probability of choosing a sample with class i.
         """
-        return cgini_index(mask, self.dataset.y, self.dataset.class_names)
+        return CyBaseColumnSplitter.gini_index(
+            mask, self.dataset.y, self.dataset.class_names
+        )
 
     def entropy(self, mask: pd.Series) -> float:
         r"""
