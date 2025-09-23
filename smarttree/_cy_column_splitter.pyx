@@ -28,7 +28,6 @@ cdef class CyBaseColumnSplitter:
         cdef int i
         cdef int j
         cdef int n = len(mask)
-        cdef int n_classes = len(class_names)
         cdef object class_name
         cdef object label
         cdef int8_t mask_value
@@ -41,7 +40,7 @@ cdef class CyBaseColumnSplitter:
         if N == 0:
             return 0.0
 
-        for j in range(n_classes):
+        for j in range(len(class_names)):
             N_i = 0
             class_name = class_names[j]
 
@@ -72,7 +71,6 @@ cdef class CyBaseColumnSplitter:
         cdef int i
         cdef int j
         cdef int n = len(mask)
-        cdef int n_classes = len(class_names)
         cdef object class_name
         cdef object label
         cdef int8_t mask_value
@@ -82,7 +80,7 @@ cdef class CyBaseColumnSplitter:
             if mask_value:
                 N += 1
 
-        for j in range(n_classes):
+        for j in range(len(class_names)):
             N_i = 0
             class_name = class_names[j]
 
