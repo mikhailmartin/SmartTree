@@ -1,6 +1,6 @@
 cimport cython
+from libc.math cimport log2
 from libc.stdint cimport int8_t
-import math
 
 import numpy as np
 
@@ -19,27 +19,26 @@ cdef class CyBaseColumnSplitter:
     @cython.cdivision(True)
     def gini_index(mask, y, class_names):
 
-        cdef int8_t[:] mask_arr = mask.values.astype(np.int8)
-        cdef object[:] y_arr = y.values
-        cdef long N = 0
-        cdef long N_i = 0
-        cdef double p_i = 0.0
-        cdef double gini_index = 1.0
-        cdef int i
-        cdef int j
-        cdef int n = len(mask)
-        cdef object class_name
-        cdef object label
-        cdef int8_t mask_value
+        cdef:
+            int8_t[:] mask_arr = mask.values.astype(np.int8)
+            object[:] y_arr = y.values
 
+        cdef:
+            int i
+            Py_ssize_t n = len(mask)
+            int8_t mask_value
+            long N = 0
         for i in range(n):
             mask_value = mask_arr[i]
             if mask_value:
                 N += 1
 
-        if N == 0:
-            return 0.0
-
+        cdef:
+            int j
+            long N_i = 0
+            object class_name, label
+            double p_i = 0.0
+            gini_index = 1.0
         for j in range(len(class_names)):
             N_i = 0
             class_name = class_names[j]
@@ -62,24 +61,26 @@ cdef class CyBaseColumnSplitter:
     @cython.cdivision(True)
     def entropy(mask, y, class_names):
 
-        cdef int8_t[:] mask_arr = mask.values.astype(np.int8)
-        cdef object[:] y_arr = y.values
-        cdef long N = 0
-        cdef long N_i = 0
-        cdef double p_i = 0.0
-        cdef double entropy = 0.0
-        cdef int i
-        cdef int j
-        cdef int n = len(mask)
-        cdef object class_name
-        cdef object label
-        cdef int8_t mask_value
+        cdef:
+            int8_t[:] mask_arr = mask.values.astype(np.int8)
+            object[:] y_arr = y.values
 
+        cdef:
+            int i
+            Py_ssize_t n = len(mask)
+            int8_t mask_value
+            long N = 0
         for i in range(n):
             mask_value = mask_arr[i]
             if mask_value:
                 N += 1
 
+        cdef:
+            int j
+            long N_i = 0
+            object class_name, label
+            double p_i = 0.0
+            entropy = 0.0
         for j in range(len(class_names)):
             N_i = 0
             class_name = class_names[j]
@@ -93,6 +94,6 @@ cdef class CyBaseColumnSplitter:
 
             if N_i != 0:
                 p_i = <double>N_i / <double>N
-                entropy -= p_i * math.log2(p_i)
+                entropy -= p_i * log2(p_i)
 
         return entropy
