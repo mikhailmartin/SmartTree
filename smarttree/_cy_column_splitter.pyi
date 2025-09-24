@@ -3,17 +3,11 @@ import pandas as pd
 from numpy.typing import NDArray
 
 from ._dataset import Dataset
-from ._types import ClassificationCriterionType
+from ._types import Criterion
 
 class CyBaseColumnSplitter:
 
-    criterion: ClassificationCriterionType
-
-    def __init__(
-        self,
-        dataset: Dataset,
-        criterion: ClassificationCriterionType,
-    ) -> None:
+    def __init__(self, dataset: Dataset, criterion: Criterion) -> None:
         ...
 
     def information_gain(

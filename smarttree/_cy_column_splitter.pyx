@@ -6,26 +6,28 @@ import numpy as np
 import pandas as pd
 
 from ._dataset import Dataset
+from ._types import Criterion
+
+
+cdef int CRITERION_GINI = 1
 
 
 cdef class CyBaseColumnSplitter:
 
-    cdef str criterion
+    cdef int criterion
     cdef object[:] y
     cdef object[:] class_names
 
-    def __cinit__(self, dataset: Dataset, criterion: str) -> None:
-        self.criterion = criterion
+    def __cinit__(self, dataset: Dataset, criterion: Criterion) -> None:
+        self.criterion = criterion.value
         self.y = dataset.y.values
         self.class_names = dataset.class_names
 
     cdef double impurity(self, int8_t[:] mask):
-        if self.criterion == "gini":
+        if self.criterion == CRITERION_GINI:
             return self.gini_index(mask)
-        elif self.criterion in ("entropy", "log_loss"):
-            return self.entropy(mask)
         else:
-            assert False
+            return self.entropy(mask)
 
     def information_gain(
         self,

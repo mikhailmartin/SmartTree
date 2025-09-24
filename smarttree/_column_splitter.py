@@ -12,7 +12,7 @@ from numpy.typing import NDArray
 from ._cy_column_splitter import CyBaseColumnSplitter
 from ._dataset import Dataset
 from ._tree import TreeNode
-from ._types import ClassificationCriterionType, NaModeType
+from ._types import ClassificationCriterionType, Criterion, NaModeType
 
 
 NO_INFORMATION_GAIN = float("-inf")
@@ -36,6 +36,12 @@ class ColumnSplitResult(NamedTuple):
 
 class BaseColumnSplitter(ABC):
 
+    mapping: dict[ClassificationCriterionType, Criterion] = {
+        "gini": Criterion.GINI,
+        "entropy": Criterion.ENTROPY,
+        "log_loss": Criterion.LOG_LOSS,
+    }
+
     def __init__(
         self,
         dataset: Dataset,
@@ -46,7 +52,7 @@ class BaseColumnSplitter(ABC):
     ) -> None:
 
         self.dataset = dataset
-        self.criterion = criterion
+        self.criterion = self.mapping[criterion]
         self.min_samples_split = min_samples_split
         self.min_samples_leaf = min_samples_leaf
         self.feature_na_mode = feature_na_mode
