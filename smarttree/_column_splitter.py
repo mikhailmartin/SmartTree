@@ -51,12 +51,6 @@ class BaseColumnSplitter(ABC):
         self.min_samples_leaf = min_samples_leaf
         self.feature_na_mode = feature_na_mode
 
-        match self.criterion:
-            case "gini":
-                self.impurity = self.gini_index
-            case "entropy" | "log_loss":
-                self.impurity = self.entropy
-
     @abstractmethod
     def split(self, *args, **kwargs) -> ColumnSplitResult:
         raise NotImplementedError
@@ -167,57 +161,8 @@ class BaseColumnSplitter(ABC):
                 \item $\text{impurity}_{\text{child}_i}$ — child node impurity.
             \end{itemize}
         """
-        N = self.dataset.size
-        N_parent = parent_mask.sum()
-
-        impurity_parent = self.impurity(parent_mask)
-
-        weighted_impurity_childs = 0
-        N_childs = 0
-        for child_mask_i in child_masks:
-            N_child_i = child_mask_i.sum()
-            N_childs += N_child_i
-            impurity_child_i = self.impurity(child_mask_i)
-            weighted_impurity_childs += (N_child_i / N_parent) * impurity_child_i
-
-        if normalize:
-            norm_coef = N_parent / N_childs
-            weighted_impurity_childs *= norm_coef
-
-        local_information_gain = impurity_parent - weighted_impurity_childs
-
-        information_gain = (N_parent / N) * local_information_gain
-
-        return information_gain
-
-    def gini_index(self, mask: pd.Series) -> float:
-        r"""
-        Calculates Gini index in a tree node.
-
-        Gini index formula in LaTeX:
-            \text{Gini Index} = 1 - \sum^C_{i=1} p_i^2
-            where
-            C - total number of classes;
-            p_i - the probability of choosing a sample with class i.
-        """
-        return CyBaseColumnSplitter.gini_index(
-            mask, self.dataset.y, self.dataset.class_names
-        )
-
-    def entropy(self, mask: pd.Series) -> float:
-        r"""
-        Calculates entropy in a tree node.
-
-        Entropy formula in LaTeX:
-        H = \log{\overline{N}} = \sum^N_{i=1} p_i \log{(1/p_i)} = -\sum^N_{i=1} p_i \log{p_i}
-        where
-        H - entropy;
-        \overline{N} - effective number of states;
-        p_i - probability of the i-th system state.
-        """
-        return CyBaseColumnSplitter.entropy(
-            mask, self.dataset.y, self.dataset.class_names
-        )
+        cs = CyBaseColumnSplitter(self.dataset, self.criterion)
+        return cs.information_gain(parent_mask, child_masks, normalize)
 
 
 class NumColumnSplitter(BaseColumnSplitter):

@@ -7,6 +7,7 @@ import pytest
 from numpy.typing import NDArray
 
 from smarttree import BaseSmartDecisionTree
+from smarttree._dataset import Dataset
 from smarttree._tree import TreeNode
 from smarttree._types import NaModeType
 
@@ -161,6 +162,11 @@ def feature_na_mode(
 @pytest.fixture(scope="session")
 def y(data) -> pd.Series:
     return data[TARGET_COL]
+
+
+@pytest.fixture(scope="session")
+def dataset(X, y) -> Dataset:
+    return Dataset(X, y)
 
 
 @pytest.fixture(scope="function")
