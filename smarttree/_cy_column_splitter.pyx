@@ -5,21 +5,25 @@ from libc.stdint cimport int8_t
 import numpy as np
 import pandas as pd
 
+from ._dataset import Dataset
+
 
 cdef class CyBaseColumnSplitter:
 
-    cdef public object dataset
     cdef public str criterion
+    cdef public object[:] y
+    cdef public object[:] class_names
 
-    def __init__(self, dataset, criterion) -> None:
-        self.dataset = dataset
+    def __cinit__(self, dataset: Dataset, criterion: str) -> None:
         self.criterion = criterion
+        self.y = dataset.y.values
+        self.class_names = dataset.class_names
 
-    cdef double impurity(self, int8_t[:] mask, object[:] y, object[:] class_names):
+    cdef double impurity(self, int8_t[:] mask):
         if self.criterion == "gini":
-            return self.gini_index(mask, y, class_names)
+            return self.gini_index(mask)
         elif self.criterion in ("entropy", "log_loss"):
-            return self.entropy(mask, y, class_names)
+            return self.entropy(mask)
         else:
             assert False
 
@@ -68,9 +72,6 @@ cdef class CyBaseColumnSplitter:
         child_mask_arrs = [
             child_mask.values.astype(np.int8) for child_mask in child_masks
         ]
-        cdef object[:] y_arr, class_names_arr
-        y_arr = self.dataset.y.values
-        class_names_arr = self.dataset.class_names
 
         cdef:
             int i
@@ -84,7 +85,7 @@ cdef class CyBaseColumnSplitter:
             if parent_mask_value:
                 N_parent += 1
 
-        cdef double impurity_parent = self.impurity(parent_mask_arr, y_arr, class_names_arr)
+        cdef double impurity_parent = self.impurity(parent_mask_arr)
 
         cdef:
             int j
@@ -101,7 +102,7 @@ cdef class CyBaseColumnSplitter:
                 if child_mask_value:
                     N_child_j += 1
             N_childs += N_child_j
-            impurity_child_i = self.impurity(child_mask_arr, y_arr, class_names_arr)
+            impurity_child_i = self.impurity(child_mask_arr)
             weighted_impurity_childs += (<double>N_child_j / <double>N_parent) * impurity_child_i
 
         cdef double norm_coef
@@ -115,7 +116,7 @@ cdef class CyBaseColumnSplitter:
 
         return information_gain
 
-    cpdef double gini_index(self, int8_t[:] mask, object[:] y, object[:] class_names):
+    cpdef double gini_index(self, int8_t[:] mask):
         r"""
         Calculates Gini index in a tree node.
 
@@ -141,14 +142,14 @@ cdef class CyBaseColumnSplitter:
             cdef object class_name, label
             double p_i = 0.0
             gini_index = 1.0
-        for j in range(len(class_names)):
+        for j in range(len(self.class_names)):
             N_i = 0
-            class_name = class_names[j]
+            class_name = self.class_names[j]
 
             for i in range(n):
                 mask_value = mask[i]
                 if mask_value:
-                    label = y[i]
+                    label = self.y[i]
                     if label == class_name:
                         N_i += 1
 
@@ -157,7 +158,7 @@ cdef class CyBaseColumnSplitter:
 
         return gini_index
 
-    cpdef double entropy(self, int8_t[:] mask, object[:] y, object[:] class_names):
+    cpdef double entropy(self, int8_t[:] mask):
         r"""
         Calculates entropy in a tree node.
 
@@ -184,14 +185,14 @@ cdef class CyBaseColumnSplitter:
             object class_name, label
             double p_i = 0.0
             entropy = 0.0
-        for j in range(len(class_names)):
+        for j in range(len(self.class_names)):
             N_i = 0
-            class_name = class_names[j]
+            class_name = self.class_names[j]
 
             for i in range(n):
                 mask_value = mask[i]
                 if mask_value:
-                    label = y[i]
+                    label = self.y[i]
                     if label == class_name:
                         N_i += 1
 

@@ -58,12 +58,7 @@ class CyBaseColumnSplitter:
         """
         ...
 
-    def gini_index(
-        self,
-        mask: NDArray[np.int8],
-        y: NDArray[np.object_],
-        class_names: NDArray[np.object_],
-    ) -> float:
+    def gini_index(self, mask: NDArray[np.int8]) -> float:
         r"""
         Calculates Gini index in a tree node.
 
@@ -75,12 +70,7 @@ class CyBaseColumnSplitter:
         """
         ...
 
-    def entropy(
-        self,
-        mask: NDArray[np.int8],
-        y: NDArray[np.object_],
-        class_names: NDArray[np.object_],
-    ) -> float:
+    def entropy(self, mask: NDArray[np.int8]) -> float:
         r"""
         Calculates entropy in a tree node.
 
