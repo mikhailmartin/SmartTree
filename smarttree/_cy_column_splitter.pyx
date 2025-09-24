@@ -10,9 +10,9 @@ from ._dataset import Dataset
 
 cdef class CyBaseColumnSplitter:
 
-    cdef public str criterion
-    cdef public object[:] y
-    cdef public object[:] class_names
+    cdef str criterion
+    cdef object[:] y
+    cdef object[:] class_names
 
     def __cinit__(self, dataset: Dataset, criterion: str) -> None:
         self.criterion = criterion
