@@ -1,18 +1,9 @@
-import pytest
-
 from smarttree._column_splitter import CatColumnSplitter
 from smarttree._dataset import Dataset
-from smarttree._types import CatNaModeType
 
 
-@pytest.mark.parametrize(
-    "categorical_na_mode",
-    ["as_category", "include_all", "include_best"],
-    ids=lambda param: str(param),
-)
-def test__split(X, y, categorical_na_mode, root_node, feature_na_mode):
+def test__split(X, y, root_node, feature_na_mode):
 
-    categorical_na_mode: CatNaModeType
     categorical_column_splitter = CatColumnSplitter(
         dataset=Dataset(X, y),
         criterion="gini",

@@ -47,7 +47,10 @@ ignore_missing_imports = true
 line-length = 100
 
 [tool.ruff.lint]
-select = ["E", "W", "F", "I", "UP"]
+select = ["E", "W", "F", "I", "Q", "PT", "UP", "SLF"]
+
+[tool.ruff.lint.per-file-ignores]
+"smarttree/**" = ["PT"]
 
 [tool.ruff.lint.isort]
 split-on-trailing-comma = true

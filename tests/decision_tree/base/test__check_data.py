@@ -20,7 +20,7 @@ RANK_VALUES = [
 SELECTED = [NUM_FEATURE, CAT_FEATURE, RANK_FEATURE]
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def decision_tree():
     return SmartDecisionTreeClassifier(
         max_depth=1,

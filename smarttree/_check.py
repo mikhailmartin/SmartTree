@@ -421,7 +421,7 @@ def _check__cat_features_in(X, cat_features):
 
 
 def _check__rank_features_in(X, rank_features):
-    for rank_feature in rank_features.keys():
+    for rank_feature in rank_features:
         if rank_feature not in X.columns:
             raise ValueError(
                 f"`rank_features` contain feature {rank_feature!r},"

@@ -169,7 +169,7 @@ def dataset(X, y) -> Dataset:
     return Dataset(X, y)
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def root_node(X, y):
     return TreeNode(
         number=0,
@@ -214,6 +214,6 @@ class ConcreteSmartTree(BaseSmartDecisionTree):
         pass
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def concrete_smart_tree():
     return ConcreteSmartTree()
