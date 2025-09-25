@@ -14,22 +14,11 @@ cdef int CRITERION_GINI = 1
 
 cdef class CyBaseColumnSplitter:
 
-    cdef int criterion
-    cdef int[:] y
-    cdef Py_ssize_t n_classes
-    cdef Py_ssize_t n_samples
-
     def __cinit__(self, dataset: Dataset, criterion: Criterion) -> None:
         self.criterion = criterion.value
         self.y = dataset.y
         self.n_classes = len(dataset.classes)
         self.n_samples = len(dataset.y)
-
-    cdef double impurity(self, int8_t[:] mask):
-        if self.criterion == CRITERION_GINI:
-            return self.gini_index(mask)
-        else:
-            return self.entropy(mask)
 
     def information_gain(
         self,
@@ -39,38 +28,32 @@ cdef class CyBaseColumnSplitter:
     ) -> float:
 
         cdef int8_t[:] parent_mask_arr, child_mask_arr
+        cdef Py_ssize_t i, j, n_childs
+        cdef long N, N_parent, N_childs, N_child_j
+        cdef double impurity_parent, weighted_impurity_childs, impurity_child_i
+
         parent_mask_arr = parent_mask.values.astype(np.int8)
         child_mask_arrs = [
             child_mask.values.astype(np.int8) for child_mask in child_masks
         ]
 
-        cdef:
-            Py_ssize_t i
-            long N = 0
-            long N_parent = 0
-            int8_t parent_mask_value
+        N = 0
+        N_parent = 0
         for i in range(self.n_samples):
             N += 1
-            parent_mask_value = parent_mask_arr[i]
-            if parent_mask_value:
+            if parent_mask_arr[i]:
                 N_parent += 1
 
-        cdef double impurity_parent = self.impurity(parent_mask_arr)
+        impurity_parent = self.impurity(parent_mask_arr)
 
-        cdef:
-            Py_ssize_t j
-            Py_ssize_t n_childs = len(child_mask_arrs)
-            double weighted_impurity_childs = 0.0
-            long N_childs = 0
-            long N_child_j
-            int8_t child_mask_value
-            double impurity_child_i
+        N_childs = 0
+        n_childs = len(child_mask_arrs)
+        weighted_impurity_childs = 0.0
         for j in range(n_childs):
             N_child_j = 0
             child_mask_arr = child_mask_arrs[j]
             for i in range(self.n_samples):
-                child_mask_value = child_mask_arr[i]
-                if child_mask_value:
+                if child_mask_arr[i]:
                     N_child_j += 1
             N_childs += N_child_j
             impurity_child_i = self.impurity(child_mask_arr)
@@ -87,67 +70,58 @@ cdef class CyBaseColumnSplitter:
 
         return information_gain
 
+    cdef double impurity(self, int8_t[:] mask):
+        if self.criterion == CRITERION_GINI:
+            return self.gini_index(mask)
+        else:
+            return self.entropy(mask)
+
+    @cython.boundscheck(False)
+    @cython.cdivision(True)
+    @cython.wraparound(False)
     cpdef double gini_index(self, int8_t[:] mask):
 
-        cdef:
-            Py_ssize_t i
-            int8_t mask_value
-            long N = 0
+        cdef Py_ssize_t i
+        cdef long[:] counts
+        cdef long N
+        cdef double p_i, gini
+
+        counts = np.zeros(self.n_classes, dtype=np.int32)
+        N = 0
         for i in range(self.n_samples):
-            mask_value = mask[i]
-            if mask_value:
+            if mask[i]:
                 N += 1
+                counts[self.y[i]] += 1
 
-        cdef:
-            Py_ssize_t j
-            long N_i
-            int encoded_label
-            double p_i = 0.0
-            double gini_index = 1.0
-        for j in range(self.n_classes):
-            N_i = 0
+        gini = 1.0
+        for i in range(self.n_classes):
+            if counts[i] > 0:
+                p_i = <double>counts[i] / <double>N
+                gini -= p_i * p_i
 
-            for i in range(self.n_samples):
-                mask_value = mask[i]
-                if mask_value:
-                    encoded_label = self.y[i]
-                    if encoded_label == j:
-                        N_i += 1
+        return gini
 
-            p_i = <double>N_i / <double>N
-            gini_index -= p_i * p_i
-
-        return gini_index
-
+    @cython.boundscheck(False)
+    @cython.cdivision(True)
+    @cython.wraparound(False)
     cpdef double entropy(self, int8_t[:] mask):
 
-        cdef:
-            Py_ssize_t i
-            int8_t mask_value
-            long N = 0
+        cdef Py_ssize_t i
+        cdef long[:] counts
+        cdef long N
+        cdef double p_i, entropy
+
+        counts = np.zeros(self.n_classes, dtype=np.int32)
+        N = 0
         for i in range(self.n_samples):
-            mask_value = mask[i]
-            if mask_value:
+            if mask[i]:
                 N += 1
+                counts[self.y[i]] += 1
 
-        cdef:
-            Py_ssize_t j
-            long N_i = 0
-            int encoded_label
-            double p_i = 0.0
-            double entropy = 0.0
-        for j in range(self.n_classes):
-            N_i = 0
-
-            for i in range(self.n_samples):
-                mask_value = mask[i]
-                if mask_value:
-                    encoded_label = self.y[i]
-                    if encoded_label == j:
-                        N_i += 1
-
-            if N_i != 0:
-                p_i = <double>N_i / <double>N
+        entropy = 0.0
+        for i in range(self.n_classes):
+            if counts[i] > 0:
+                p_i = <double>counts[i] / <double>N
                 entropy -= p_i * log2(p_i)
 
         return entropy
