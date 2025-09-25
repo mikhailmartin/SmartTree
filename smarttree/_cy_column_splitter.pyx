@@ -15,13 +15,15 @@ cdef int CRITERION_GINI = 1
 cdef class CyBaseColumnSplitter:
 
     cdef int criterion
-    cdef object[:] y
-    cdef object[:] classes
+    cdef int[:] y
+    cdef Py_ssize_t n_classes
+    cdef Py_ssize_t n_samples
 
     def __cinit__(self, dataset: Dataset, criterion: Criterion) -> None:
         self.criterion = criterion.value
-        self.y = dataset.y.values
-        self.classes = dataset.classes
+        self.y = dataset.y
+        self.n_classes = len(dataset.classes)
+        self.n_samples = len(dataset.y)
 
     cdef double impurity(self, int8_t[:] mask):
         if self.criterion == CRITERION_GINI:
@@ -76,12 +78,11 @@ cdef class CyBaseColumnSplitter:
         ]
 
         cdef:
-            int i
-            Py_ssize_t n = len(parent_mask_arr)
+            Py_ssize_t i
             long N = 0
             long N_parent = 0
             int8_t parent_mask_value
-        for i in range(n):
+        for i in range(self.n_samples):
             N += 1
             parent_mask_value = parent_mask_arr[i]
             if parent_mask_value:
@@ -90,16 +91,17 @@ cdef class CyBaseColumnSplitter:
         cdef double impurity_parent = self.impurity(parent_mask_arr)
 
         cdef:
-            int j
+            Py_ssize_t j
+            Py_ssize_t n_childs = len(child_mask_arrs)
             double weighted_impurity_childs = 0.0
             long N_childs = 0
             long N_child_j
             int8_t child_mask_value
             double impurity_child_i
-        for j in range(len(child_mask_arrs)):
+        for j in range(n_childs):
             N_child_j = 0
             child_mask_arr = child_mask_arrs[j]
-            for i in range(n):
+            for i in range(self.n_samples):
                 child_mask_value = child_mask_arr[i]
                 if child_mask_value:
                     N_child_j += 1
@@ -129,30 +131,28 @@ cdef class CyBaseColumnSplitter:
             p_i - the probability of choosing a sample with class i.
         """
         cdef:
-            int i
-            Py_ssize_t n = len(mask)
+            Py_ssize_t i
             int8_t mask_value
             long N = 0
-        for i in range(n):
+        for i in range(self.n_samples):
             mask_value = mask[i]
             if mask_value:
                 N += 1
 
         cdef:
-            int j
-            cdef long N_i
-            cdef object class_, label
+            Py_ssize_t j
+            long N_i
+            int encoded_label
             double p_i = 0.0
-            gini_index = 1.0
-        for j in range(len(self.classes)):
+            double gini_index = 1.0
+        for j in range(self.n_classes):
             N_i = 0
-            class_ = self.classes[j]
 
-            for i in range(n):
+            for i in range(self.n_samples):
                 mask_value = mask[i]
                 if mask_value:
-                    label = self.y[i]
-                    if label == class_:
+                    encoded_label = self.y[i]
+                    if encoded_label == j:
                         N_i += 1
 
             p_i = <double>N_i / <double>N
@@ -172,30 +172,28 @@ cdef class CyBaseColumnSplitter:
         p_i - probability of the i-th system state.
         """
         cdef:
-            int i
-            Py_ssize_t n = len(mask)
+            Py_ssize_t i
             int8_t mask_value
             long N = 0
-        for i in range(n):
+        for i in range(self.n_samples):
             mask_value = mask[i]
             if mask_value:
                 N += 1
 
         cdef:
-            int j
+            Py_ssize_t j
             long N_i = 0
-            object class_, label
+            int encoded_label
             double p_i = 0.0
-            entropy = 0.0
-        for j in range(len(self.classes)):
+            double entropy = 0.0
+        for j in range(self.n_classes):
             N_i = 0
-            class_ = self.classes[j]
 
-            for i in range(n):
+            for i in range(self.n_samples):
                 mask_value = mask[i]
                 if mask_value:
-                    label = self.y[i]
-                    if label == class_:
+                    encoded_label = self.y[i]
+                    if encoded_label == j:
                         N_i += 1
 
             if N_i != 0:

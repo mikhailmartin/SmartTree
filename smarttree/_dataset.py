@@ -1,15 +1,13 @@
 import numpy as np
 import pandas as pd
-from numpy.typing import NDArray
 
 
 class Dataset:
 
     def __init__(self, X: pd.DataFrame, y: pd.Series) -> None:
         self.X = X
-        self.y = y
-
-        self.classes: NDArray = np.sort(self.y.unique())
+        self.classes = np.sort(y.unique())
+        self.y = np.searchsorted(self.classes, y.to_numpy()).astype(np.int32)
         self.has_na: dict[str, bool] = dict()
         self.mask_na: dict[str, pd.Series] = dict()
         for column in self.X.columns:
