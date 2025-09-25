@@ -24,18 +24,6 @@ def concrete_column_splitter(X, y, feature_na_mode) -> BaseColumnSplitter:
     )
 
 
-def test__gini_index(concrete_column_splitter, y):
-    parent_mask = y.apply(lambda x: True)
-    gini_index = concrete_column_splitter.gini_index(parent_mask)
-    assert gini_index == 0.6666591342419322
-
-
-def test__entropy(concrete_column_splitter, y):
-    parent_mask = y.apply(lambda x: True)
-    entropy = concrete_column_splitter.entropy(parent_mask)
-    assert entropy == 1.584946181877191
-
-
 def test__information_gain(concrete_column_splitter, y):
 
     parent_mask = y.apply(lambda x: True)

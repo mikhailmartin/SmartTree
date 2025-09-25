@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import math
 from abc import ABC, abstractmethod
 from collections.abc import Generator
 from copy import deepcopy
@@ -10,10 +9,10 @@ import numpy as np
 import pandas as pd
 from numpy.typing import NDArray
 
-from ._cgini_index import cgini_index
+from ._cy_column_splitter import CyBaseColumnSplitter
 from ._dataset import Dataset
 from ._tree import TreeNode
-from ._types import ClassificationCriterionType, NaModeType
+from ._types import ClassificationCriterionType, Criterion, NaModeType
 
 
 NO_INFORMATION_GAIN = float("-inf")
@@ -37,6 +36,12 @@ class ColumnSplitResult(NamedTuple):
 
 class BaseColumnSplitter(ABC):
 
+    mapping: dict[ClassificationCriterionType, Criterion] = {
+        "gini": Criterion.GINI,
+        "entropy": Criterion.ENTROPY,
+        "log_loss": Criterion.LOG_LOSS,
+    }
+
     def __init__(
         self,
         dataset: Dataset,
@@ -47,16 +52,10 @@ class BaseColumnSplitter(ABC):
     ) -> None:
 
         self.dataset = dataset
-        self.criterion = criterion
+        self.criterion = self.mapping[criterion]
         self.min_samples_split = min_samples_split
         self.min_samples_leaf = min_samples_leaf
         self.feature_na_mode = feature_na_mode
-
-        match self.criterion:
-            case "gini":
-                self.impurity = self.gini_index
-            case "entropy" | "log_loss":
-                self.impurity = self.entropy
 
     @abstractmethod
     def split(self, *args, **kwargs) -> ColumnSplitResult:
@@ -168,62 +167,8 @@ class BaseColumnSplitter(ABC):
                 \item $\text{impurity}_{\text{child}_i}$ — child node impurity.
             \end{itemize}
         """
-        N = self.dataset.size
-        N_parent = parent_mask.sum()
-
-        impurity_parent = self.impurity(parent_mask)
-
-        weighted_impurity_childs = 0
-        N_childs = 0
-        for child_mask_i in child_masks:
-            N_child_i = child_mask_i.sum()
-            N_childs += N_child_i
-            impurity_child_i = self.impurity(child_mask_i)
-            weighted_impurity_childs += (N_child_i / N_parent) * impurity_child_i
-
-        if normalize:
-            norm_coef = N_parent / N_childs
-            weighted_impurity_childs *= norm_coef
-
-        local_information_gain = impurity_parent - weighted_impurity_childs
-
-        information_gain = (N_parent / N) * local_information_gain
-
-        return information_gain
-
-    def gini_index(self, mask: pd.Series) -> float:
-        r"""
-        Calculates Gini index in a tree node.
-
-        Gini index formula in LaTeX:
-            \text{Gini Index} = 1 - \sum^C_{i=1} p_i^2
-            where
-            C - total number of classes;
-            p_i - the probability of choosing a sample with class i.
-        """
-        return cgini_index(mask, self.dataset.y, self.dataset.class_names)
-
-    def entropy(self, mask: pd.Series) -> float:
-        r"""
-        Calculates entropy in a tree node.
-
-        Entropy formula in LaTeX:
-        H = \log{\overline{N}} = \sum^N_{i=1} p_i \log{(1/p_i)} = -\sum^N_{i=1} p_i \log{p_i}
-        where
-        H - entropy;
-        \overline{N} - effective number of states;
-        p_i - probability of the i-th system state.
-        """
-        N = mask.sum()
-
-        entropy = 0
-        for label in self.dataset.class_names:
-            N_i = (mask & (self.dataset.y == label)).sum()
-            if N_i != 0:
-                p_i = N_i / N
-                entropy -= p_i * math.log2(p_i)
-
-        return entropy
+        cs = CyBaseColumnSplitter(self.dataset, self.criterion)
+        return cs.information_gain(parent_mask, child_masks, normalize)
 
 
 class NumColumnSplitter(BaseColumnSplitter):
