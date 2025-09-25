@@ -16,12 +16,12 @@ cdef class CyBaseColumnSplitter:
 
     cdef int criterion
     cdef object[:] y
-    cdef object[:] class_names
+    cdef object[:] classes
 
     def __cinit__(self, dataset: Dataset, criterion: Criterion) -> None:
         self.criterion = criterion.value
         self.y = dataset.y.values
-        self.class_names = dataset.class_names
+        self.classes = dataset.classes
 
     cdef double impurity(self, int8_t[:] mask):
         if self.criterion == CRITERION_GINI:
@@ -141,18 +141,18 @@ cdef class CyBaseColumnSplitter:
         cdef:
             int j
             cdef long N_i
-            cdef object class_name, label
+            cdef object class_, label
             double p_i = 0.0
             gini_index = 1.0
-        for j in range(len(self.class_names)):
+        for j in range(len(self.classes)):
             N_i = 0
-            class_name = self.class_names[j]
+            class_ = self.classes[j]
 
             for i in range(n):
                 mask_value = mask[i]
                 if mask_value:
                     label = self.y[i]
-                    if label == class_name:
+                    if label == class_:
                         N_i += 1
 
             p_i = <double>N_i / <double>N
@@ -184,18 +184,18 @@ cdef class CyBaseColumnSplitter:
         cdef:
             int j
             long N_i = 0
-            object class_name, label
+            object class_, label
             double p_i = 0.0
             entropy = 0.0
-        for j in range(len(self.class_names)):
+        for j in range(len(self.classes)):
             N_i = 0
-            class_name = self.class_names[j]
+            class_ = self.classes[j]
 
             for i in range(n):
                 mask_value = mask[i]
                 if mask_value:
                     label = self.y[i]
-                    if label == class_name:
+                    if label == class_:
                         N_i += 1
 
             if N_i != 0:

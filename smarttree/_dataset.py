@@ -9,7 +9,7 @@ class Dataset:
         self.X = X
         self.y = y
 
-        self.class_names: NDArray = np.sort(self.y.unique())
+        self.classes: NDArray = np.sort(self.y.unique())
         self.has_na: dict[str, bool] = dict()
         self.mask_na: dict[str, pd.Series] = dict()
         for column in self.X.columns:
