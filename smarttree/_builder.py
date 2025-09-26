@@ -100,9 +100,15 @@ class Builder:
             tree.leaf_counter -= 1
 
     def distribution(self, mask: pd.Series) -> NDArray[np.integer]:
-        return np.array([
-            (mask & (self.y == class_name)).sum() for class_name in self.class_names
-        ])
+
+        mask_arr = mask.to_numpy()
+        y_arr = self.y.to_numpy()
+
+        result = np.zeros(len(self.class_names), dtype=np.int32)
+        for i, class_name in enumerate(self.class_names):
+            result[i] = np.sum(mask_arr & (y_arr == class_name))
+
+        return result
 
     def gini_index(self, mask: pd.Series) -> float:
         r"""
