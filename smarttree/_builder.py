@@ -1,10 +1,11 @@
 import bisect
-import math
 
 import numpy as np
 import pandas as pd
 from numpy.typing import NDArray
 
+from ._criterion import ClassificationCriterion, Entropy, Gini
+from ._dataset import Dataset
 from ._node_splitter import NodeSplitter
 from ._tree import Tree, TreeNode
 from ._types import ClassificationCriterionType
@@ -21,18 +22,13 @@ class Builder:
         hierarchy: dict[str, str | list[str]],
     ) -> None:
 
+        self.X = X
         self.available_features = X.columns.to_list()
         self.y = y
         self.criterion = criterion
         self.splitter = splitter
         self.max_leaf_nodes = max_leaf_nodes
         self.hierarchy = hierarchy
-
-        match self.criterion:
-            case "gini":
-                self.impurity = self.gini_index
-            case "entropy" | "log_loss":
-                self.impurity = self.entropy
 
         if self.criterion in ("gini", "entropy", "log_loss"):
             self.class_names = np.sort(self.y.unique())
@@ -110,44 +106,12 @@ class Builder:
 
         return result
 
-    def gini_index(self, mask: pd.Series) -> float:
-        r"""
-        Calculates Gini index in a tree node.
+    def impurity(self, mask: pd.Series) -> float:
 
-        Gini index formula in LaTeX:
-            \text{Gini Index} = 1 - \sum^C_{i=1} p_i^2
-            where
-            C - total number of classes;
-            p_i - the probability of choosing a sample with class i.
-        """
-        N = mask.sum()
+        criterion: ClassificationCriterion
+        if self.criterion == "gini":
+            criterion = Gini(Dataset(self.X, self.y))
+        else:  # "entropy" | "log_loss"
+            criterion = Entropy(Dataset(self.X, self.y))
 
-        gini_index = 1
-        for label in self.class_names:
-            N_i = (mask & (self.y == label)).sum()
-            p_i = N_i / N
-            gini_index -= pow(p_i, 2)
-
-        return gini_index
-
-    def entropy(self, mask: pd.Series) -> float:
-        r"""
-        Calculates entropy in a tree node.
-
-        Entropy formula in LaTeX:
-        H = \log{\overline{N}} = \sum^N_{i=1} p_i \log{(1/p_i)} = -\sum^N_{i=1} p_i \log{p_i}
-        where
-        H - entropy;
-        \overline{N} - effective number of states;
-        p_i - probability of the i-th system state.
-        """
-        N = mask.sum()
-
-        entropy = 0
-        for label in self.class_names:
-            N_i = (mask & (self.y == label)).sum()
-            if N_i != 0:
-                p_i = N_i / N
-                entropy -= p_i * math.log2(p_i)
-
-        return entropy
+        return criterion.impurity(mask.to_numpy(dtype=np.int8))
