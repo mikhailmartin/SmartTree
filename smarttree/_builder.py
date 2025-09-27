@@ -26,13 +26,15 @@ class Builder:
         self.y = y
         self.dataset = Dataset(X, y)
         self.available_features = X.columns.to_list()
-        self.criterion = criterion
         self.splitter = splitter
         self.max_leaf_nodes = max_leaf_nodes
         self.hierarchy = hierarchy
 
-        if self.criterion in ("gini", "entropy", "log_loss"):
-            self.class_names = np.sort(self.y.unique())
+        self.criterion: ClassificationCriterion
+        if criterion == "gini":
+            self.criterion = Gini(self.dataset)
+        else:  # "entropy" | "log_loss"
+            self.criterion = Entropy(self.dataset)
 
     def build(self, tree: Tree) -> None:
 
@@ -48,7 +50,7 @@ class Builder:
             mask=mask,
             hierarchy=self.hierarchy,
             distribution=self.distribution(mask),
-            impurity=self.impurity(mask),
+            impurity=self.criterion.impurity(mask.to_numpy(dtype=np.int8)),
             label=self.y[mask].mode()[0],
             available_features=self.available_features,
             depth=0,
@@ -78,7 +80,7 @@ class Builder:
                     mask=child_mask,
                     hierarchy=node.hierarchy,
                     distribution=self.distribution(child_mask),
-                    impurity=self.impurity(child_mask),
+                    impurity=self.criterion.impurity(mask.to_numpy(dtype=np.int8)),
                     label=self.y[child_mask].mode()[0],
                     available_features=node.available_features,
                     depth=node.depth+1,
@@ -101,18 +103,8 @@ class Builder:
         mask_arr = mask.to_numpy()
         y_arr = self.y.to_numpy()
 
-        result = np.zeros(len(self.class_names), dtype=np.int32)
-        for i, class_name in enumerate(self.class_names):
+        result = np.zeros(len(self.dataset.classes), dtype=np.int32)
+        for i, class_name in enumerate(self.dataset.classes):
             result[i] = np.sum(mask_arr & (y_arr == class_name))
 
         return result
-
-    def impurity(self, mask: pd.Series) -> float:
-
-        criterion: ClassificationCriterion
-        if self.criterion == "gini":
-            criterion = Gini(self.dataset)
-        else:  # "entropy" | "log_loss"
-            criterion = Entropy(self.dataset)
-
-        return criterion.impurity(mask.to_numpy(dtype=np.int8))
