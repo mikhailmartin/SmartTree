@@ -14,6 +14,9 @@ class ClassificationCriterion(ABC):
     def impurity(self, mask: NDArray[np.int8]) -> float:
         raise NotImplementedError
 
+    def distribution(self, mask: NDArray[np.int8]) -> NDArray[np.int32]:
+        ...
+
 
 class Gini(ClassificationCriterion):
 

@@ -2,7 +2,6 @@ import bisect
 
 import numpy as np
 import pandas as pd
-from numpy.typing import NDArray
 
 from ._criterion import ClassificationCriterion, Entropy, Gini
 from ._dataset import Dataset
@@ -23,15 +22,18 @@ class Builder:
     ) -> None:
 
         self.X = X
-        self.available_features = X.columns.to_list()
         self.y = y
-        self.criterion = criterion
+        self.dataset = Dataset(X, y)
+        self.available_features = X.columns.to_list()
         self.splitter = splitter
         self.max_leaf_nodes = max_leaf_nodes
         self.hierarchy = hierarchy
 
-        if self.criterion in ("gini", "entropy", "log_loss"):
-            self.class_names = np.sort(self.y.unique())
+        self.criterion: ClassificationCriterion
+        if criterion == "gini":
+            self.criterion = Gini(self.dataset)
+        else:  # "entropy" | "log_loss"
+            self.criterion = Entropy(self.dataset)
 
     def build(self, tree: Tree) -> None:
 
@@ -43,11 +45,12 @@ class Builder:
                 self.available_features.remove(value)
 
         mask = self.y.apply(lambda x: True)
+        mask_np = mask.to_numpy(dtype=np.int8)
         root = tree.create_node(
             mask=mask,
             hierarchy=self.hierarchy,
-            distribution=self.distribution(mask),
-            impurity=self.impurity(mask),
+            distribution=self.criterion.distribution(mask_np),
+            impurity=self.criterion.impurity(mask_np),
             label=self.y[mask].mode()[0],
             available_features=self.available_features,
             depth=0,
@@ -73,11 +76,12 @@ class Builder:
                     else:  # str
                         node.available_features.append(value)
 
+                child_mask_np = child_mask.to_numpy(dtype=np.int8)
                 child_node = tree.create_node(
                     mask=child_mask,
                     hierarchy=node.hierarchy,
-                    distribution=self.distribution(child_mask),
-                    impurity=self.impurity(child_mask),
+                    distribution=self.criterion.distribution(child_mask_np),
+                    impurity=self.criterion.impurity(child_mask_np),
                     label=self.y[child_mask].mode()[0],
                     available_features=node.available_features,
                     depth=node.depth+1,
@@ -94,24 +98,3 @@ class Builder:
 
             node.is_leaf = False
             tree.leaf_counter -= 1
-
-    def distribution(self, mask: pd.Series) -> NDArray[np.integer]:
-
-        mask_arr = mask.to_numpy()
-        y_arr = self.y.to_numpy()
-
-        result = np.zeros(len(self.class_names), dtype=np.int32)
-        for i, class_name in enumerate(self.class_names):
-            result[i] = np.sum(mask_arr & (y_arr == class_name))
-
-        return result
-
-    def impurity(self, mask: pd.Series) -> float:
-
-        criterion: ClassificationCriterion
-        if self.criterion == "gini":
-            criterion = Gini(Dataset(self.X, self.y))
-        else:  # "entropy" | "log_loss"
-            criterion = Entropy(Dataset(self.X, self.y))
-
-        return criterion.impurity(mask.to_numpy(dtype=np.int8))

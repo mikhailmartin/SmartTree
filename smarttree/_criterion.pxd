@@ -7,6 +7,8 @@ cdef class ClassificationCriterion:
     cdef Py_ssize_t n_classes
     cdef Py_ssize_t n_samples
 
+    cpdef long[:] distribution(self, int8_t[:] mask)
+
 
 cdef class Gini(ClassificationCriterion):
     cpdef double impurity(self, int8_t[:] mask)

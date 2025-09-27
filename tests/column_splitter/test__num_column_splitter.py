@@ -1,11 +1,10 @@
 from smarttree._column_splitter import NumColumnSplitter
-from smarttree._dataset import Dataset
 
 
-def test__split(X, y, root_node, feature_na_mode):
+def test__split(dataset, root_node, feature_na_mode):
 
     numerical_column_splitter = NumColumnSplitter(
-        dataset=Dataset(X, y),
+        dataset=dataset,
         criterion="gini",
         min_samples_split=2,
         min_samples_leaf=1,
