@@ -2868,6 +2868,20 @@ files = [
 ]
 
 [[package]]
+name = "snakeviz"
+version = "2.2.2"
+description = "A web-based viewer for Python profiler output"
+optional = false
+python-versions = ">=3.9"
+files = [
+    {file = "snakeviz-2.2.2-py3-none-any.whl", hash = "sha256:77e7b9c82f6152edc330040319b97612351cd9b48c706434c535c2df31d10ac5"},
+    {file = "snakeviz-2.2.2.tar.gz", hash = "sha256:08028c6f8e34a032ff14757a38424770abb8662fb2818985aeea0d9bc13a7d83"},
+]
+
+[package.dependencies]
+tornado = ">=2.0"
+
+[[package]]
 name = "sniffio"
 version = "1.3.1"
 description = "Sniff out which async library your code is running under"
@@ -3121,4 +3135,4 @@ test = ["websockets"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "512ec2bb7bbbde49bb32fd398d9e850100eb65765dda8315f526a2844a32fce9"
+content-hash = "74a5d61b448b14dda65d214b87971bd4fdbf897042c788dac6b6e1bcb244b56d"
