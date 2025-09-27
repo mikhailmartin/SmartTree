@@ -23,8 +23,9 @@ class Builder:
     ) -> None:
 
         self.X = X
-        self.available_features = X.columns.to_list()
         self.y = y
+        self.dataset = Dataset(X, y)
+        self.available_features = X.columns.to_list()
         self.criterion = criterion
         self.splitter = splitter
         self.max_leaf_nodes = max_leaf_nodes
@@ -110,8 +111,8 @@ class Builder:
 
         criterion: ClassificationCriterion
         if self.criterion == "gini":
-            criterion = Gini(Dataset(self.X, self.y))
+            criterion = Gini(self.dataset)
         else:  # "entropy" | "log_loss"
-            criterion = Entropy(Dataset(self.X, self.y))
+            criterion = Entropy(self.dataset)
 
         return criterion.impurity(mask.to_numpy(dtype=np.int8))
