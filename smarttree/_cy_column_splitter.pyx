@@ -1,13 +1,15 @@
 cimport cython
-from libc.stdint cimport int8_t
 
 import numpy as np
+cimport numpy as cnp
 import pandas as pd
 
 from ._dataset import Dataset
 from ._types import Criterion
 from ._criterion cimport Entropy, Gini
 
+
+cnp.import_array()
 
 cdef int CRITERION_GINI = 1
 
@@ -30,15 +32,13 @@ cdef class CyBaseColumnSplitter:
         normalize: bool = False,
     ) -> float:
 
-        cdef int8_t[:] parent_mask_arr, child_mask_arr
+        cdef cnp.npy_bool[:] parent_mask_arr, child_mask_arr
         cdef Py_ssize_t i, j, n_childs
         cdef long N, N_parent, N_childs, N_child_j
         cdef double impurity_parent, weighted_impurity_childs, impurity_child_i
 
-        parent_mask_arr = parent_mask.to_numpy(dtype=np.int8)
-        child_mask_arrs = [
-            child_mask.to_numpy(dtype=np.int8) for child_mask in child_masks
-        ]
+        parent_mask_arr = parent_mask.to_numpy()
+        child_mask_arrs = [child_mask.to_numpy() for child_mask in child_masks]
 
         N = 0
         N_parent = 0

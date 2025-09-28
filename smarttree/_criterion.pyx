@@ -1,10 +1,13 @@
 cimport cython
 from libc.math cimport log2
-from libc.stdint cimport int8_t
 
 import numpy as np
+cimport numpy as cnp
 
 from ._dataset import Dataset
+
+
+cnp.import_array()
 
 
 cdef class ClassificationCriterion:
@@ -16,7 +19,7 @@ cdef class ClassificationCriterion:
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef long[:] distribution(self, int8_t[:] mask):
+    cpdef long[:] distribution(self, cnp.npy_bool[:] mask):
 
         cdef Py_ssize_t i
         cdef long[:] result
@@ -34,7 +37,7 @@ cdef class Gini(ClassificationCriterion):
     @cython.boundscheck(False)
     @cython.cdivision(True)
     @cython.wraparound(False)
-    cpdef double impurity(self, int8_t[:] mask):
+    cpdef double impurity(self, cnp.npy_bool[:] mask):
 
         cdef Py_ssize_t i
         cdef long[:] distribution
@@ -60,7 +63,7 @@ cdef class Entropy(ClassificationCriterion):
     @cython.boundscheck(False)
     @cython.cdivision(True)
     @cython.wraparound(False)
-    cpdef double impurity(self, int8_t[:] mask):
+    cpdef double impurity(self, cnp.npy_bool[:] mask):
 
         cdef Py_ssize_t i
         cdef long[:] distribution

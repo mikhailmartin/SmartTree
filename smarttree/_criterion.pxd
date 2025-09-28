@@ -1,4 +1,4 @@
-from libc.stdint cimport int8_t
+cimport numpy as cnp
 
 
 cdef class ClassificationCriterion:
@@ -7,11 +7,11 @@ cdef class ClassificationCriterion:
     cdef Py_ssize_t n_classes
     cdef Py_ssize_t n_samples
 
-    cpdef long[:] distribution(self, int8_t[:] mask)
+    cpdef long[:] distribution(self, cnp.npy_bool[:] mask)
 
 
 cdef class Gini(ClassificationCriterion):
-    cpdef double impurity(self, int8_t[:] mask)
+    cpdef double impurity(self, cnp.npy_bool[:] mask)
 
 cdef class Entropy(ClassificationCriterion):
-    cpdef double impurity(self, int8_t[:] mask)
+    cpdef double impurity(self, cnp.npy_bool[:] mask)

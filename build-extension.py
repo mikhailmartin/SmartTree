@@ -11,17 +11,17 @@ from setuptools import Distribution
 from setuptools import Extension
 from setuptools.command.build_ext import build_ext
 
+import numpy as np
+
 
 if sys.platform == "win32":
     COMPILE_ARGS = ["/O2", "/fp:fast"]
-    LINK_ARGS = []
-    INCLUDE_DIRS = []
     LIBRARIES = []
 else:
     COMPILE_ARGS = ["-march=native", "-O3", "-msse", "-msse2", "-mfma", "-mfpmath=sse"]
-    LINK_ARGS = []
-    INCLUDE_DIRS = []
     LIBRARIES = ["m"]
+LINK_ARGS = []
+INCLUDE_DIRS = [np.get_include()]
 
 
 def build() -> None:
