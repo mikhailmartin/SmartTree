@@ -1,4 +1,4 @@
-from libc.stdint cimport int8_t
+cimport numpy as cnp
 
 from ._criterion cimport ClassificationCriterion
 
@@ -6,6 +6,6 @@ from ._criterion cimport ClassificationCriterion
 cdef class CyBaseColumnSplitter:
 
     cdef ClassificationCriterion criterion
-    cdef int[:] y
+    cdef cnp.int64_t[:] y
     cdef Py_ssize_t n_classes
     cdef Py_ssize_t n_samples

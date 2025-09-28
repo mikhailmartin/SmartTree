@@ -14,7 +14,7 @@ class ClassificationCriterion(ABC):
     def impurity(self, mask: NDArray[np.bool_]) -> float:
         raise NotImplementedError
 
-    def distribution(self, mask: NDArray[np.bool_]) -> NDArray[np.int32]:
+    def distribution(self, mask: NDArray[np.bool_]) -> NDArray[np.int64]:
         ...
 
 
