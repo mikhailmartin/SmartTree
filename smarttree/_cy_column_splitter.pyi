@@ -1,4 +1,5 @@
-import pandas as pd
+import numpy as np
+from numpy.typing import NDArray
 
 from ._dataset import Dataset
 from ._types import Criterion
@@ -10,8 +11,8 @@ class CyBaseColumnSplitter:
 
     def information_gain(
         self,
-        parent_mask: pd.Series,
-        child_masks: list[pd.Series],
+        parent_mask: NDArray[np.bool_],
+        child_masks: list[NDArray[np.bool_]],
         normalize: bool = False,
     ) -> float:
         r"""
