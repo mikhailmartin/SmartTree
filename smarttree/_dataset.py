@@ -7,7 +7,7 @@ class Dataset:
     def __init__(self, X: pd.DataFrame, y: pd.Series) -> None:
         self.X = X
         self.classes = np.sort(y.unique())
-        self.y = np.searchsorted(self.classes, y.to_numpy()).astype(np.int32)
+        self.y = np.searchsorted(self.classes, y.to_numpy()).astype(np.int64)
         self.has_na: dict[str, bool] = dict()
         self.mask_na: dict[str, pd.Series] = dict()
         for column in self.X.columns:

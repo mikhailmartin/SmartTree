@@ -61,6 +61,15 @@ class BaseColumnSplitter(ABC):
     def split(self, *args, **kwargs) -> ColumnSplitResult:
         raise NotImplementedError
 
+    def pre_information_gain(
+        self,
+        parent_mask: pd.Series,
+        child_masks: list[pd.Series],
+    ) -> tuple[NDArray[np.bool_], list[NDArray[np.bool_]]]:
+        parent_mask_np = parent_mask.to_numpy()
+        child_masks_np = [child_mask.to_numpy() for child_mask in child_masks]
+        return parent_mask_np, child_masks_np
+
     def foo(
         self,
         parent_mask: pd.Series,
@@ -78,7 +87,8 @@ class BaseColumnSplitter(ABC):
             else:
                 assert False
         else:
-            information_gain = self.information_gain(parent_mask, child_masks)
+            parent_mask_np, child_masks_np = self.pre_information_gain(parent_mask, child_masks)
+            information_gain = self.information_gain(parent_mask_np, child_masks_np)
             return information_gain, child_masks, -1
 
     def include_all_split(
@@ -93,7 +103,8 @@ class BaseColumnSplitter(ABC):
             if child_masks[i].sum() < self.min_samples_leaf:
                 return NO_INFORMATION_GAIN, [], -1
 
-        information_gain = self.information_gain(parent_mask, child_masks, normalize=True)
+        parent_mask_np, child_masks_np = self.pre_information_gain(parent_mask, child_masks)
+        information_gain = self.information_gain(parent_mask_np, child_masks_np, normalize=True)
 
         return information_gain, child_masks, -1
 
@@ -119,7 +130,8 @@ class BaseColumnSplitter(ABC):
         best_child_masks = []
         best_child_na_index = -1
         for child_na_index, child_masks in enumerate(candidates):
-            information_gain = self.information_gain(parent_mask, child_masks)
+            parent_mask_np, child_masks_np = self.pre_information_gain(parent_mask, child_masks)
+            information_gain = self.information_gain(parent_mask_np, child_masks_np)
             if best_information_gain < information_gain:
                 best_information_gain = information_gain
                 best_child_masks = child_masks
@@ -129,8 +141,8 @@ class BaseColumnSplitter(ABC):
 
     def information_gain(
         self,
-        parent_mask: pd.Series,
-        child_masks: list[pd.Series],
+        parent_mask: NDArray[np.bool_],
+        child_masks: list[NDArray[np.bool_]],
         normalize: bool = False,
     ) -> float:
         r"""

@@ -11,16 +11,16 @@ class ClassificationCriterion(ABC):
         ...
 
     @abstractmethod
-    def impurity(self, mask: NDArray[np.int8]) -> float:
+    def impurity(self, mask: NDArray[np.bool_]) -> float:
         raise NotImplementedError
 
-    def distribution(self, mask: NDArray[np.int8]) -> NDArray[np.int32]:
+    def distribution(self, mask: NDArray[np.bool_]) -> NDArray[np.int64]:
         ...
 
 
 class Gini(ClassificationCriterion):
 
-    def impurity(self, mask: NDArray[np.int8]) -> float:
+    def impurity(self, mask: NDArray[np.bool_]) -> float:
         r"""
         Calculates Gini index in a tree node.
 
@@ -35,7 +35,7 @@ class Gini(ClassificationCriterion):
 
 class Entropy(ClassificationCriterion):
 
-    def impurity(self, mask: NDArray[np.int8]) -> float:
+    def impurity(self, mask: NDArray[np.bool_]) -> float:
         r"""
         Calculates entropy in a tree node.
 

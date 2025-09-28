@@ -35,6 +35,10 @@ def test__information_gain(concrete_column_splitter, y):
     right_child_mask = ~left_child_mask
 
     child_masks = [left_child_mask, right_child_mask]
+
+    parent_mask = parent_mask.to_numpy()
+    child_masks = [child_mask.to_numpy() for child_mask in child_masks]
+
     inf_gain = concrete_column_splitter.information_gain(parent_mask, child_masks)
 
     assert inf_gain == 0.0016794443115909496

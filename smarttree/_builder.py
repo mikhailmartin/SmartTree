@@ -1,6 +1,5 @@
 import bisect
 
-import numpy as np
 import pandas as pd
 
 from ._criterion import ClassificationCriterion, Entropy, Gini
@@ -45,7 +44,7 @@ class Builder:
                 self.available_features.remove(value)
 
         mask = self.y.apply(lambda x: True)
-        mask_np = mask.to_numpy(dtype=np.int8)
+        mask_np = mask.to_numpy()
         root = tree.create_node(
             mask=mask,
             hierarchy=self.hierarchy,
@@ -76,7 +75,7 @@ class Builder:
                     else:  # str
                         node.available_features.append(value)
 
-                child_mask_np = child_mask.to_numpy(dtype=np.int8)
+                child_mask_np = child_mask.to_numpy()
                 child_node = tree.create_node(
                     mask=child_mask,
                     hierarchy=node.hierarchy,
