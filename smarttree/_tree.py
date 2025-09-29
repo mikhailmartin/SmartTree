@@ -3,7 +3,6 @@ from dataclasses import dataclass, field
 from typing import Self
 
 import numpy as np
-import pandas as pd
 from numpy.typing import NDArray
 
 
@@ -13,7 +12,7 @@ class TreeNode:
     number: int
     num_samples: int
     depth: int = field(repr=False)
-    mask: pd.Series = field(repr=False)
+    mask: NDArray[np.bool_] = field(repr=False)
     hierarchy: dict[str, str | list[str]] = field(repr=False)
     available_features: list[str] = field(repr=False)
 
@@ -54,7 +53,7 @@ class TreeNode:
             number=-1,
             num_samples=-1,
             depth=-1,
-            mask=pd.Series(),
+            mask=np.array([]),
             hierarchy={},
             available_features=[],
             distribution=np.array([]),
@@ -73,8 +72,8 @@ class Tree:
 
     def create_node(
         self,
-        mask: pd.Series,
-        distribution: NDArray[np.integer],
+        mask: NDArray[np.bool_],
+        distribution: NDArray[np.int64],
         impurity: float,
         label: str,
         hierarchy: dict[str, str | list[str]],

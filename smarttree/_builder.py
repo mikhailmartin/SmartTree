@@ -43,13 +43,12 @@ class Builder:
             else:  # str
                 self.available_features.remove(value)
 
-        mask = self.y.apply(lambda x: True)
-        mask_np = mask.to_numpy()
+        mask = self.y.apply(lambda x: True).to_numpy()
         root = tree.create_node(
             mask=mask,
             hierarchy=self.hierarchy,
-            distribution=self.criterion.distribution(mask_np),
-            impurity=self.criterion.impurity(mask_np),
+            distribution=self.criterion.distribution(mask),
+            impurity=self.criterion.impurity(mask),
             label=self.y[mask].mode()[0],
             available_features=self.available_features,
             depth=0,
@@ -75,12 +74,11 @@ class Builder:
                     else:  # str
                         node.available_features.append(value)
 
-                child_mask_np = child_mask.to_numpy()
                 child_node = tree.create_node(
                     mask=child_mask,
                     hierarchy=node.hierarchy,
-                    distribution=self.criterion.distribution(child_mask_np),
-                    impurity=self.criterion.impurity(child_mask_np),
+                    distribution=self.criterion.distribution(child_mask),
+                    impurity=self.criterion.impurity(child_mask),
                     label=self.y[child_mask].mode()[0],
                     available_features=node.available_features,
                     depth=node.depth+1,

@@ -1,6 +1,8 @@
 from typing import NamedTuple
 
+import numpy as np
 import pandas as pd
+from numpy.typing import NDArray
 
 from ._column_splitter import CatColumnSplitter, NumColumnSplitter, RankColumnSplitter
 from ._dataset import Dataset
@@ -14,7 +16,7 @@ class NodeSplitResult(NamedTuple):
     split_type: str
     split_feature: str
     feature_values: list[list[str]]
-    child_masks: list[pd.Series]
+    child_masks: list[NDArray[np.bool_]]
     child_na_index: int = -1
 
     @classmethod
