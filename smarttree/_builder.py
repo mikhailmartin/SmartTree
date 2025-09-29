@@ -1,5 +1,6 @@
 import bisect
 
+import numpy as np
 import pandas as pd
 
 from ._criterion import ClassificationCriterion, Entropy, Gini
@@ -44,12 +45,14 @@ class Builder:
                 self.available_features.remove(value)
 
         mask = self.y.apply(lambda x: True).to_numpy()
+        distribution = np.frombuffer(self.criterion.distribution(mask), dtype=np.int64)
+        label = self.dataset.classes[distribution.argmax()]
         root = tree.create_node(
             mask=mask,
             hierarchy=self.hierarchy,
-            distribution=self.criterion.distribution(mask),
+            distribution=distribution,
             impurity=self.criterion.impurity(mask),
-            label=self.y[mask].mode()[0],
+            label=label,
             available_features=self.available_features,
             depth=0,
             is_root=True,
@@ -74,12 +77,16 @@ class Builder:
                     else:  # str
                         node.available_features.append(value)
 
+                distribution = np.frombuffer(
+                    self.criterion.distribution(child_mask), dtype=np.int64
+                )
+                label = self.dataset.classes[distribution.argmax()]
                 child_node = tree.create_node(
                     mask=child_mask,
                     hierarchy=node.hierarchy,
-                    distribution=self.criterion.distribution(child_mask),
+                    distribution=distribution,
                     impurity=self.criterion.impurity(child_mask),
-                    label=self.y[child_mask].mode()[0],
+                    label=label,
                     available_features=node.available_features,
                     depth=node.depth+1,
                 )
