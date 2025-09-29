@@ -175,7 +175,7 @@ def root_node(X, y):
         number=0,
         num_samples=y.apply(lambda x: True).sum(),
         depth=0,
-        mask=y.apply(lambda x: True),
+        mask=y.apply(lambda x: True).to_numpy(),
         hierarchy=dict(),
         available_features=X.columns.to_list(),
         impurity=0.67,

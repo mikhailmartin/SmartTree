@@ -6,7 +6,6 @@ from copy import deepcopy
 from typing import NamedTuple
 
 import numpy as np
-import pandas as pd
 from numpy.typing import NDArray
 
 from ._cy_column_splitter import CyBaseColumnSplitter
@@ -22,7 +21,7 @@ class ColumnSplitResult(NamedTuple):
 
     information_gain: float
     feature_values: list[list]
-    child_masks: list[pd.Series]
+    child_masks: list[NDArray[np.bool_]]
     child_na_index: int = -1
 
     @classmethod
@@ -61,21 +60,12 @@ class BaseColumnSplitter(ABC):
     def split(self, *args, **kwargs) -> ColumnSplitResult:
         raise NotImplementedError
 
-    def pre_information_gain(
-        self,
-        parent_mask: pd.Series,
-        child_masks: list[pd.Series],
-    ) -> tuple[NDArray[np.bool_], list[NDArray[np.bool_]]]:
-        parent_mask_np = parent_mask.to_numpy()
-        child_masks_np = [child_mask.to_numpy() for child_mask in child_masks]
-        return parent_mask_np, child_masks_np
-
     def foo(
         self,
-        parent_mask: pd.Series,
+        parent_mask: NDArray[np.bool_],
         split_feature: str,
-        child_masks: list[pd.Series],
-    ) -> tuple[float, list[pd.Series], int]:
+        child_masks: list[NDArray[np.bool_]],
+    ) -> tuple[float, list[NDArray[np.bool_]], int]:
 
         if self.dataset.has_na[split_feature]:
             mask_na = parent_mask & self.dataset.mask_na[split_feature]
@@ -87,33 +77,31 @@ class BaseColumnSplitter(ABC):
             else:
                 assert False
         else:
-            parent_mask_np, child_masks_np = self.pre_information_gain(parent_mask, child_masks)
-            information_gain = self.information_gain(parent_mask_np, child_masks_np)
+            information_gain = self.information_gain(parent_mask, child_masks)
             return information_gain, child_masks, -1
 
     def include_all_split(
         self,
-        parent_mask: pd.Series,
-        mask_na: pd.Series,
-        child_masks: list[pd.Series],
-    ) -> tuple[float, list[pd.Series], int]:
+        parent_mask: NDArray[np.bool_],
+        mask_na: NDArray[np.bool_],
+        child_masks: list[NDArray[np.bool_]],
+    ) -> tuple[float, list[NDArray[np.bool_]], int]:
 
         for i, child_mask in enumerate(child_masks):
             child_masks[i] = child_mask | (parent_mask & mask_na)
             if child_masks[i].sum() < self.min_samples_leaf:
                 return NO_INFORMATION_GAIN, [], -1
 
-        parent_mask_np, child_masks_np = self.pre_information_gain(parent_mask, child_masks)
-        information_gain = self.information_gain(parent_mask_np, child_masks_np, normalize=True)
+        information_gain = self.information_gain(parent_mask, child_masks, normalize=True)
 
         return information_gain, child_masks, -1
 
     def include_best_split(
         self,
-        parent_mask: pd.Series,
-        mask_na: pd.Series,
-        child_masks: list[pd.Series],
-    ) -> tuple[float, list[pd.Series], int]:
+        parent_mask: NDArray[np.bool_],
+        mask_na: NDArray[np.bool_],
+        child_masks: list[NDArray[np.bool_]],
+    ) -> tuple[float, list[NDArray[np.bool_]], int]:
 
         candidates = []
         origin_child_masks = child_masks
@@ -130,8 +118,7 @@ class BaseColumnSplitter(ABC):
         best_child_masks = []
         best_child_na_index = -1
         for child_na_index, child_masks in enumerate(candidates):
-            parent_mask_np, child_masks_np = self.pre_information_gain(parent_mask, child_masks)
-            information_gain = self.information_gain(parent_mask_np, child_masks_np)
+            information_gain = self.information_gain(parent_mask, child_masks)
             if best_information_gain < information_gain:
                 best_information_gain = information_gain
                 best_child_masks = child_masks
@@ -204,9 +191,9 @@ class NumColumnSplitter(BaseColumnSplitter):
 
     def split(self, node: TreeNode, split_feature: str) -> ColumnSplitResult:
 
-        numerical_column = self.dataset.X.loc[node.mask, split_feature]
-        points = numerical_column.dropna().to_numpy()
-        thresholds = self.__get_thresholds(points)
+        num_column = self.dataset[split_feature][node.mask]
+        points = np.sort(np.unique(num_column[~np.isnan(num_column)]))
+        thresholds = np.array([]) if len(points) <= 1 else self.__moving_average(points)
 
         best_split_result = ColumnSplitResult.no_split()
         for threshold in thresholds:
@@ -221,26 +208,19 @@ class NumColumnSplitter(BaseColumnSplitter):
 
         return best_split_result
 
-    def __get_thresholds(self, array: NDArray) -> NDArray:
-
-        array = np.sort(np.unique(array))
-        thresholds = np.array([]) if len(array) <= 1 else self.__moving_average(array)
-
-        return thresholds
-
     @staticmethod
     def __moving_average(array: NDArray, window: int = 2) -> NDArray:
         return np.convolve(array, np.ones(window), mode="valid") / window
 
     def __num_split(
         self,
-        parent_mask: pd.Series,
+        parent_mask: NDArray[np.bool_],
         split_feature: str,
         threshold: float,
-    ) -> tuple[float, list[pd.Series], int]:
+    ) -> tuple[float, list[NDArray[np.bool_]], int]:
 
-        mask_less = parent_mask & (self.dataset.X[split_feature] <= threshold)
-        mask_more = parent_mask & (self.dataset.X[split_feature] > threshold)
+        mask_less = parent_mask & (self.dataset[split_feature] <= threshold)
+        mask_more = parent_mask & (self.dataset[split_feature] > threshold)
         child_masks = [mask_less, mask_more]
 
         return self.foo(parent_mask, split_feature, child_masks)
@@ -276,8 +256,8 @@ class CatColumnSplitter(BaseColumnSplitter):
         leaf_counter: int,
     ) -> ColumnSplitResult:
 
-        category_column: pd.Series = self.dataset.X.loc[node.mask, split_feature]  # type: ignore
-        categories = category_column.dropna().unique().tolist()
+        cat_column = self.dataset[split_feature][node.mask & ~self.dataset.mask_na[split_feature]]
+        categories = np.unique(cat_column).tolist()
 
         if len(categories) <= 1:
             return ColumnSplitResult.no_split()
@@ -306,14 +286,14 @@ class CatColumnSplitter(BaseColumnSplitter):
 
     def __cat_split(
         self,
-        parent_mask: pd.Series,
+        parent_mask: NDArray[np.bool_],
         split_feature: str,
         feature_values: list[list],
-    ) -> tuple[float, list[pd.Series], int]:
+    ) -> tuple[float, list[NDArray[np.bool_]], int]:
 
         child_masks = []
         for partition in feature_values:
-            partition_mask = self.dataset.X[split_feature].isin(partition)
+            partition_mask = np.isin(self.dataset[split_feature], partition)
             child_mask = parent_mask & partition_mask
             child_masks.append(child_mask)
 
@@ -376,15 +356,15 @@ class RankColumnSplitter(BaseColumnSplitter):
 
     def __rank_split(
         self,
-        parent_mask: pd.Series,
+        parent_mask: NDArray[np.bool_],
         split_feature: str,
         feature_values: tuple[list, list],
-    ) -> tuple[float, list[pd.Series], int]:
+    ) -> tuple[float, list[NDArray[np.bool_]], int]:
 
         feature_values_left, feature_values_right = feature_values
 
-        mask_left = parent_mask & self.dataset.X[split_feature].isin(feature_values_left)
-        mask_right = parent_mask & self.dataset.X[split_feature].isin(feature_values_right)
+        mask_left = parent_mask & np.isin(self.dataset[split_feature], feature_values_left)
+        mask_right = parent_mask & np.isin(self.dataset[split_feature], feature_values_right)
         child_masks = [mask_left, mask_right]
 
         return self.foo(parent_mask, split_feature, child_masks)
