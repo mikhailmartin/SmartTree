@@ -8,10 +8,10 @@ from typing import NamedTuple
 import numpy as np
 from numpy.typing import NDArray
 
-from ._cy_column_splitter import CyBaseColumnSplitter
+from ._criterion import ClassificationCriterion, Entropy, Gini
 from ._dataset import Dataset
 from ._tree import TreeNode
-from ._types import ClassificationCriterionType, Criterion, NaModeType
+from ._types import ClassificationCriterionType, NaModeType
 
 
 NO_INFORMATION_GAIN = float("-inf")
@@ -35,12 +35,6 @@ class ColumnSplitResult(NamedTuple):
 
 class BaseColumnSplitter(ABC):
 
-    mapping: dict[ClassificationCriterionType, Criterion] = {
-        "gini": Criterion.GINI,
-        "entropy": Criterion.ENTROPY,
-        "log_loss": Criterion.LOG_LOSS,
-    }
-
     def __init__(
         self,
         dataset: Dataset,
@@ -51,7 +45,11 @@ class BaseColumnSplitter(ABC):
     ) -> None:
 
         self.dataset = dataset
-        self.criterion = self.mapping[criterion]
+        self.criterion: ClassificationCriterion
+        if criterion == "gini":
+            self.criterion = Gini(dataset)
+        else:  # "entropy" | "log_loss"
+            self.criterion = Entropy(dataset)
         self.min_samples_split = min_samples_split
         self.min_samples_leaf = min_samples_leaf
         self.feature_na_mode = feature_na_mode
@@ -166,8 +164,7 @@ class BaseColumnSplitter(ABC):
                 \item $\text{impurity}_{\text{child}_i}$ — child node impurity.
             \end{itemize}
         """
-        cs = CyBaseColumnSplitter(self.dataset, self.criterion)
-        return cs.information_gain(parent_mask, child_masks, normalize)
+        return self.criterion.impurity_decrease(parent_mask, child_masks, normalize)
 
 
 class NumColumnSplitter(BaseColumnSplitter):
