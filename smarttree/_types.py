@@ -1,4 +1,3 @@
-from enum import Enum
 from typing import Literal
 
 
@@ -12,9 +11,3 @@ NaModeType = Literal["min", "max", "as_category", "include_all", "include_best"]
 VerboseType = Literal["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG"] | int
 
 SplitType = Literal["numerical", "categorical", "rank"]
-
-
-class Criterion(Enum):
-    GINI = 1
-    ENTROPY = 2
-    LOG_LOSS = 2
