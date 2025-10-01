@@ -580,11 +580,17 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         temp_feature_na_mode = self.feature_na_mode.copy()
         self.feature_na_mode.update({f: self.na_mode for f in self._all_features})
         if self.num_na_mode is not None:
-            self.feature_na_mode.update({f: self.num_na_mode for f in self.num_features})
+            self.feature_na_mode.update({
+                feature: self.num_na_mode for feature in self.num_features
+            })
         if self.cat_na_mode is not None:
-            self.feature_na_mode.update({f: self.cat_na_mode for f in self.cat_features})
+            self.feature_na_mode.update({
+                feature: self.cat_na_mode for feature in self.cat_features
+            })
         if self.rank_na_mode is not None:
-            self.feature_na_mode.update({f: self.rank_na_mode for f in self.rank_features})
+            self.feature_na_mode.update({
+                feature: self.rank_na_mode for feature in self.rank_features
+            })
         self.feature_na_mode.update(temp_feature_na_mode)
 
         for feature, na_mode in self.feature_na_mode.items():
