@@ -3,7 +3,7 @@ import logging
 import math
 from abc import ABC, abstractmethod
 from functools import lru_cache
-from typing import Self
+from typing import Self, cast
 
 import numpy as np
 import pandas as pd
@@ -13,6 +13,7 @@ from sklearn.metrics import accuracy_score
 
 from ._builder import Builder
 from ._check import check__data, check__params
+from ._dataset import Dataset
 from ._exceptions import NotFittedError
 from ._node_splitter import NodeSplitter
 from ._renderer import Renderer
@@ -23,6 +24,7 @@ from ._types import (
     CommonNaModeType,
     NaModeType,
     NumNaModeType,
+    RegressionCriterionType,
     VerboseType,
 )
 
@@ -33,7 +35,7 @@ class BaseSmartDecisionTree(ABC):
     def __init__(
         self,
         *,
-        criterion: ClassificationCriterionType = "gini",
+        criterion: ClassificationCriterionType | RegressionCriterionType = "gini",
         max_depth: int | None = None,
         min_samples_split: int | float = 2,
         min_samples_leaf: int | float = 1,
@@ -116,7 +118,7 @@ class BaseSmartDecisionTree(ABC):
         self._feature_na_filler: dict[str, int | float | str] = dict()
 
     @property
-    def criterion(self) -> ClassificationCriterionType:
+    def criterion(self) -> ClassificationCriterionType | RegressionCriterionType:
         return self.__criterion
 
     @property
@@ -204,6 +206,41 @@ class BaseSmartDecisionTree(ABC):
     def feature_importances_(self) -> dict[str, float]:
         self._check_is_fitted()
         return self.tree_.compute_feature_importances()
+
+    def __repr__(self) -> str:
+        repr_ = []
+
+        # if a parameter value differs from default, then it added to the representation
+        if self.criterion not in ("gini", "squared_error"):
+            repr_.append(f"criterion={self.criterion!r}")
+        if self.max_depth:
+            repr_.append(f"max_depth={self.max_depth}")
+        if self.min_samples_split != 2:
+            repr_.append(f"min_samples_split={self.min_samples_split}")
+        if self.min_samples_leaf != 1:
+            repr_.append(f"min_samples_leaf={self.min_samples_leaf}")
+        if self.max_leaf_nodes:
+            repr_.append(f"max_leaf_nodes={self.max_leaf_nodes}")
+        if self.min_impurity_decrease != .0:
+            repr_.append(f"min_impurity_decrease={self.min_impurity_decrease}")
+        if self.max_childs:
+            repr_.append(f"max_childs={self.max_childs}")
+        if self.hierarchy:
+            repr_.append(f"hierarchy={self.hierarchy}")
+        if self.na_mode != "include_best":
+            repr_.append(f"na_mode={self.na_mode!r}")
+        if self.num_na_mode:
+            repr_.append(f"num_na_mode={self.num_na_mode!r}")
+        if self.cat_na_mode:
+            repr_.append(f"cat_na_mode={self.cat_na_mode!r}")
+        if self.cat_na_filler != "missing_value":
+            repr_.append(f"cat_na_filler={self.cat_na_filler!r}")
+        if self.rank_na_mode:
+            repr_.append(f"rank_na_mode={self.rank_na_mode!r}")
+
+        return (
+            f"{self.__class__.__name__}({', '.join(repr_)})"
+        )
 
     @abstractmethod
     def fit(self, X: pd.DataFrame, y: pd.Series) -> Self:
@@ -470,50 +507,13 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         self.__classes: NDArray = np.array([])
 
     @property
+    def criterion(self) -> ClassificationCriterionType:
+        return cast(ClassificationCriterionType, super().criterion)
+
+    @property
     def classes_(self) -> NDArray:
         self._check_is_fitted()
         return self.__classes
-
-    def __repr__(self) -> str:
-        repr_ = []
-
-        # if a parameter value differs from default, then it added to the representation
-        if self.criterion != "gini":
-            repr_.append(f"criterion={self.criterion!r}")
-        if self.max_depth:
-            repr_.append(f"max_depth={self.max_depth}")
-        if self.min_samples_split != 2:
-            repr_.append(f"min_samples_split={self.min_samples_split}")
-        if self.min_samples_leaf != 1:
-            repr_.append(f"min_samples_leaf={self.min_samples_leaf}")
-        if self.max_leaf_nodes:
-            repr_.append(f"max_leaf_nodes={self.max_leaf_nodes}")
-        if self.min_impurity_decrease != .0:
-            repr_.append(f"min_impurity_decrease={self.min_impurity_decrease}")
-        if self.max_childs:
-            repr_.append(f"max_childs={self.max_childs}")
-        if self.num_features:
-            repr_.append(f"num_features={self.num_features}")
-        if self.cat_features:
-            repr_.append(f"cat_features={self.cat_features}")
-        if self.rank_features:
-            repr_.append(f"rank_features={self.rank_features}")
-        if self.hierarchy:
-            repr_.append(f"hierarchy={self.hierarchy}")
-        if self.na_mode != "include_best":
-            repr_.append(f"na_mode={self.na_mode!r}")
-        if self.num_na_mode:
-            repr_.append(f"num_na_mode={self.num_na_mode!r}")
-        if self.cat_na_mode:
-            repr_.append(f"cat_na_mode={self.cat_na_mode!r}")
-        if self.cat_na_filler != "missing_value":
-            repr_.append(f"cat_na_filler={self.cat_na_filler!r}")
-        if self.rank_na_mode:
-            repr_.append(f"rank_na_mode={self.rank_na_mode!r}")
-
-        return (
-            f"{self.__class__.__name__}({', '.join(repr_)})"
-        )
 
     def fit(self, X: pd.DataFrame, y: pd.Series) -> Self:
         """
@@ -587,8 +587,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             self.feature_na_mode.update({f: self.rank_na_mode for f in self.rank_features})
         self.feature_na_mode.update(temp_feature_na_mode)
 
-        self.__classes = np.sort(y.unique())
-
         for feature, na_mode in self.feature_na_mode.items():
             if na_mode == "min":
                 na_filler = X[feature].min()
@@ -602,9 +600,10 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
 
         X = self.__preprocess(X)
 
+        dataset = Dataset(X, y)
+
         splitter = NodeSplitter(
-            X=X,
-            y=y,
+            dataset=dataset,
             criterion=self.criterion,
             max_depth=max_depth,
             min_samples_split=min_samples_split,
@@ -621,8 +620,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         self._tree = Tree()
 
         builder = Builder(
-            X=X,
-            y=y,
+            dataset=dataset,
             criterion=self.criterion,
             splitter=splitter,
             max_leaf_nodes=max_leaf_nodes,
@@ -630,6 +628,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         )
         builder.build(self._tree)
 
+        self.__classes = dataset.classes
         self._is_fitted = True
 
         return self
@@ -782,3 +781,57 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         )
 
         return graph
+
+
+class SmartDecisionTreeRegressor(BaseSmartDecisionTree):
+    """
+    TODO.
+
+    """
+    def __init__(
+        self,
+        *,
+        criterion: RegressionCriterionType = "squared_error",
+        max_depth: int | None = None,
+        min_samples_split: int | float = 2,
+        min_samples_leaf: int | float = 1,
+        max_leaf_nodes: int | None = None,
+        min_impurity_decrease: float = .0,
+        max_childs: int | None = None,
+        num_features: list[str] | str | None = None,
+        cat_features: list[str] | str | None = None,
+        rank_features: dict[str, list] | None = None,
+        hierarchy: dict[str, str | list[str]] | None = None,
+        na_mode: CommonNaModeType = "include_best",
+        num_na_mode: NumNaModeType | None = None,
+        cat_na_mode: CatNaModeType | None = None,
+        cat_na_filler: str = "missing_value",
+        rank_na_mode: CommonNaModeType | None = None,
+        feature_na_mode: dict[str, NaModeType] | None = None,
+        verbose: VerboseType = "WARNING",
+    ) -> None:
+
+        super().__init__(
+            criterion=criterion,
+            max_depth=max_depth,
+            min_samples_split=min_samples_split,
+            min_samples_leaf=min_samples_leaf,
+            max_leaf_nodes=max_leaf_nodes,
+            min_impurity_decrease=min_impurity_decrease,
+            max_childs=max_childs,
+            num_features=num_features,
+            cat_features=cat_features,
+            rank_features=rank_features,
+            hierarchy=hierarchy,
+            na_mode=na_mode,
+            num_na_mode=num_na_mode,
+            cat_na_mode=cat_na_mode,
+            cat_na_filler=cat_na_filler,
+            rank_na_mode=rank_na_mode,
+            feature_na_mode=feature_na_mode,
+            verbose=verbose,
+        )
+
+    @property
+    def criterion(self) -> RegressionCriterionType:
+        return cast(RegressionCriterionType, super().criterion)

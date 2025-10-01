@@ -1,7 +1,6 @@
 import bisect
 
 import numpy as np
-import pandas as pd
 
 from ._criterion import ClassificationCriterion, Entropy, Gini
 from ._dataset import Dataset
@@ -13,18 +12,15 @@ from ._types import ClassificationCriterionType
 class Builder:
     def __init__(
         self,
-        X: pd.DataFrame,
-        y: pd.Series,
+        dataset: Dataset,
         criterion: ClassificationCriterionType,
         splitter: NodeSplitter,
         max_leaf_nodes: int | float,
         hierarchy: dict[str, str | list[str]],
     ) -> None:
 
-        self.X = X
-        self.y = y
-        self.dataset = Dataset(X, y)
-        self.available_features = X.columns.to_list()
+        self.dataset = dataset
+        self.available_features = list(dataset.columns)
         self.splitter = splitter
         self.max_leaf_nodes = max_leaf_nodes
         self.hierarchy = hierarchy
@@ -44,7 +40,7 @@ class Builder:
             else:  # str
                 self.available_features.remove(value)
 
-        mask = self.y.apply(lambda x: True).to_numpy()
+        mask = np.ones(self.dataset.n_samples, dtype=bool)
         distribution = np.frombuffer(self.criterion.distribution(mask), dtype=np.int64)
         label = self.dataset.classes[distribution.argmax()]
         root = tree.create_node(

@@ -8,6 +8,8 @@ NumNaModeType = Literal["min", "max", "include_all", "include_best"]
 CatNaModeType = Literal["as_category", "include_all", "include_best"]
 NaModeType = Literal["min", "max", "as_category", "include_all", "include_best"]
 
+RegressionCriterionType = Literal["squared_error"]
+
 VerboseType = Literal["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG"] | int
 
 SplitType = Literal["numerical", "categorical", "rank"]

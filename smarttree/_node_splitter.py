@@ -1,7 +1,6 @@
 from typing import NamedTuple
 
 import numpy as np
-import pandas as pd
 from numpy.typing import NDArray
 
 from ._column_splitter import CatColumnSplitter, NumColumnSplitter, RankColumnSplitter
@@ -34,8 +33,7 @@ class NodeSplitter:
 
     def __init__(
         self,
-        X: pd.DataFrame,
-        y: pd.Series,
+        dataset: Dataset,
         criterion: ClassificationCriterionType,
         max_depth: int | float,
         min_samples_split: int,
@@ -61,7 +59,6 @@ class NodeSplitter:
         for rank_feature in rank_features:
             self.feature_split_type[rank_feature] = "rank"
 
-        dataset = Dataset(X, y)
         self.num_col_splitter = NumColumnSplitter(
             dataset=dataset,
             criterion=criterion,

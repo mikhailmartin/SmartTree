@@ -1,6 +1,5 @@
 import pytest
 
-from smarttree import SmartDecisionTreeClassifier
 from smarttree._types import (
     CatNaModeType,
     ClassificationCriterionType,
@@ -8,8 +7,10 @@ from smarttree._types import (
     NumNaModeType,
 )
 
+from ...conftest import ConcreteSmartTree
 
-CLASS_NAME = SmartDecisionTreeClassifier.__name__
+
+CLASS_NAME = ConcreteSmartTree.__name__
 
 
 @pytest.mark.parametrize(
@@ -22,7 +23,7 @@ CLASS_NAME = SmartDecisionTreeClassifier.__name__
 )
 def test_repr_tree__criterion(criterion, expected):
     criterion: ClassificationCriterionType
-    tree_classifier = SmartDecisionTreeClassifier(criterion=criterion)
+    tree_classifier = ConcreteSmartTree(criterion=criterion)
     assert repr(tree_classifier) == expected
 
 
@@ -35,7 +36,7 @@ def test_repr_tree__criterion(criterion, expected):
     ids=["default value", "not default value"],
 )
 def test_repr_tree__max_depth(max_depth, expected):
-    tree_classifier = SmartDecisionTreeClassifier(max_depth=max_depth)
+    tree_classifier = ConcreteSmartTree(max_depth=max_depth)
     assert repr(tree_classifier) == expected
 
 
@@ -49,7 +50,7 @@ def test_repr_tree__max_depth(max_depth, expected):
     ids=["default value", "not default value(int)", "not default value(float)"],
 )
 def test_repr_tree__min_samples_split(min_samples_split, expected):
-    tree_classifier = SmartDecisionTreeClassifier(min_samples_split=min_samples_split)
+    tree_classifier = ConcreteSmartTree(min_samples_split=min_samples_split)
     assert repr(tree_classifier) == expected
 
 
@@ -63,7 +64,7 @@ def test_repr_tree__min_samples_split(min_samples_split, expected):
     ids=["default value", "not default value(int)", "not default value(float)"],
 )
 def test_repr_tree__min_samples_leaf(min_samples_split, min_samples_leaf, expected):
-    tree_classifier = SmartDecisionTreeClassifier(
+    tree_classifier = ConcreteSmartTree(
         min_samples_split=min_samples_split, min_samples_leaf=min_samples_leaf
     )
     assert repr(tree_classifier) == expected
@@ -78,7 +79,7 @@ def test_repr_tree__min_samples_leaf(min_samples_split, min_samples_leaf, expect
     ids=["default value", "not default value"],
 )
 def test_repr_tree__max_leaf_nodes(max_leaf_nodes, expected):
-    tree_classifier = SmartDecisionTreeClassifier(max_leaf_nodes=max_leaf_nodes)
+    tree_classifier = ConcreteSmartTree(max_leaf_nodes=max_leaf_nodes)
     assert repr(tree_classifier) == expected
 
 
@@ -91,9 +92,7 @@ def test_repr_tree__max_leaf_nodes(max_leaf_nodes, expected):
     ids=["default value", "not default value"],
 )
 def test_repr_tree__min_impurity_decrease(min_impurity_decrease, expected):
-    tree_classifier = SmartDecisionTreeClassifier(
-        min_impurity_decrease=min_impurity_decrease
-    )
+    tree_classifier = ConcreteSmartTree(min_impurity_decrease=min_impurity_decrease)
     assert repr(tree_classifier) == expected
 
 
@@ -106,51 +105,7 @@ def test_repr_tree__min_impurity_decrease(min_impurity_decrease, expected):
     ids=["default value", "not default value"],
 )
 def test_repr_tree__max_childs(max_childs, expected):
-    tree_classifier = SmartDecisionTreeClassifier(max_childs=max_childs)
-    assert repr(tree_classifier) == expected
-
-
-@pytest.mark.parametrize(
-    ("num_features", "expected"),
-    [
-        (None, f"{CLASS_NAME}()"),
-        ("feature", f"{CLASS_NAME}(num_features=['feature'])"),
-        (["feature"], f"{CLASS_NAME}(num_features=['feature'])"),
-    ],
-    ids=["default value", "not default value(str)", "not default value(list[str])"],
-)
-def test_repr_tree__num_features(num_features, expected):
-    tree_classifier = SmartDecisionTreeClassifier(num_features=num_features)
-    assert repr(tree_classifier) == expected
-
-
-@pytest.mark.parametrize(
-    ("cat_features", "expected"),
-    [
-        (None, f"{CLASS_NAME}()"),
-        ("feature", f"{CLASS_NAME}(cat_features=['feature'])"),
-        (["feature"], f"{CLASS_NAME}(cat_features=['feature'])"),
-    ],
-    ids=["default value", "not default value(str)", "not default value(list[str])"],
-)
-def test_repr_tree__cat_features(cat_features, expected):
-    tree_classifier = SmartDecisionTreeClassifier(cat_features=cat_features)
-    assert repr(tree_classifier) == expected
-
-
-@pytest.mark.parametrize(
-    ("rank_features", "expected"),
-    [
-        (None, f"{CLASS_NAME}()"),
-        (
-            {"f": ["v1", "v2"]},
-            f"{CLASS_NAME}(rank_features={{'f': ['v1', 'v2']}})",
-        ),
-    ],
-    ids=["default value", "not default value"],
-)
-def test_repr_tree__rank_features(rank_features, expected):
-    tree_classifier = SmartDecisionTreeClassifier(rank_features=rank_features)
+    tree_classifier = ConcreteSmartTree(max_childs=max_childs)
     assert repr(tree_classifier) == expected
 
 
@@ -168,7 +123,7 @@ def test_repr_tree__rank_features(rank_features, expected):
     ],
 )
 def test_repr_tree__hierarchy(hierarchy, expected):
-    tree_classifier = SmartDecisionTreeClassifier(hierarchy=hierarchy)
+    tree_classifier = ConcreteSmartTree(hierarchy=hierarchy)
     assert repr(tree_classifier) == expected
 
 
@@ -182,7 +137,7 @@ def test_repr_tree__hierarchy(hierarchy, expected):
 )
 def test_repr_tree__na_mode(na_mode, expected):
     na_mode: CommonNaModeType
-    tree_classifier = SmartDecisionTreeClassifier(na_mode=na_mode)
+    tree_classifier = ConcreteSmartTree(na_mode=na_mode)
     assert repr(tree_classifier) == expected
 
 
@@ -196,7 +151,7 @@ def test_repr_tree__na_mode(na_mode, expected):
 )
 def test_repr_tree__num_na_mode(num_na_mode, expected):
     num_na_mode: NumNaModeType
-    tree_classifier = SmartDecisionTreeClassifier(num_na_mode=num_na_mode)
+    tree_classifier = ConcreteSmartTree(num_na_mode=num_na_mode)
     assert repr(tree_classifier) == expected
 
 
@@ -210,7 +165,7 @@ def test_repr_tree__num_na_mode(num_na_mode, expected):
 )
 def test_repr_tree__cat_na_mode(cat_na_mode, expected):
     cat_na_mode: CatNaModeType
-    tree_classifier = SmartDecisionTreeClassifier(cat_na_mode=cat_na_mode)
+    tree_classifier = ConcreteSmartTree(cat_na_mode=cat_na_mode)
     assert repr(tree_classifier) == expected
 
 
@@ -223,7 +178,7 @@ def test_repr_tree__cat_na_mode(cat_na_mode, expected):
     ids=["default value", "not default value"],
 )
 def test_repr_tree__cat_na_filler(cat_na_filler, expected):
-    tree_classifier = SmartDecisionTreeClassifier(cat_na_filler=cat_na_filler)
+    tree_classifier = ConcreteSmartTree(cat_na_filler=cat_na_filler)
     assert repr(tree_classifier) == expected
 
 
@@ -236,5 +191,5 @@ def test_repr_tree__cat_na_filler(cat_na_filler, expected):
     ids=["default value", "not default value"],
 )
 def test_repr_tree_rank_na_mode(rank_na_mode, expected):
-    tree_classifier = SmartDecisionTreeClassifier(rank_na_mode=rank_na_mode)
+    tree_classifier = ConcreteSmartTree(rank_na_mode=rank_na_mode)
     assert repr(tree_classifier) == expected
