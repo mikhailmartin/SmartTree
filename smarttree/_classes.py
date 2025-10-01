@@ -3,7 +3,7 @@ import logging
 import math
 from abc import ABC, abstractmethod
 from functools import lru_cache
-from typing import Self
+from typing import cast, Self
 
 import numpy as np
 import pandas as pd
@@ -23,6 +23,7 @@ from ._types import (
     CommonNaModeType,
     NaModeType,
     NumNaModeType,
+    RegressionCriterionType,
     VerboseType,
 )
 
@@ -33,7 +34,7 @@ class BaseSmartDecisionTree(ABC):
     def __init__(
         self,
         *,
-        criterion: ClassificationCriterionType = "gini",
+        criterion: ClassificationCriterionType | RegressionCriterionType = "gini",
         max_depth: int | None = None,
         min_samples_split: int | float = 2,
         min_samples_leaf: int | float = 1,
@@ -116,7 +117,7 @@ class BaseSmartDecisionTree(ABC):
         self._feature_na_filler: dict[str, int | float | str] = dict()
 
     @property
-    def criterion(self) -> ClassificationCriterionType:
+    def criterion(self) -> ClassificationCriterionType | RegressionCriterionType:
         return self.__criterion
 
     @property
@@ -470,6 +471,10 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         self.__classes: NDArray = np.array([])
 
     @property
+    def criterion(self) -> ClassificationCriterionType:
+        return cast(ClassificationCriterionType, super().criterion)
+
+    @property
     def classes_(self) -> NDArray:
         self._check_is_fitted()
         return self.__classes
@@ -782,3 +787,57 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         )
 
         return graph
+
+
+class SmartDecisionTreeRegressor(BaseSmartDecisionTree):
+    """
+    TODO.
+
+    """
+    def __init__(
+        self,
+        *,
+        criterion: RegressionCriterionType = "squared_error",
+        max_depth: int | None = None,
+        min_samples_split: int | float = 2,
+        min_samples_leaf: int | float = 1,
+        max_leaf_nodes: int | None = None,
+        min_impurity_decrease: float = .0,
+        max_childs: int | None = None,
+        num_features: list[str] | str | None = None,
+        cat_features: list[str] | str | None = None,
+        rank_features: dict[str, list] | None = None,
+        hierarchy: dict[str, str | list[str]] | None = None,
+        na_mode: CommonNaModeType = "include_best",
+        num_na_mode: NumNaModeType | None = None,
+        cat_na_mode: CatNaModeType | None = None,
+        cat_na_filler: str = "missing_value",
+        rank_na_mode: CommonNaModeType | None = None,
+        feature_na_mode: dict[str, NaModeType] | None = None,
+        verbose: VerboseType = "WARNING",
+    ) -> None:
+
+        super().__init__(
+            criterion=criterion,
+            max_depth=max_depth,
+            min_samples_split=min_samples_split,
+            min_samples_leaf=min_samples_leaf,
+            max_leaf_nodes=max_leaf_nodes,
+            min_impurity_decrease=min_impurity_decrease,
+            max_childs=max_childs,
+            num_features=num_features,
+            cat_features=cat_features,
+            rank_features=rank_features,
+            hierarchy=hierarchy,
+            na_mode=na_mode,
+            num_na_mode=num_na_mode,
+            cat_na_mode=cat_na_mode,
+            cat_na_filler=cat_na_filler,
+            rank_na_mode=rank_na_mode,
+            feature_na_mode=feature_na_mode,
+            verbose=verbose,
+        )
+
+    @property
+    def criterion(self) -> RegressionCriterionType:
+        return cast(RegressionCriterionType, super().criterion)
