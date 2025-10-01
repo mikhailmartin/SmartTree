@@ -228,8 +228,6 @@ class BaseSmartDecisionTree(ABC):
             repr_.append(f"num_features={self.num_features}")
         if self.cat_features:
             repr_.append(f"cat_features={self.cat_features}")
-        if self.rank_features:
-            repr_.append(f"rank_features={self.rank_features}")
         if self.hierarchy:
             repr_.append(f"hierarchy={self.hierarchy}")
         if self.na_mode != "include_best":

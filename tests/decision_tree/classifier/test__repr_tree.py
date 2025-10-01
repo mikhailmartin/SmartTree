@@ -139,22 +139,6 @@ def test_repr_tree__cat_features(cat_features, expected):
 
 
 @pytest.mark.parametrize(
-    ("rank_features", "expected"),
-    [
-        (None, f"{CLASS_NAME}()"),
-        (
-            {"f": ["v1", "v2"]},
-            f"{CLASS_NAME}(rank_features={{'f': ['v1', 'v2']}})",
-        ),
-    ],
-    ids=["default value", "not default value"],
-)
-def test_repr_tree__rank_features(rank_features, expected):
-    tree_classifier = SmartDecisionTreeClassifier(rank_features=rank_features)
-    assert repr(tree_classifier) == expected
-
-
-@pytest.mark.parametrize(
     ("hierarchy", "expected"),
     [
         (None, f"{CLASS_NAME}()"),
