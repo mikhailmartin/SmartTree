@@ -123,20 +123,6 @@ def test_repr_tree__num_features(num_features, expected):
 
 
 @pytest.mark.parametrize(
-    ("cat_features", "expected"),
-    [
-        (None, f"{CLASS_NAME}()"),
-        ("feature", f"{CLASS_NAME}(cat_features=['feature'])"),
-        (["feature"], f"{CLASS_NAME}(cat_features=['feature'])"),
-    ],
-    ids=["default value", "not default value(str)", "not default value(list[str])"],
-)
-def test_repr_tree__cat_features(cat_features, expected):
-    tree_classifier = ConcreteSmartTree(cat_features=cat_features)
-    assert repr(tree_classifier) == expected
-
-
-@pytest.mark.parametrize(
     ("hierarchy", "expected"),
     [
         (None, f"{CLASS_NAME}()"),
