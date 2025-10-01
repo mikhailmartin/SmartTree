@@ -224,8 +224,6 @@ class BaseSmartDecisionTree(ABC):
             repr_.append(f"min_impurity_decrease={self.min_impurity_decrease}")
         if self.max_childs:
             repr_.append(f"max_childs={self.max_childs}")
-        if self.num_features:
-            repr_.append(f"num_features={self.num_features}")
         if self.hierarchy:
             repr_.append(f"hierarchy={self.hierarchy}")
         if self.na_mode != "include_best":
