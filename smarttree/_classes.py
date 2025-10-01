@@ -622,8 +622,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         self._tree = Tree()
 
         builder = Builder(
-            X=X,
-            y=y,
+            dataset=dataset,
             criterion=self.criterion,
             splitter=splitter,
             max_leaf_nodes=max_leaf_nodes,
