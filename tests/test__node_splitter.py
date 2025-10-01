@@ -5,11 +5,10 @@ from smarttree._node_splitter import NodeSplitter
 
 @pytest.fixture(scope="module")
 def node_splitter(
-    X, y, num_features, cat_features, rank_features, feature_na_mode
+    dataset, num_features, cat_features, rank_features, feature_na_mode
 ) -> NodeSplitter:
     return NodeSplitter(
-        X=X,
-        y=y,
+        dataset=dataset,
         criterion="gini",
         max_depth=float("+inf"),
         min_samples_split=2,

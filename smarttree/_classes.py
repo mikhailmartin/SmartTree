@@ -13,6 +13,7 @@ from sklearn.metrics import accuracy_score
 
 from ._builder import Builder
 from ._check import check__data, check__params
+from ._dataset import Dataset
 from ._exceptions import NotFittedError
 from ._node_splitter import NodeSplitter
 from ._renderer import Renderer
@@ -601,9 +602,10 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
 
         X = self.__preprocess(X)
 
+        dataset = Dataset(X, y)
+
         splitter = NodeSplitter(
-            X=X,
-            y=y,
+            dataset=dataset,
             criterion=self.criterion,
             max_depth=max_depth,
             min_samples_split=min_samples_split,

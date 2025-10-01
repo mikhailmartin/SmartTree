@@ -1,12 +1,13 @@
 import pytest
 
-from ...conftest import ConcreteSmartTree
 from smarttree._types import (
     CatNaModeType,
     ClassificationCriterionType,
     CommonNaModeType,
     NumNaModeType,
 )
+
+from ...conftest import ConcreteSmartTree
 
 
 CLASS_NAME = ConcreteSmartTree.__name__
