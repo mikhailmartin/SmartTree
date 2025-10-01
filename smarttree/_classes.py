@@ -587,8 +587,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
             self.feature_na_mode.update({f: self.rank_na_mode for f in self.rank_features})
         self.feature_na_mode.update(temp_feature_na_mode)
 
-        self.__classes = np.sort(y.unique())
-
         for feature, na_mode in self.feature_na_mode.items():
             if na_mode == "min":
                 na_filler = X[feature].min()
@@ -630,6 +628,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         )
         builder.build(self._tree)
 
+        self.__classes = dataset.classes
         self._is_fitted = True
 
         return self
