@@ -3,7 +3,7 @@ import logging
 import math
 from abc import ABC, abstractmethod
 from functools import lru_cache
-from typing import cast, Self
+from typing import Self, cast
 
 import numpy as np
 import pandas as pd
@@ -205,6 +205,47 @@ class BaseSmartDecisionTree(ABC):
     def feature_importances_(self) -> dict[str, float]:
         self._check_is_fitted()
         return self.tree_.compute_feature_importances()
+
+    def __repr__(self) -> str:
+        repr_ = []
+
+        # if a parameter value differs from default, then it added to the representation
+        if self.criterion not in ("gini", "squared_error"):
+            repr_.append(f"criterion={self.criterion!r}")
+        if self.max_depth:
+            repr_.append(f"max_depth={self.max_depth}")
+        if self.min_samples_split != 2:
+            repr_.append(f"min_samples_split={self.min_samples_split}")
+        if self.min_samples_leaf != 1:
+            repr_.append(f"min_samples_leaf={self.min_samples_leaf}")
+        if self.max_leaf_nodes:
+            repr_.append(f"max_leaf_nodes={self.max_leaf_nodes}")
+        if self.min_impurity_decrease != .0:
+            repr_.append(f"min_impurity_decrease={self.min_impurity_decrease}")
+        if self.max_childs:
+            repr_.append(f"max_childs={self.max_childs}")
+        if self.num_features:
+            repr_.append(f"num_features={self.num_features}")
+        if self.cat_features:
+            repr_.append(f"cat_features={self.cat_features}")
+        if self.rank_features:
+            repr_.append(f"rank_features={self.rank_features}")
+        if self.hierarchy:
+            repr_.append(f"hierarchy={self.hierarchy}")
+        if self.na_mode != "include_best":
+            repr_.append(f"na_mode={self.na_mode!r}")
+        if self.num_na_mode:
+            repr_.append(f"num_na_mode={self.num_na_mode!r}")
+        if self.cat_na_mode:
+            repr_.append(f"cat_na_mode={self.cat_na_mode!r}")
+        if self.cat_na_filler != "missing_value":
+            repr_.append(f"cat_na_filler={self.cat_na_filler!r}")
+        if self.rank_na_mode:
+            repr_.append(f"rank_na_mode={self.rank_na_mode!r}")
+
+        return (
+            f"{self.__class__.__name__}({', '.join(repr_)})"
+        )
 
     @abstractmethod
     def fit(self, X: pd.DataFrame, y: pd.Series) -> Self:
@@ -478,47 +519,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
     def classes_(self) -> NDArray:
         self._check_is_fitted()
         return self.__classes
-
-    def __repr__(self) -> str:
-        repr_ = []
-
-        # if a parameter value differs from default, then it added to the representation
-        if self.criterion != "gini":
-            repr_.append(f"criterion={self.criterion!r}")
-        if self.max_depth:
-            repr_.append(f"max_depth={self.max_depth}")
-        if self.min_samples_split != 2:
-            repr_.append(f"min_samples_split={self.min_samples_split}")
-        if self.min_samples_leaf != 1:
-            repr_.append(f"min_samples_leaf={self.min_samples_leaf}")
-        if self.max_leaf_nodes:
-            repr_.append(f"max_leaf_nodes={self.max_leaf_nodes}")
-        if self.min_impurity_decrease != .0:
-            repr_.append(f"min_impurity_decrease={self.min_impurity_decrease}")
-        if self.max_childs:
-            repr_.append(f"max_childs={self.max_childs}")
-        if self.num_features:
-            repr_.append(f"num_features={self.num_features}")
-        if self.cat_features:
-            repr_.append(f"cat_features={self.cat_features}")
-        if self.rank_features:
-            repr_.append(f"rank_features={self.rank_features}")
-        if self.hierarchy:
-            repr_.append(f"hierarchy={self.hierarchy}")
-        if self.na_mode != "include_best":
-            repr_.append(f"na_mode={self.na_mode!r}")
-        if self.num_na_mode:
-            repr_.append(f"num_na_mode={self.num_na_mode!r}")
-        if self.cat_na_mode:
-            repr_.append(f"cat_na_mode={self.cat_na_mode!r}")
-        if self.cat_na_filler != "missing_value":
-            repr_.append(f"cat_na_filler={self.cat_na_filler!r}")
-        if self.rank_na_mode:
-            repr_.append(f"rank_na_mode={self.rank_na_mode!r}")
-
-        return (
-            f"{self.__class__.__name__}({', '.join(repr_)})"
-        )
 
     def fit(self, X: pd.DataFrame, y: pd.Series) -> Self:
         """
