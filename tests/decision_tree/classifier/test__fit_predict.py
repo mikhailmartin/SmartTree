@@ -25,6 +25,8 @@ RANK_FEATURE_WITH_NA = "5. В какой семье Вы выросли?"
         ("single_cat_feature_with_na", dict(cat_na_mode="include_all")),
         ("single_cat_feature_with_na", dict(cat_na_mode="include_best")),
         ("single_rank_feature_with_na", dict()),
+        ("single_rank_feature_with_na", dict(rank_na_mode="include_all")),
+        ("single_rank_feature_with_na", dict(rank_na_mode="include_best")),
     ],
 )
 def test__fit_predict(X, y, X_scenario, na_mode):

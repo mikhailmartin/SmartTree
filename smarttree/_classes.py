@@ -193,8 +193,7 @@ class BaseSmartDecisionTree(ABC):
     @property
     def tree_(self) -> Tree:
         self._check_is_fitted()
-        assert self._tree is not None
-        return self._tree
+        return cast(Tree, self._tree)
 
     def get_n_leaves(self) -> int:
         return self.tree_.leaf_counter
@@ -386,12 +385,12 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
           number of child nodes. If None then unlimited number of child nodes.
 
         num_features: list[str] or str, default=None
-          List of numerical feature names. If None `numerical_features` will be
-          set from unset feature names in X while .fit().
+          List of numerical feature names. If None `num_features` will be set
+          from unset feature names in X while .fit().
 
         cat_features: list[str] or str, default=None
-          List of categorical feature names. If None `categorical_features`
-          will be set from unset feature names in X while .fit().
+          List of categorical feature names. If None `cat_features` will be set
+          from unset feature names in X while .fit().
 
         rank_features: list[str] or str, default=None
           List of rank feature names.
@@ -403,62 +402,41 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
           selecting features for splits.
 
         na_mode: {"include_all", "include_best"}, default="include_best"
-          The mode of handling missing values in a feature.
-
-          - If "include_all", then while training samples with missing values
-            are included into all child nodes. While predicting decision is
-            weighted mean of all decisions in child nodes.
-          - If "include_best", then while training and prediction samples with
-            missing values are included into the best child node according to
-            information gain.
+          Default mode for handling missing values.
 
         num_na_mode: {"min", "max", "include_all", "include_best"}, default=None
-          The mode of handling missing values in a numerical feature.
-
-          - If "min", then missing values are filled with minimum value of
-            a numerical feature in training data.
-          - If "max", then missing values are filled with maximum value of
-            a numerical feature in training data.
-          - If "include_all", then while training samples with missing values
-            are included into all child nodes. While predicting decision is
-            weighted mean of all decisions in child nodes.
-          - If "include_best", then while training and prediction samples with
-            missing values are included into the best child node according to
-            information gain.
+          Mode for numerical features (overrides `na_mode`).
 
         cat_na_mode: {"as_category", "include_all", "include_best"}, default=None
-          The mode of handling missing values in a categorical feature.
-
-          - If "as_category", then while training and predicting missing values
-            will be filled with `categorical_na_filler`.
-          - If "include_all", then while training samples with missing values
-            are included into all child nodes. While predicting decision is
-            weighted mean of all decisions in child nodes.
-          - If "include_best", then while training and prediction samples with
-            missing values are included into the best child node according to
-            information gain.
+          Mode for categorical features (overrides `na_mode`).
 
         cat_na_filler: str, default="missing_value"
-          If `cat_na_mode` is set to "as_category", then during training and
-          predicting missing values will be filled with `cat_na_filler`.
+          Used when `cat_na_mode="as_category"`.
 
         rank_na_mode: {"include_all", "include_best"}, default=None
-          The mode of handling missing values in a rank feature.
+          Mode for rank features (overrides `na_mode`).
 
-          - If "include_all", then while training samples with missing values
-            are included into all child nodes. While predicting decision is
-            weighted mean of all decisions in child nodes.
-          - If "include_best", then while training and prediction samples with
-            missing values are included into the best child node according to
-            information gain.
-
-        feature_na_mode: dict[str, {"min", "max", "as_category", "include_all", "include_best"}],
-                         default=None
-          The mode of handling missing values in a feature.
+        feature_na_mode: dict, default=None
+          Per-feature mode overrides (takes highest precedence).
 
         verbose: {"CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG"} or int,
                  default="WARNING"
           Controls the level of decision tree verbosity.
+
+    Missing Value Handling:
+        The following modes are supported for handling missing values:
+
+        - "min" (numerical only): Replace with feature minimum
+        - "max" (numerical only): Replace with feature maximum
+        - "as_category" (categorical only): Treat as separate category
+        - "include_all": Distribute samples to all child nodes during training,
+                         use weighted decisions during prediction
+        - "include_best": Send samples to best child node based on information gain
+
+        Mode precedence (highest to lowest):
+        1. feature_na_mode[feature_name]
+        2. type_na_mode (num_na_mode/cat_na_mode/rank_na_mode)
+        3. na_mode (global default)
     """
 
     def __init__(
@@ -791,9 +769,117 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
 
 class SmartDecisionTreeRegressor(BaseSmartDecisionTree):
     """
-    TODO.
+    A decision tree regressor.
 
+    Parameters:
+        criterion: {"squared_error"}, default="squared_error"
+          The function to measure the quality of a split.
+
+        max_depth: int, default=None
+          The maximum depth of the tree. If None, then nodes are expanded until
+          all leaves are pure or until all leaves contain less than
+          `min_samples_split` samples.
+
+        min_samples_split: int or float, default=2
+          The minimum number of samples required to split an internal node:
+
+          - If int, then consider `min_samples_split` as the minimum number.
+          - If float, then `min_samples_split` is a fraction and
+            `ceil(min_samples_split * n_samples)` are the minimum number of
+            samples for each split.
+
+        min_samples_leaf: int or float, default=1
+          The minimum number of samples required to be a leaf node.
+          A split point at eny depth will only be considered if it leaves at
+          least `min_samples_leaf` training samples in each of the left and
+          right branches. This may have the effect of smoothing the model,
+          especially in regression.
+
+          - If int, then consider `min_samples_leaf` as the minimum number.
+          - If float, then `min_samples_leaf` is a fraction and
+            `ceil(min_samples_leaf * n_samples)` are the minimum number of
+            samples for each node.
+
+        max_leaf_nodes: int, default=None
+          Grow a tree with `max_leaf_nodes` in best-first fashion. Best nodes
+          are defined as relative reduction in impurity. If None then unlimited
+          number of leaf nodes.
+
+        min_impurity_decrease: float, default=0.0
+          A node wil be split if this split induces a decrease of the impurity
+          greater than or equal to this value.
+
+          The weighted impurity decrease equation is the following:
+
+            N_t / N * (impurity - N_t_R / N_t * right_impurity
+                                - N_t_L / N_t * left_impurity)
+
+          where ``N`` is the total number of samples, ``N_t`` is the number of
+          samples at the current node, ``N_t_L`` is the number of samples in the
+          left child, and ``N_t_R`` is the number of samples in the right child.
+
+          ``N``, ``N_t``, ``N_t_R`` and ``N_t_L`` all refer to the weighted sum,
+          if ``sample_weight`` is passed.
+
+        max_childs: int, default=None
+          When choosing a categorical split, `max_childs` limits the maximum
+          number of child nodes. If None then unlimited number of child nodes.
+
+        num_features: list[str] or str, default=None
+          List of numerical feature names. If None `num_features` will be set
+          from unset feature names in X while .fit().
+
+        cat_features: list[str] or str, default=None
+          List of categorical feature names. If None `cat_features` will be set
+          from unset feature names in X while .fit().
+
+        rank_features: list[str] or str, default=None
+          List of rank feature names.
+
+        hierarchy: dict[str, str | list[str]], default=None
+          A hierarchical dependency between features that determines the order
+          in which they can be used for splitting nodes in the decision tree.
+          If provided, the algorithm will respect these dependencies when
+          selecting features for splits.
+
+        na_mode: {"include_all", "include_best"}, default="include_best"
+          Default mode for handling missing values.
+
+        num_na_mode: {"min", "max", "include_all", "include_best"}, default=None
+          Mode for numerical features (overrides `na_mode`).
+
+        cat_na_mode: {"as_category", "include_all", "include_best"}, default=None
+          Mode for categorical features (overrides `na_mode`).
+
+        cat_na_filler: str, default="missing_value"
+          Used when `cat_na_mode="as_category"`.
+
+        rank_na_mode: {"include_all", "include_best"}, default=None
+          Mode for rank features (overrides `na_mode`).
+
+        feature_na_mode: dict, default=None
+          Per-feature mode overrides (takes highest precedence).
+
+        verbose: {"CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG"} or int,
+                 default="WARNING"
+          Controls the level of decision tree verbosity.
+
+    Missing Value Handling:
+        The following modes are supported for handling missing values:
+
+        - "min" (numerical only): Replace with feature minimum
+        - "max" (numerical only): Replace with feature maximum
+        - "as_category" (categorical only): Treat as separate category
+        - "include_all": Distribute samples to all child nodes during training,
+                         use weighted decisions during prediction
+        - "include_best": Send samples to best child node based on information gain
+
+        Mode precedence (highest to lowest):
+        1. feature_na_mode[feature_name]
+        2. type_na_mode (num_na_mode/cat_na_mode/rank_na_mode)
+        3. na_mode (global default)
     """
+
     def __init__(
         self,
         *,
