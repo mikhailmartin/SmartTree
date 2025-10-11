@@ -10,6 +10,7 @@ from ._types import CriterionType
 
 
 class Builder:
+
     def __init__(
         self,
         dataset: Dataset,
