@@ -5,7 +5,7 @@ from numpy.typing import NDArray
 
 from ._dataset import Dataset
 
-class ClassificationCriterion(ABC):
+class Criterion(ABC):
 
     def __init__(self, dataset: Dataset) -> None:
         ...
@@ -56,7 +56,14 @@ class ClassificationCriterion(ABC):
     def impurity(self, mask: NDArray[np.bool_]) -> float:
         raise NotImplementedError
 
-    def distribution(self, mask: NDArray[np.bool_]) -> NDArray[np.int64]:
+    @abstractmethod
+    def value(self, mask: NDArray[np.bool_]):
+        raise NotImplementedError
+
+
+class ClassificationCriterion(Criterion):  # type: ignore[misc]
+
+    def value(self, mask: NDArray[np.bool_]) -> NDArray[np.int64]:
         ...
 
 

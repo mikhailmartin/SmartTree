@@ -11,7 +11,7 @@ from numpy.typing import NDArray
 from ._criterion import ClassificationCriterion, Entropy, Gini
 from ._dataset import Dataset
 from ._tree import TreeNode
-from ._types import ClassificationCriterionType, NaModeType
+from ._types import CriterionType, NaModeType
 
 
 NO_INFORMATION_GAIN = float("-inf")
@@ -38,7 +38,7 @@ class BaseColumnSplitter(ABC):
     def __init__(
         self,
         dataset: Dataset,
-        criterion: ClassificationCriterionType,
+        criterion: CriterionType,
         min_samples_split: int,
         min_samples_leaf: int,
         feature_na_mode: dict[str, NaModeType],
@@ -172,7 +172,7 @@ class NumColumnSplitter(BaseColumnSplitter):
     def __init__(
         self,
         dataset: Dataset,
-        criterion: ClassificationCriterionType,
+        criterion: CriterionType,
         min_samples_split: int,
         min_samples_leaf: int,
         feature_na_mode: dict[str, NaModeType],
@@ -228,7 +228,7 @@ class CatColumnSplitter(BaseColumnSplitter):
     def __init__(
         self,
         dataset: Dataset,
-        criterion: ClassificationCriterionType,
+        criterion: CriterionType,
         min_samples_split: int,
         min_samples_leaf: int,
         max_leaf_nodes: int | float,
@@ -319,7 +319,7 @@ class RankColumnSplitter(BaseColumnSplitter):
     def __init__(
         self,
         dataset: Dataset,
-        criterion: ClassificationCriterionType,
+        criterion: CriterionType,
         min_samples_split: int,
         min_samples_leaf: int,
         rank_features: dict[str, list],

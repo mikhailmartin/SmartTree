@@ -22,6 +22,7 @@ from ._types import (
     CatNaModeType,
     ClassificationCriterionType,
     CommonNaModeType,
+    CriterionType,
     NaModeType,
     NumNaModeType,
     RegressionCriterionType,
@@ -35,7 +36,7 @@ class BaseSmartDecisionTree(ABC):
     def __init__(
         self,
         *,
-        criterion: ClassificationCriterionType | RegressionCriterionType = "gini",
+        criterion: CriterionType = "gini",
         max_depth: int | None = None,
         min_samples_split: int | float = 2,
         min_samples_leaf: int | float = 1,
@@ -241,9 +242,135 @@ class BaseSmartDecisionTree(ABC):
             f"{self.__class__.__name__}({', '.join(repr_)})"
         )
 
-    @abstractmethod
     def fit(self, X: pd.DataFrame, y: pd.Series) -> Self:
-        raise NotImplementedError
+        """
+        Build a decision tree from the training set (X, y).
+
+        Parameters:
+            X: pd.DataFrame
+              The training input samples.
+            y: pd.Series
+              The target values.
+        """
+        X, y = check__data(
+            X=X,
+            y=y,
+            num_features=self.num_features,
+            cat_features=self.cat_features,
+            rank_features=self.rank_features,
+        )
+
+        max_depth = float("+inf") if self.max_depth is None else self.max_depth
+
+        if isinstance(self.min_samples_split, float):
+            min_samples_split = math.ceil(self.min_samples_split * X.shape[0])
+        else:
+            min_samples_split = self.min_samples_split
+
+        if isinstance(self.min_samples_leaf, float):
+            min_samples_leaf = math.ceil(self.min_samples_leaf * X.shape[0])
+        else:
+            min_samples_leaf = self.min_samples_leaf
+
+        if self.max_leaf_nodes is None:
+            max_leaf_nodes = float("+inf")
+        else:
+            max_leaf_nodes = self.max_leaf_nodes
+
+        max_childs = float("+inf") if self.max_childs is None else self.max_childs
+
+        known_features = (
+            self.num_features + self.cat_features + list(self.rank_features.keys())
+        )
+        unknown_num_features = (
+            X.drop(columns=known_features).select_dtypes("number").columns.to_list()
+        )
+        unknown_cat_features = (
+            X.drop(columns=known_features)
+            .select_dtypes(include=["category", "object"]).columns.to_list()
+        )
+        if unknown_num_features:
+            self.num_features.extend(unknown_num_features)
+            self.logger.info(
+                f"[{self.__class__.__name__}] [Info] {unknown_num_features} are"
+                " added to `num_features`."
+            )
+        if unknown_cat_features:
+            self.cat_features.extend(unknown_cat_features)
+            self.logger.info(
+                f"[{self.__class__.__name__}] [Info] {unknown_cat_features} are"
+                " added to `cat_features`."
+            )
+
+        self._all_features = X.columns.to_list()
+
+        temp_feature_na_mode = self.feature_na_mode.copy()
+        self.feature_na_mode.update({f: self.na_mode for f in self._all_features})
+        if self.num_na_mode is not None:
+            self.feature_na_mode.update({
+                feature: self.num_na_mode for feature in self.num_features
+            })
+        if self.cat_na_mode is not None:
+            self.feature_na_mode.update({
+                feature: self.cat_na_mode for feature in self.cat_features
+            })
+        if self.rank_na_mode is not None:
+            self.feature_na_mode.update({
+                feature: self.rank_na_mode for feature in self.rank_features
+            })
+        self.feature_na_mode.update(temp_feature_na_mode)
+
+        for feature, na_mode in self.feature_na_mode.items():
+            if na_mode == "min":
+                na_filler = X[feature].min()
+            elif na_mode == "max":
+                na_filler = X[feature].max()
+            elif na_mode == "as_category":
+                na_filler = self.cat_na_filler
+            else:
+                continue
+            self._feature_na_filler[feature] = na_filler
+
+        X = self._preprocess(X)
+
+        dataset = Dataset(X, y)
+
+        splitter = NodeSplitter(
+            dataset=dataset,
+            criterion=self.criterion,
+            max_depth=max_depth,
+            min_samples_split=min_samples_split,
+            min_samples_leaf=min_samples_leaf,
+            max_leaf_nodes=max_leaf_nodes,
+            min_impurity_decrease=self.min_impurity_decrease,
+            max_childs=max_childs,
+            num_features=self.num_features,
+            cat_features=self.cat_features,
+            rank_features=self.rank_features,
+            feature_na_mode=self.feature_na_mode,
+        )
+
+        self._tree = Tree()
+
+        builder = Builder(
+            dataset=dataset,
+            criterion=self.criterion,
+            splitter=splitter,
+            max_leaf_nodes=max_leaf_nodes,
+            hierarchy=self.hierarchy,
+        )
+        builder.build(self._tree)
+
+        self._post_fit(dataset)
+        self._is_fitted = True
+
+        return self
+
+    def _preprocess(self, X: pd.DataFrame) -> pd.DataFrame:
+        return X.fillna(self._feature_na_filler)
+
+    def _post_fit(self, dataset: Dataset) -> None:
+        pass
 
     def _check_is_fitted(self) -> None:
         if not self._is_fitted:
@@ -493,129 +620,8 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         self._check_is_fitted()
         return self.__classes
 
-    def fit(self, X: pd.DataFrame, y: pd.Series) -> Self:
-        """
-        Build a decision tree classifier from the training set (X, y).
-
-        Parameters:
-            X: pd.DataFrame
-              The training input samples.
-            y: pd.Series
-              The target values.
-        """
-        X, y = check__data(
-            X=X,
-            y=y,
-            num_features=self.num_features,
-            cat_features=self.cat_features,
-            rank_features=self.rank_features,
-        )
-
-        max_depth = float("+inf") if self.max_depth is None else self.max_depth
-
-        if isinstance(self.min_samples_split, float):
-            min_samples_split = math.ceil(self.min_samples_split * X.shape[0])
-        else:
-            min_samples_split = self.min_samples_split
-
-        if isinstance(self.min_samples_leaf, float):
-            min_samples_leaf = math.ceil(self.min_samples_leaf * X.shape[0])
-        else:
-            min_samples_leaf = self.min_samples_leaf
-
-        if self.max_leaf_nodes is None:
-            max_leaf_nodes = float("+inf")
-        else:
-            max_leaf_nodes = self.max_leaf_nodes
-
-        max_childs = float("+inf") if self.max_childs is None else self.max_childs
-
-        known_features = (
-            self.num_features + self.cat_features + list(self.rank_features.keys())
-        )
-        unknown_num_features = (
-            X.drop(columns=known_features).select_dtypes("number").columns.to_list()
-        )
-        unknown_cat_features = (
-            X.drop(columns=known_features)
-            .select_dtypes(include=["category", "object"]).columns.to_list()
-        )
-        if unknown_num_features:
-            self.num_features.extend(unknown_num_features)
-            self.logger.info(
-                f"[{self.__class__.__name__}] [Info] {unknown_num_features} are"
-                " added to `num_features`."
-            )
-        if unknown_cat_features:
-            self.cat_features.extend(unknown_cat_features)
-            self.logger.info(
-                f"[{self.__class__.__name__}] [Info] {unknown_cat_features} are"
-                " added to `cat_features`."
-            )
-
-        self._all_features = X.columns.to_list()
-
-        temp_feature_na_mode = self.feature_na_mode.copy()
-        self.feature_na_mode.update({f: self.na_mode for f in self._all_features})
-        if self.num_na_mode is not None:
-            self.feature_na_mode.update({
-                feature: self.num_na_mode for feature in self.num_features
-            })
-        if self.cat_na_mode is not None:
-            self.feature_na_mode.update({
-                feature: self.cat_na_mode for feature in self.cat_features
-            })
-        if self.rank_na_mode is not None:
-            self.feature_na_mode.update({
-                feature: self.rank_na_mode for feature in self.rank_features
-            })
-        self.feature_na_mode.update(temp_feature_na_mode)
-
-        for feature, na_mode in self.feature_na_mode.items():
-            if na_mode == "min":
-                na_filler = X[feature].min()
-            elif na_mode == "max":
-                na_filler = X[feature].max()
-            elif na_mode == "as_category":
-                na_filler = self.cat_na_filler
-            else:
-                continue
-            self._feature_na_filler[feature] = na_filler
-
-        X = self.__preprocess(X)
-
-        dataset = Dataset(X, y)
-
-        splitter = NodeSplitter(
-            dataset=dataset,
-            criterion=self.criterion,
-            max_depth=max_depth,
-            min_samples_split=min_samples_split,
-            min_samples_leaf=min_samples_leaf,
-            max_leaf_nodes=max_leaf_nodes,
-            min_impurity_decrease=self.min_impurity_decrease,
-            max_childs=max_childs,
-            num_features=self.num_features,
-            cat_features=self.cat_features,
-            rank_features=self.rank_features,
-            feature_na_mode=self.feature_na_mode,
-        )
-
-        self._tree = Tree()
-
-        builder = Builder(
-            dataset=dataset,
-            criterion=self.criterion,
-            splitter=splitter,
-            max_leaf_nodes=max_leaf_nodes,
-            hierarchy=self.hierarchy,
-        )
-        builder.build(self._tree)
-
+    def _post_fit(self, dataset: Dataset) -> None:
         self.__classes = dataset.classes
-        self._is_fitted = True
-
-        return self
 
     def predict(self, X: pd.DataFrame) -> NDArray:
         """
@@ -647,7 +653,7 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         """
         X = check__data(X=X, all_features=self.all_features)
 
-        X = self.__preprocess(X)
+        X = self._preprocess(X)
 
         distributions = np.array([
             self.__get_distribution(self.tree_.root, point) for _, point in X.iterrows()
@@ -670,9 +676,6 @@ class SmartDecisionTreeClassifier(BaseSmartDecisionTree):
         y_pred_proba = self.predict_proba(X)
         epsilon = 1e-10
         return np.log(y_pred_proba + epsilon)
-
-    def __preprocess(self, X: pd.DataFrame) -> pd.DataFrame:
-        return X.fillna(self._feature_na_filler)
 
     def __get_distribution(
         self,
@@ -927,3 +930,13 @@ class SmartDecisionTreeRegressor(BaseSmartDecisionTree):
     @property
     def criterion(self) -> RegressionCriterionType:
         return cast(RegressionCriterionType, super().criterion)
+
+    def predict(self, X: pd.DataFrame) -> NDArray:
+        ...
+
+    def score(self,
+        X: pd.DataFrame,
+        y: pd.Series,
+        sample_weight: pd.Series | None = None,
+    ) -> float | np.floating:
+        ...

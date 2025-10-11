@@ -10,7 +10,7 @@ from ._dataset import Dataset
 cnp.import_array()
 
 
-cdef class ClassificationCriterion:
+cdef class Criterion:
 
     def __cinit__(self, dataset: Dataset) -> None:
         self.y = dataset.y
@@ -60,9 +60,12 @@ cdef class ClassificationCriterion:
 
         return information_gain
 
+
+cdef class ClassificationCriterion(Criterion):
+
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef cnp.int64_t[:] distribution(self, cnp.npy_bool[:] mask):
+    cpdef cnp.int64_t[:] value(self, cnp.npy_bool[:] mask):
 
         cdef Py_ssize_t i
         cdef cnp.int64_t[:] result
@@ -91,7 +94,7 @@ cdef class Gini(ClassificationCriterion):
         cdef cnp.int64_t N, count
         cdef double p_i, gini
 
-        distribution = self.distribution(mask)
+        distribution = self.value(mask)
         N = 0
         for i in range(self.n_classes):
             count = distribution[i]
@@ -119,7 +122,7 @@ cdef class Entropy(ClassificationCriterion):
         cdef cnp.int64_t N, count
         cdef double p_i, gini
 
-        distribution = self.distribution(mask)
+        distribution = self.value(mask)
         N = 0
         for i in range(self.n_classes):
             count = distribution[i]

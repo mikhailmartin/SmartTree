@@ -6,7 +6,7 @@ from numpy.typing import NDArray
 from ._column_splitter import CatColumnSplitter, NumColumnSplitter, RankColumnSplitter
 from ._dataset import Dataset
 from ._tree import TreeNode
-from ._types import ClassificationCriterionType, NaModeType, SplitType
+from ._types import CriterionType, NaModeType, SplitType
 
 
 class NodeSplitResult(NamedTuple):
@@ -34,7 +34,7 @@ class NodeSplitter:
     def __init__(
         self,
         dataset: Dataset,
-        criterion: ClassificationCriterionType,
+        criterion: CriterionType,
         max_depth: int | float,
         min_samples_split: int,
         min_samples_leaf: int,

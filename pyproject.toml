@@ -30,6 +30,7 @@ notebook = "^7.0.6"
 jupyterlab-execute-time = "^3.1.0"
 cython = "^3.1.4"
 snakeviz = "^2.2.2"
+matplotlib = "^3.10.7"
 
 [tool.poetry.group.test.dependencies]
 pytest = "^7.4.3"
