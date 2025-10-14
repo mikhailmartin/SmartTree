@@ -14,7 +14,6 @@ cdef class Criterion:
 
     def __cinit__(self, dataset: Dataset) -> None:
         self.y = dataset.y
-        self.n_classes = len(dataset.classes)
         self.n_samples = len(dataset.y)
 
     cpdef double impurity_decrease(
@@ -62,6 +61,9 @@ cdef class Criterion:
 
 
 cdef class ClassificationCriterion(Criterion):
+
+    def __cinit__(self, dataset: Dataset) -> None:
+        self.n_classes = len(dataset.classes)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
@@ -136,3 +138,13 @@ cdef class Entropy(ClassificationCriterion):
                 entropy -= p_i * log2(p_i)
 
         return entropy
+
+
+class RegressionCriterion(Criterion):
+    def value(self, mask) -> float:
+        return self.y[mask].mean()
+
+
+class MSE(RegressionCriterion):
+    def impurity(self, mask)  -> float:
+        return self.y[mask].var()

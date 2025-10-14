@@ -4,7 +4,6 @@ cimport numpy as cnp
 cdef class Criterion:
 
     cdef cnp.int64_t[:] y
-    cdef Py_ssize_t n_classes
     cdef Py_ssize_t n_samples
 
     cpdef double impurity_decrease(
@@ -16,6 +15,9 @@ cdef class Criterion:
 
 
 cdef class ClassificationCriterion(Criterion):
+
+    cdef Py_ssize_t n_classes
+
     cpdef cnp.int64_t[:] value(self, cnp.npy_bool[:] mask)
 
 
@@ -25,3 +27,11 @@ cdef class Gini(ClassificationCriterion):
 
 cdef class Entropy(ClassificationCriterion):
     cpdef double impurity(self, cnp.npy_bool[:] mask)
+
+
+class RegressionCriterion(Criterion):
+    def value(self, mask) -> float: ...
+
+
+class MSE(RegressionCriterion):
+    def impurity(self, mask)  -> float: ...
