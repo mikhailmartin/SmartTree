@@ -117,7 +117,7 @@ cdef class Entropy(ClassificationCriterion):
         cdef Py_ssize_t i
         cdef cnp.int64_t[:] distribution
         cdef cnp.int64_t N, count
-        cdef double p_i, gini
+        cdef double p_i, entropy
 
         distribution = self.distribution(mask)
         N = 0
